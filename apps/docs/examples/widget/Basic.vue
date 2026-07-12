@@ -1,5 +1,13 @@
 <script setup lang="ts">
 import { OWidget } from '@puzzle-fuzzy/ui'
+import {
+  LuWallet,
+  LuCoins,
+  LuFlame,
+  LuFootprints,
+  LuTarget,
+  LuCheckCheck,
+} from 'vue-icons-plus/lu'
 
 const spendingData = [42, 58, 45, 72, 60, 85, 78]
 const incomeData = [20, 35, 28, 45, 52, 38, 60]
@@ -11,65 +19,65 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
 
 <template>
   <div class="omg-widget-grid">
-    <!-- Spending -->
     <OWidget
       title="花费"
       value="85"
       unit="元"
-      icon="💳"
       chart-type="line"
       :chart-data="spendingData"
-    />
+    >
+      <template #icon><LuWallet aria-hidden="true" /></template>
+    </OWidget>
 
-    <!-- Income -->
     <OWidget
       title="收入"
       value="60"
       unit="元"
-      icon="💰"
       chart-type="line"
       :chart-data="incomeData"
-    />
+    >
+      <template #icon><LuCoins aria-hidden="true" /></template>
+    </OWidget>
 
-    <!-- Activity -->
     <OWidget
       title="活跃程度"
       value="8"
       unit="天"
-      icon="🔥"
       chart-type="activity"
       :chart-data="activityData"
-    />
+    >
+      <template #icon><LuFlame aria-hidden="true" /></template>
+    </OWidget>
 
-    <!-- Steps -->
     <OWidget
       title="步数"
       value="8.9"
       unit="k"
-      icon="🏃"
       chart-type="line"
       :chart-data="stepsData"
-    />
+    >
+      <template #icon><LuFootprints aria-hidden="true" /></template>
+    </OWidget>
 
-    <!-- Focus days -->
     <OWidget
       title="专注"
       value="5"
       unit="天"
-      icon="🎯"
       chart-type="activity"
       :chart-data="focusData"
-    />
+    >
+      <template #icon><LuTarget aria-hidden="true" /></template>
+    </OWidget>
 
-    <!-- Tasks -->
     <OWidget
       title="完成任务"
       value="8"
       unit="个"
-      icon="✅"
       chart-type="line"
       :chart-data="tasksData"
-    />
+    >
+      <template #icon><LuCheckCheck aria-hidden="true" /></template>
+    </OWidget>
   </div>
 </template>
 

@@ -19,10 +19,6 @@ export const oWidgetProps = {
     required: true,
   },
   unit: String,
-  icon: {
-    type: String,
-    default: '📊',
-  },
   chartType: {
     type: String as PropType<OWidgetChartType>,
     default: 'line',

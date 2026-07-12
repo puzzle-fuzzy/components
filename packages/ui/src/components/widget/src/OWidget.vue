@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue'
+import { LuBarChart3 } from 'vue-icons-plus/lu'
 
 import { oWidgetProps, type OWidgetSlots } from './widget'
 
@@ -60,7 +61,7 @@ const chartColumns = computed(() => {
 <template>
   <div class="o-widget">
     <div class="o-widget__icon">
-      <slot name="icon">{{ icon }}</slot>
+      <slot name="icon"><LuBarChart3 aria-hidden="true" /></slot>
     </div>
 
     <div class="o-widget__title">{{ title }}</div>

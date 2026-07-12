@@ -15,7 +15,6 @@ describe('OWidget', () => {
       title: '花费',
       value: 85,
       unit: '元',
-      icon: '💳',
       chartType: 'line',
       chartData: [42, 58, 45, 72, 60, 85, 78],
     }
@@ -25,16 +24,14 @@ describe('OWidget', () => {
     expect(oWidgetProps.chartType.validator('pie')).toBe(false)
     const chartType: OWidgetChartType | undefined = publicProps.chartType
     expect(chartType).toBe('line')
-    expect(oWidgetProps.icon.default).toBe('📊')
   })
 
-  it('renders title, value, unit, and icon', () => {
+  it('renders title, value, and unit', () => {
     const wrapper = mount(OWidget, {
       props: {
         title: '花费',
         value: 85,
         unit: '元',
-        icon: '💳',
       },
     })
 
@@ -42,7 +39,6 @@ describe('OWidget', () => {
     expect(wrapper.text()).toContain('花费')
     expect(wrapper.text()).toContain('85')
     expect(wrapper.text()).toContain('元')
-    expect(wrapper.text()).toContain('💳')
   })
 
   it('renders a line chart SVG when chartType is line with enough data', () => {
@@ -109,7 +105,7 @@ describe('OWidget', () => {
         unit: '元',
       },
       slots: {
-        icon: '<span class="custom-icon">🪙</span>',
+        icon: '<span class="custom-icon"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" /></span>',
         chart: '<div class="custom-chart">Custom Chart</div>',
       },
     })

@@ -28,6 +28,7 @@ import WidgetBasic from '../../examples/widget/Basic.vue'
 <script setup lang="ts">
 import { OWidget } from '@puzzle-fuzzy/ui'
 import '@puzzle-fuzzy/ui/styles.css'
+import { LuWallet } from 'vue-icons-plus/lu'
 </script>
 
 <template>
@@ -35,10 +36,11 @@ import '@puzzle-fuzzy/ui/styles.css'
     title="花费"
     value="85"
     unit="元"
-    icon="💳"
     chart-type="line"
     :chart-data="[42, 58, 45, 72, 60, 85, 78]"
-  />
+  >
+    <template #icon><LuWallet aria-hidden="true" /></template>
+  </OWidget>
 </template>
 ```
 
@@ -48,8 +50,7 @@ import '@puzzle-fuzzy/ui/styles.css'
 | --- | --- | --- | --- |
 | title | `string` | 必填 | 卡片名称（右上角） |
 | value | `string \| number` | 必填 | 数据值（左下角大字） |
-| unit | `string` | — | 数值单位，字体比数值小（左下角） |
-| icon | `string` | `'📊'` | 图标 emoji（左上角），可通过 slot 自定义 |
+| unit | `string` | — | 数值单位，字体比数值小 |
 | chartType | `'line' \| 'activity'` | `'line'` | 迷你图表类型 |
 | chartData | `number[]` | `[]` | 图表数据 |
 
@@ -63,26 +64,29 @@ import '@puzzle-fuzzy/ui/styles.css'
 
 | 名称 | 说明 |
 | --- | --- |
-| `icon` | 自定义图标，替代默认 emoji |
+| `icon` | 自定义图标（左上角），默认显示柱状图图标 |
 | `chart` | 自定义图表，替代默认的迷你折线图或点阵图 |
 
 ## 示例
 
-### 自定义图标 + 自定义图表
+### 自定义图标
+
+图标通过 `#icon` 插槽传入，推荐使用 `vue-icons-plus` 系列图标库：
 
 ```vue
-<OWidget
-  title="访问量"
-  value="12.3k"
-  unit="次"
-  chart-type="line"
-  :chart-data="[2.1, 3.5, 2.8, 4.2, 5.1, 3.8, 6.0]"
->
-  <template #icon>
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M3 3v18h18" />
-      <path d="M7 16l4-8 4 4 4-6" />
-    </svg>
-  </template>
-</OWidget>
+<script setup lang="ts">
+import { LuTrendingUp } from 'vue-icons-plus/lu'
+</script>
+
+<template>
+  <OWidget
+    title="访问量"
+    value="12.3k"
+    unit="次"
+    chart-type="line"
+    :chart-data="[2.1, 3.5, 2.8, 4.2, 5.1, 3.8, 6.0]"
+  >
+    <template #icon><LuTrendingUp aria-hidden="true" /></template>
+  </OWidget>
+</template>
 ```
