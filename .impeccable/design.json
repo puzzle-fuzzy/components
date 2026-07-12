@@ -1,0 +1,390 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-12T00:00:00.000Z",
+  "title": "Design System: OMG UI",
+  "extensions": {
+    "colorMeta": {
+      "focused-blue": {
+        "role": "primary",
+        "displayName": "Focused Blue",
+        "canonical": "#1d4ed8",
+        "tonalRamp": [
+          "#08132f",
+          "#10275f",
+          "#183b8f",
+          "#1d4ed8",
+          "#4c73e4",
+          "#7da2ff",
+          "#b2c7ff",
+          "#edf2ff"
+        ]
+      },
+      "focused-blue-hover": {
+        "role": "primary",
+        "displayName": "Focused Blue Hover",
+        "canonical": "#1e40af",
+        "tonalRamp": [
+          "#08132f",
+          "#10275f",
+          "#183b8f",
+          "#1e40af",
+          "#4c73e4",
+          "#7da2ff",
+          "#b2c7ff",
+          "#edf2ff"
+        ]
+      },
+      "focused-blue-dark": {
+        "role": "primary",
+        "displayName": "Focused Blue Dark",
+        "canonical": "#7da2ff",
+        "tonalRamp": [
+          "#08132f",
+          "#10275f",
+          "#183b8f",
+          "#1d4ed8",
+          "#4c73e4",
+          "#7da2ff",
+          "#b2c7ff",
+          "#edf2ff"
+        ]
+      },
+      "on-focused-blue": {
+        "role": "neutral",
+        "displayName": "On Focused Blue",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#121316",
+          "#273040",
+          "#475467",
+          "#667085",
+          "#98a2b3",
+          "#d9dee9",
+          "#eef2f7",
+          "#ffffff"
+        ]
+      },
+      "light-surface": {
+        "role": "neutral",
+        "displayName": "Clear Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#121316",
+          "#273040",
+          "#475467",
+          "#667085",
+          "#98a2b3",
+          "#d9dee9",
+          "#eef2f7",
+          "#ffffff"
+        ]
+      },
+      "light-surface-muted": {
+        "role": "neutral",
+        "displayName": "Quiet Surface",
+        "canonical": "#eef2f7",
+        "tonalRamp": [
+          "#121316",
+          "#273040",
+          "#475467",
+          "#667085",
+          "#98a2b3",
+          "#d9dee9",
+          "#eef2f7",
+          "#ffffff"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Midnight Surface",
+        "canonical": "#141821",
+        "tonalRamp": [
+          "#121316",
+          "#141821",
+          "#202226",
+          "#273040",
+          "#475467",
+          "#667085",
+          "#98a2b3",
+          "#d9dee9"
+        ]
+      },
+      "dark-surface-muted": {
+        "role": "neutral",
+        "displayName": "Midnight Raised",
+        "canonical": "#242936",
+        "tonalRamp": [
+          "#121316",
+          "#141821",
+          "#202226",
+          "#242936",
+          "#475467",
+          "#667085",
+          "#98a2b3",
+          "#d9dee9"
+        ]
+      },
+      "light-ink": {
+        "role": "neutral",
+        "displayName": "Slate Ink",
+        "canonical": "#273040",
+        "tonalRamp": [
+          "#121316",
+          "#202226",
+          "#273040",
+          "#475467",
+          "#667085",
+          "#98a2b3",
+          "#d9dee9",
+          "#f4f6fb"
+        ]
+      },
+      "light-ink-muted": {
+        "role": "neutral",
+        "displayName": "Slate Muted",
+        "canonical": "#475467",
+        "tonalRamp": [
+          "#121316",
+          "#202226",
+          "#273040",
+          "#475467",
+          "#667085",
+          "#98a2b3",
+          "#d9dee9",
+          "#f4f6fb"
+        ]
+      },
+      "dark-ink": {
+        "role": "neutral",
+        "displayName": "Cloud Ink",
+        "canonical": "#f4f6fb",
+        "tonalRamp": [
+          "#121316",
+          "#202226",
+          "#273040",
+          "#475467",
+          "#667085",
+          "#98a2b3",
+          "#d9dee9",
+          "#f4f6fb"
+        ]
+      },
+      "dark-ink-muted": {
+        "role": "neutral",
+        "displayName": "Cloud Muted",
+        "canonical": "#d9dee9",
+        "tonalRamp": [
+          "#121316",
+          "#202226",
+          "#273040",
+          "#475467",
+          "#667085",
+          "#98a2b3",
+          "#d9dee9",
+          "#f4f6fb"
+        ]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Clear Danger",
+        "canonical": "#d92d20",
+        "tonalRamp": [
+          "#2b0805",
+          "#5b100a",
+          "#8c1b13",
+          "#b42318",
+          "#d92d20",
+          "#f04438",
+          "#ff8a80",
+          "#fff0ee"
+        ]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Clear Success",
+        "canonical": "#067647",
+        "tonalRamp": [
+          "#032d1c",
+          "#045436",
+          "#067647",
+          "#17b26a",
+          "#47c98a",
+          "#75e0a7",
+          "#b7f1d0",
+          "#effcf5"
+        ]
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Clear Warning",
+        "canonical": "#dc6803",
+        "tonalRamp": [
+          "#3b1801",
+          "#713000",
+          "#a74800",
+          "#dc6803",
+          "#f79009",
+          "#fec84b",
+          "#ffe6a7",
+          "#fff8e6"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Compact Title",
+        "purpose": "Component and documentation section headings."
+      },
+      "body": {
+        "displayName": "Product Body",
+        "purpose": "Control content, options, labels, and compact prose."
+      },
+      "label": {
+        "displayName": "Dense Label",
+        "purpose": "Status, metadata, and compact supporting labels."
+      }
+    },
+    "shadows": [
+      {
+        "name": "structural-light",
+        "value": "0 1px 2px rgb(15 23 42 / 10%)",
+        "purpose": "Functional separation for solid controls, avatars, and floating surfaces in light theme."
+      },
+      {
+        "name": "structural-dark",
+        "value": "0 1px 2px rgb(0 0 0 / 26%)",
+        "purpose": "Functional separation for the same surfaces in dark theme."
+      }
+    ],
+    "motion": [
+      {
+        "name": "duration-fast",
+        "value": "160ms",
+        "purpose": "Direct hover, focus, panel, and indicator state feedback."
+      },
+      {
+        "name": "duration-normal",
+        "value": "240ms",
+        "purpose": "Larger state changes that remain subordinate to the user's task."
+      },
+      {
+        "name": "easing-standard",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "Confident deceleration without bounce or elastic overshoot."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "docs-compact",
+        "value": "640px"
+      },
+      {
+        "name": "avatar-flow-compact-container",
+        "value": "18rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Solid Brand Button",
+      "kind": "button",
+      "refersTo": "button-solid",
+      "description": "Primary product action with compact geometry and explicit focus.",
+      "html": "<button class=\"ds-button-solid\" type=\"button\">Save changes</button>",
+      "css": ".ds-button-solid { min-height: 38px; padding: 8px 16px; border: 1px solid transparent; border-radius: 8px; background: var(--omg-color-brand, #1d4ed8); color: var(--omg-color-on-brand, #fff); box-shadow: var(--omg-shadow-sm, 0 1px 2px rgb(15 23 42 / 10%)); font: inherit; font-weight: 650; transition: background-color 160ms cubic-bezier(0.2, 0, 0, 1), transform 160ms cubic-bezier(0.2, 0, 0, 1); } .ds-button-solid:hover { background: var(--omg-color-brand-hover, #1e40af); } .ds-button-solid:focus-visible { outline: 3px solid var(--omg-color-focus-ring, #1d4ed8); outline-offset: 2px; } .ds-button-solid:active { transform: translateY(1px); } @media (prefers-reduced-motion: reduce) { .ds-button-solid { transition: none; } .ds-button-solid:active { transform: none; } }"
+    },
+    {
+      "name": "Soft Brand Button",
+      "kind": "button",
+      "refersTo": "button-soft",
+      "description": "Secondary action using a quiet brand tint without elevation.",
+      "html": "<button class=\"ds-button-soft\" type=\"button\">View details</button>",
+      "css": ".ds-button-soft { min-height: 38px; padding: 8px 16px; border: 1px solid transparent; border-radius: 8px; background: var(--omg-color-brand-soft, rgb(29 78 216 / 12%)); color: var(--omg-color-brand, #1d4ed8); font: inherit; font-weight: 650; transition: background-color 160ms cubic-bezier(0.2, 0, 0, 1); } .ds-button-soft:hover { background: var(--omg-color-brand-border, rgb(29 78 216 / 28%)); } .ds-button-soft:focus-visible { outline: 3px solid var(--omg-color-focus-ring, #1d4ed8); outline-offset: 2px; } @media (prefers-reduced-motion: reduce) { .ds-button-soft { transition: none; } }"
+    },
+    {
+      "name": "Verification Code Field",
+      "kind": "input",
+      "refersTo": "code-field",
+      "description": "A field that is taller than wide and communicates focus through border weight.",
+      "html": "<input class=\"ds-code-field\" inputmode=\"numeric\" value=\"6\" aria-label=\"Verification code digit\">",
+      "css": ".ds-code-field { width: 40px; height: 48px; padding: 0; border: 1px solid var(--omg-color-border, rgb(24 30 40 / 18%)); border-radius: 8px; background: var(--omg-color-surface, #fff); color: var(--omg-color-text, #273040); font: inherit; font-variant-numeric: tabular-nums; font-weight: 750; text-align: center; transition: border-color 160ms cubic-bezier(0.2, 0, 0, 1), border-width 160ms cubic-bezier(0.2, 0, 0, 1); } .ds-code-field:focus { border-width: 2px; border-color: var(--omg-color-brand, #1d4ed8); outline: none; } @media (prefers-reduced-motion: reduce) { .ds-code-field { transition: none; } }"
+    },
+    {
+      "name": "Identity Avatar",
+      "kind": "custom",
+      "refersTo": "avatar",
+      "description": "A compact identity primitive with theme-aware fallback colors.",
+      "html": "<span class=\"ds-avatar\" role=\"img\" aria-label=\"OMG UI\">OM</span>",
+      "css": ".ds-avatar { display: inline-grid; width: 40px; height: 40px; place-items: center; border: 1px solid var(--omg-color-border-subtle, rgb(24 30 40 / 8%)); border-radius: 999px; background: var(--omg-color-surface-muted, #eef2f7); color: var(--omg-color-text, #273040); box-shadow: var(--omg-shadow-sm, 0 1px 2px rgb(15 23 42 / 10%)); font: inherit; font-size: 14px; font-weight: 750; line-height: 1; }"
+    },
+    {
+      "name": "Semantic Divider",
+      "kind": "custom",
+      "description": "A one-pixel separator that uses content only when it adds structure.",
+      "html": "<div class=\"ds-divider\" role=\"separator\"><span></span><strong>Details</strong><span></span></div>",
+      "css": ".ds-divider { display: flex; width: 100%; align-items: center; gap: 12px; color: var(--omg-color-text-muted, #475467); font: inherit; } .ds-divider span { flex: 1; min-width: 0; border-top: 1px solid var(--omg-color-border, rgb(24 30 40 / 18%)); } .ds-divider strong { font-weight: 650; }"
+    },
+    {
+      "name": "Avatar Flow Loading",
+      "kind": "custom",
+      "description": "Three dots scale in place to show a visual connection state without vertical movement.",
+      "html": "<span class=\"ds-flow\" role=\"img\" aria-label=\"Loading avatar connection\"><span></span><span></span><span></span></span>",
+      "css": ".ds-flow { display: inline-flex; align-items: center; gap: 4px; color: var(--omg-color-brand, #1d4ed8); } .ds-flow span { width: 4px; height: 4px; border-radius: 999px; background: currentcolor; animation: ds-flow-pulse 900ms cubic-bezier(0.2, 0, 0, 1) infinite; } .ds-flow span:nth-child(2) { animation-delay: -600ms; } .ds-flow span:nth-child(3) { animation-delay: -300ms; } @keyframes ds-flow-pulse { 0%, 60%, 100% { opacity: .35; transform: scale(.7); } 30% { opacity: 1; transform: scale(1); } } @media (prefers-reduced-motion: reduce) { .ds-flow span { animation: none; opacity: 1; transform: none; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Precision Workbench",
+    "overview": "OMG UI behaves like a carefully organized workbench: every control has one job, every state is visible, and every reusable part fits the same measuring system. The visual language is restrained and familiar so developers can compose product interfaces without relearning standard affordances. Precision does not mean sterility. Compact spacing, quiet surfaces, sharp focus treatment, and short state-driven motion create a responsive feel without decoration. Components inherit the host project's font and use scoped OMG tokens, allowing the library to remain recognizable without taking ownership of the consuming product's brand. The system rejects business logic inside primitives, copied framework aesthetics, gratuitous states, exaggerated shadows, bounce motion, fragmented icon sources, and documentation styles that leak into component tokens.",
+    "keyCharacteristics": [
+      "Restrained blue accent on active, selected, and focused states.",
+      "Compact 4px spacing rhythm with 6px, 8px, and 12px structural radii.",
+      "Familiar controls with explicit keyboard, focus, disabled, and reduced-motion behavior.",
+      "Theme-aware semantic tokens instead of page-specific values.",
+      "Composition over compatibility layers or premature public abstractions."
+    ],
+    "rules": [
+      {
+        "name": "The One Accent Rule",
+        "body": "Focused Blue is reserved for action, focus, selection, and progress; it is never background decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Semantic Theme Rule",
+        "body": "Components consume --omg-color-* roles and never branch on theme names inside component markup.",
+        "section": "colors"
+      },
+      {
+        "name": "The Host Typeface Rule",
+        "body": "The library always uses font: inherit or font-family: inherit; it never ships a display font or overrides the consumer's typography stack.",
+        "section": "typography"
+      },
+      {
+        "name": "The Eight-Pixel Ceiling Rule",
+        "body": "Component shadows never exceed an 8px blur; wide ambient ghost-card shadows are prohibited.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Portal Surface Rule",
+        "body": "Menus and listboxes use fixed positioning through a portal so overflow containers cannot clip them.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do express reusable visual and interaction behavior while leaving requests, routing, permissions, countdowns, and state mapping to consumers.",
+      "Do use one O* name, one .o-* class vocabulary, and one --omg-* token source for each concept.",
+      "Do use vue-icons-plus/lu for every built-in and documentation icon.",
+      "Do verify keyboard focus, ARIA, contrast, SSR, dark theme, and prefers-reduced-motion for every interactive component.",
+      "Do keep control motion at 160ms for direct feedback and 240ms or less for larger state changes.",
+      "Do reuse shared internal interaction foundations before exposing a new public primitive."
+    ],
+    "donts": [
+      "Don't put remote requests, countdowns, permissions, routing, or business-state mapping inside foundational components.",
+      "Don't use complex decoration, exaggerated shadows, bounce motion, or extra states that add visual noise.",
+      "Don't copy the appearance or API of Element Plus, Naive UI, or another framework; only adopt proven architecture, accessibility, and release practices.",
+      "Don't use multiple icon sources, copied SVG assets, or a pass-through OIcon layer.",
+      "Don't override --vp-c-brand-* or allow VitePress theme values to become component tokens.",
+      "Don't preserve pre-release compatibility aliases, private branches, CommonJS, or UMD entries.",
+      "Don't pair a one-pixel border with a decorative shadow wider than 8px, over-round controls beyond 12px, or use color as the only status signal."
+    ]
+  }
+}
