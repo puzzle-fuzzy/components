@@ -30,6 +30,7 @@
   --omg-font-weight-semibold: 650;
   --omg-font-weight-bold: 750;
   --omg-z-index-dropdown: 1000;
+  --omg-z-index-message: 1200;
   --omg-scrollbar-size: 10px;
   --omg-color-overlay: rgb(0 0 0 / 62%);
   --omg-color-overlay-strong: rgb(0 0 0 / 88%);
@@ -60,6 +61,7 @@
   --omg-color-border: fade(#181e28, 18%);
   --omg-color-border-subtle: fade(#181e28, 8%);
   --omg-color-focus-ring: @blue-500;
+  --omg-color-message-surface: @white;
   --omg-color-status-online: @green-500;
   --omg-color-status-away: @amber-500;
   --omg-color-status-busy: @red-500;
@@ -69,6 +71,9 @@
   --omg-color-scrollbar-thumb-hover: fade(@slate-700, 58%);
   --omg-shadow-sm: 0 1px 2px fade(#0f172a, 10%);
   --omg-shadow-dialog: 0 24px 64px fade(#0f172a, 24%), 0 8px 24px fade(#0f172a, 14%);
+  --omg-shadow-message: 0 14px 36px fade(#0f172a, 18%), 0 4px 12px fade(#0f172a, 10%);
+  --omg-shadow-drawer-start: 18px 0 48px fade(#0f172a, 20%), 6px 0 18px fade(#0f172a, 10%);
+  --omg-shadow-drawer-end: -18px 0 48px fade(#0f172a, 20%), -6px 0 18px fade(#0f172a, 10%);
 }
 
 .omg-theme-dark() {
@@ -96,6 +101,7 @@
   --omg-color-border: fade(@slate-50, 24%);
   --omg-color-border-subtle: fade(@slate-50, 14%);
   --omg-color-focus-ring: @blue-300;
+  --omg-color-message-surface: @message-dark-surface;
   --omg-color-status-online: @green-300;
   --omg-color-status-away: @amber-300;
   --omg-color-status-busy: @red-300;
@@ -105,4 +111,7 @@
   --omg-color-scrollbar-thumb-hover: fade(@slate-100, 54%);
   --omg-shadow-sm: 0 1px 2px fade(#000, 26%);
   --omg-shadow-dialog: 0 24px 64px fade(#000, 52%), 0 8px 24px fade(#000, 32%);
+  --omg-shadow-message: 0 16px 40px fade(#000, 48%), 0 4px 14px fade(#000, 30%);
+  --omg-shadow-drawer-start: 18px 0 52px fade(#000, 54%), 6px 0 20px fade(#000, 34%);
+  --omg-shadow-drawer-end: -18px 0 52px fade(#000, 54%), -6px 0 20px fade(#000, 34%);
 }

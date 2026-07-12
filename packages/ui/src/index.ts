@@ -99,6 +99,14 @@ export type {
   ODividerSlots,
 } from './components/divider'
 
+export { ODrawer, normalizeODrawerSize, oDrawerPlacements, oDrawerProps } from './components/drawer'
+export type {
+  ODrawerEmits,
+  ODrawerPlacement,
+  ODrawerProps,
+  ODrawerSlots,
+} from './components/drawer'
+
 export { ODropdown, oDropdownPlacements, oDropdownProps } from './components/dropdown'
 export type {
   ODropdownEmits,
@@ -124,6 +132,23 @@ export type {
   OInputSlots,
   OInputType,
 } from './components/input'
+
+export {
+  OMessage,
+  normalizeOMessageDuration,
+  oMessage,
+  oMessageProps,
+  oMessageStatuses,
+} from './components/message'
+export type {
+  OMessageEmits,
+  OMessageHandle,
+  OMessageOptions,
+  OMessageProps,
+  OMessageService,
+  OMessageSlots,
+  OMessageStatus,
+} from './components/message'
 
 export {
   ORadio,

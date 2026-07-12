@@ -71,6 +71,10 @@
       "types": "./dist/components/divider/index.d.ts",
       "import": "./dist/components/divider/index.js"
     },
+    "./drawer": {
+      "types": "./dist/components/drawer/index.d.ts",
+      "import": "./dist/components/drawer/index.js"
+    },
     "./dropdown": {
       "types": "./dist/components/dropdown/index.d.ts",
       "import": "./dist/components/dropdown/index.js"
@@ -86,6 +90,10 @@
     "./input": {
       "types": "./dist/components/input/index.d.ts",
       "import": "./dist/components/input/index.js"
+    },
+    "./message": {
+      "types": "./dist/components/message/index.d.ts",
+      "import": "./dist/components/message/index.js"
     },
     "./radio": {
       "types": "./dist/components/radio/index.d.ts",
