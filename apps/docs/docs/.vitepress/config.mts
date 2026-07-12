@@ -52,6 +52,10 @@ const sourceAliases = useSource
         replacement: fromRepository('packages/ui/src/components/divider/index.ts'),
       },
       {
+        find: /^@puzzle-fuzzy\/ui\/drawer$/,
+        replacement: fromRepository('packages/ui/src/components/drawer/index.ts'),
+      },
+      {
         find: /^@puzzle-fuzzy\/ui\/dropdown$/,
         replacement: fromRepository('packages/ui/src/components/dropdown/index.ts'),
       },
@@ -66,6 +70,10 @@ const sourceAliases = useSource
       {
         find: /^@puzzle-fuzzy\/ui\/input$/,
         replacement: fromRepository('packages/ui/src/components/input/index.ts'),
+      },
+      {
+        find: /^@puzzle-fuzzy\/ui\/message$/,
+        replacement: fromRepository('packages/ui/src/components/message/index.ts'),
       },
       {
         find: /^@puzzle-fuzzy\/ui\/radio$/,
@@ -150,9 +158,11 @@ export default defineConfig({
       {
         text: '浮层、导航与流程',
         items: [
+          { text: 'Message 消息', link: '/components/message' },
           { text: 'Dropdown 下拉菜单', link: '/components/dropdown' },
           { text: 'Avatar Dropdown 头像下拉', link: '/components/avatar-dropdown' },
           { text: 'Tabs 标签页', link: '/components/tabs' },
+          { text: 'Drawer 侧边面板', link: '/components/drawer' },
           { text: 'Dialog 对话框', link: '/components/dialog' },
           { text: 'Confirm Dialog 确认弹窗', link: '/components/confirm-dialog' },
           { text: 'Form Dialog 表单弹窗', link: '/components/form-dialog' },

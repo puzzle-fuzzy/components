@@ -10,6 +10,7 @@ colors:
   light-surface-muted: '#eef2f7'
   dark-surface: '#141821'
   dark-surface-muted: '#242936'
+  message-dark-surface: '#2d2d2d'
   light-ink: '#273040'
   light-ink-muted: '#475467'
   dark-ink: '#f4f6fb'
@@ -118,6 +119,20 @@ components:
     typography: '{typography.body}'
     rounded: '{rounded.lg}'
     padding: '20px'
+  drawer-surface:
+    backgroundColor: '{colors.light-surface}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.lg}'
+    width: '400px'
+    height: '100dvh'
+  message-surface:
+    backgroundColor: '{colors.light-surface}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.lg}'
+    padding: '12px 16px'
+    width: 'min(360px, calc(100vw - 32px))'
   confirm-dialog-surface:
     backgroundColor: '{colors.light-surface}'
     textColor: '{colors.light-ink}'
@@ -195,6 +210,7 @@ Focused Blue provides one clear accent while slate surfaces and ink roles carry 
 
 - **Clear Surface** (`#ffffff`) and **Quiet Surface** (`#eef2f7`): light-theme controls and secondary layers.
 - **Midnight Surface** (`#141821`) and **Midnight Raised** (`#242936`): dark-theme controls and muted layers.
+- **Message Graphite** (`#2d2d2d`): the exact opaque dark Message surface; it does not replace the normal dark surface token.
 - **Slate Ink** (`#273040`) and **Slate Muted** (`#475467`): light-theme primary and secondary text.
 - **Cloud Ink** (`#f4f6fb`) and **Cloud Muted** (`#d9dee9`): dark-theme primary and secondary text.
 
@@ -231,7 +247,7 @@ Focused Blue provides one clear accent while slate surfaces and ink roles carry 
 
 ## Elevation
 
-OMG UI is flat by default. Surface tone, spacing, and one purposeful elevation layer define most structure. Borders are a limited resource for input boundaries, states, focus, true separators, or hierarchy that has no quieter substitute. Modal Dialog is the deliberate exception: its borderless top-layer surface uses one wider semantic shadow to separate it from the backdrop without adding an outline.
+OMG UI is flat by default. Surface tone, spacing, and one purposeful elevation layer define most structure. Borders are a limited resource for input boundaries, states, focus, true separators, or hierarchy that has no quieter substitute. Modal Dialog and Drawer use wider top-layer shadows; Message uses a compact dedicated shadow. All three remain borderless.
 
 ### Shadow Vocabulary
 
@@ -239,12 +255,15 @@ OMG UI is flat by default. Surface tone, spacing, and one purposeful elevation l
 - **Dark Structural** (`0 1px 2px rgb(0 0 0 / 26%)`): equivalent separation on dark surfaces.
 - **Light Dialog** (`0 24px 64px rgb(15 23 42 / 24%), 0 8px 24px rgb(15 23 42 / 14%)`): modal-only top-layer separation.
 - **Dark Dialog** (`0 24px 64px rgb(0 0 0 / 52%), 0 8px 24px rgb(0 0 0 / 32%)`): modal-only dark-theme separation.
+- **Light Message** (`0 14px 36px rgb(15 23 42 / 18%), 0 4px 12px rgb(15 23 42 / 10%)`): compact top-right message elevation.
+- **Dark Message** (`0 16px 40px rgb(0 0 0 / 48%), 0 4px 14px rgb(0 0 0 / 30%)`): compact elevation on Message Graphite.
+- **Directional Drawer:** the start/end shadows cast inward from the viewport edge and reverse with RTL placement.
 
 ### Named Rules
 
-**The Purposeful Elevation Rule.** Controls and ordinary floating panels use the compact structural shadow. Only native modal Dialog may use the wider `--omg-shadow-dialog`; decorative card shadows remain prohibited.
+**The Purposeful Elevation Rule.** Controls and ordinary floating panels use the compact structural shadow. Native modal Dialog/Drawer and top-right Message use their named semantic elevation; decorative card shadows remain prohibited.
 
-**The Portal Surface Rule.** Menus and listboxes use fixed positioning through a portal so overflow containers cannot clip them.
+**The Portal Surface Rule.** Menus and listboxes use fixed positioning through a portal so overflow containers cannot clip them. Message mounts one lazy Host per target; native Drawer/Dialog content uses an in-layer target for any portalled surface.
 
 **The Border Budget Rule.** Cards, list rows, and floating panels use surface, spacing, or one shadow before a border. A border exists only for an input boundary, state, focus, separator, or irreplaceable layer distinction.
 
@@ -265,9 +284,19 @@ Scrolling follows semantics instead of applying virtualization to every overflow
 - **Select:** fixed-height option collections use `vue-virtual-scroller` only after the normalized threshold is reached. Smaller collections keep direct DOM rendering.
 - **Textarea:** the real textarea remains the editor and scroll container. Fixed mode scrolls internally; autosize grows with content and resumes scrolling only at `maxRows`.
 - **Upload:** the file list is height-bounded but remains complete in the accessibility tree because every row can own a focusable remove action.
-- **Dialog, Dropdown, Tabs, and references:** arbitrary slot content and short focus-owned collections remain complete DOM.
+- **Dialog, Drawer, Dropdown, Tabs, and references:** arbitrary slot content and short focus-owned collections remain complete DOM. Drawer keeps header/footer fixed while only its body scrolls.
 
 All native and virtual viewports share a quiet tokenized scrollbar treatment. Virtualization must never break focus ownership, IME, text selection, native validation, or screen-reader access.
+
+## Motion
+
+- **Message entry:** 260ms ease-out fade and physical right-side translation.
+- **Message exit:** 180ms top-right-origin scale to 0.9 and fade, with no rightward return; remaining rows reflow with transform-only FLIP movement.
+- **Drawer entry:** 260ms directional translation from logical start/end with backdrop fade.
+- **Drawer exit:** at most 180ms, preserving native `display` and `overlay` until the discrete transition completes.
+- **Reduced motion:** Message cleans up without enter/leave/move transitions; Drawer closes immediately without active transitions.
+
+Motion explains arrival, departure, and spatial ownership. It never uses bounce, elastic overshoot, animated layout dimensions, or a settled Drawer transform that would change fixed-position descendants.
 
 ## Components
 
@@ -320,6 +349,14 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 - **Border treatment:** the glass surface has no outer border. The circular icon container uses a quiet tonal fill without a ring.
 - **Semantics:** title and value remain text; a default chart is decorative unless `chartAriaLabel` supplies its accessible meaning. Data retrieval and business interpretation stay outside.
 
+### Message and Drawer
+
+- **Message surface:** an opaque, borderless 360px-maximum surface fixed 16px from the physical top-right. Light uses `#fff`; dark uses exact `#2d2d2d`. Info, success, warning, and error remain distinguishable through Lucide icons and accessible roles rather than color alone.
+- **Message lifecycle:** `OMessage` is the flow-positioned surface. `oMessage()` lazily owns per-target stacking, automatic display duration, remaining-time pause, idempotent handles, and after-leave cleanup. It never maps request results or retries work.
+- **Drawer composition:** `ODrawer` composes `ODialog`, adding only `start/end`, responsive size, side geometry, directional shadow, and motion. Native top layer, focus cycling, backdrop, Esc, focus return, and scroll lock remain Dialog responsibilities.
+- **Drawer content:** header and footer stay fixed while the body scrolls. A settled open Drawer has `transform: none`, allowing inline fixed-position Select panels to keep viewport coordinates.
+- **Layer targets:** a Message or floating control used inside Drawer targets an element inside the native dialog; `OSelect` and `ODropdown` may instead use `teleported="false"`.
+
 ### Dialog, Image, Tabs, and Upload
 
 - **Dialog:** uses the native `<dialog>` top layer for modal focus, background inertness, Escape ordering, and scroll behavior. Its borderless surface keeps a 12px radius and uses the dedicated dialog shadow.
@@ -338,20 +375,21 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 
 ### Do:
 
-- **Do** express reusable visual and interaction behavior while leaving requests, routing, permissions, countdowns, and state mapping to consumers.
+- **Do** express reusable visual and interaction behavior while leaving requests, routing, permissions, business countdowns, and state mapping to consumers; Message display timing is a UI lifecycle.
 - **Do** use one `O*` name, one `.o-*` class vocabulary, and one `--omg-*` token source for each concept.
 - **Do** use `vue-icons-plus/lu` for every built-in and documentation icon.
 - **Do** virtualize only fixed-row collections large enough to benefit, and preserve native editing or complete focusable lists elsewhere.
 - **Do** verify keyboard focus, ARIA, contrast, SSR, dark theme, and `prefers-reduced-motion` for every interactive component.
-- **Do** keep control motion at 160ms for direct feedback and 240ms or less for larger state changes.
+- **Do** keep direct feedback near 160ms, standard state changes near 240ms, and approved overlay entry at no more than 260ms; exits remain faster.
 - **Do** treat user-approved motion, layout, and visual identity as tested behavior during reviews and merges.
 - **Do** allow personal, high-frequency, or stylistically specific public components when they are valuable to the owner's projects.
 - **Do** share internal foundations when they reduce real duplication; keep a component self-contained when public composition adds coupling without a user-facing benefit.
 - **Do** spend borders on form boundaries, state, focus, and real separation; prefer surface, spacing, or one shadow for ordinary layers.
+- **Do** keep Message and Drawer surfaces opaque and borderless, and verify their real enter/leave behavior with reduced-motion alternatives.
 
 ### Don't:
 
-- **Don't** put remote requests, countdowns, permissions, routing, or business-state mapping inside foundational components.
+- **Don't** put remote requests, business countdowns, permissions, routing, retry, or result mapping inside foundational components.
 - **Don't** add complex decoration, exaggerated shadows, unrequested motion, or extra states that dilute an approved effect.
 - **Don't** copy the appearance or API of Element Plus, Naive UI, or another framework; only adopt proven architecture, accessibility, and release practices.
 - **Don't** use multiple icon sources, copied SVG assets, or a pass-through `OIcon` layer.
@@ -360,4 +398,4 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 - **Don't** combine a decorative border with a surface or shadow that already communicates the same boundary.
 - **Don't** override `--vp-c-brand-*` or allow VitePress theme values to become component tokens.
 - **Don't** preserve pre-release compatibility aliases, private branches, CommonJS, or UMD entries.
-- **Don't** add borders to Dialog surfaces, decorative card shadows, unrequested oversized radii, or color-only status signals; protected personal components such as Widget may keep their deliberate geometry.
+- **Don't** add borders to Dialog, Drawer, or Message surfaces, decorative card shadows, unrequested oversized radii, or color-only status signals; protected personal components such as Widget may keep their deliberate geometry.

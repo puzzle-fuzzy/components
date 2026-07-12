@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-12T00:00:00.000Z",
+  "generatedAt": "2026-07-13T00:00:00.000Z",
   "title": "Design System: OMG UI",
   "extensions": {
     "colorMeta": {
@@ -122,6 +122,21 @@
           "#667085",
           "#98a2b3",
           "#d9dee9"
+        ]
+      },
+      "message-dark-surface": {
+        "role": "neutral",
+        "displayName": "Message Graphite",
+        "canonical": "#2d2d2d",
+        "tonalRamp": [
+          "#141414",
+          "#1f1f1f",
+          "#2d2d2d",
+          "#414141",
+          "#5c5c5c",
+          "#8a8a8a",
+          "#c4c4c4",
+          "#f4f4f4"
         ]
       },
       "light-ink": {
@@ -264,6 +279,36 @@
         "name": "dialog-dark",
         "value": "0 24px 64px rgb(0 0 0 / 52%), 0 8px 24px rgb(0 0 0 / 32%)",
         "purpose": "Modal-only top-layer separation in the dark theme."
+      },
+      {
+        "name": "message-light",
+        "value": "0 14px 36px rgb(15 23 42 / 18%), 0 4px 12px rgb(15 23 42 / 10%)",
+        "purpose": "Compact top-right Message elevation on the opaque white surface."
+      },
+      {
+        "name": "message-dark",
+        "value": "0 16px 40px rgb(0 0 0 / 48%), 0 4px 14px rgb(0 0 0 / 30%)",
+        "purpose": "Compact elevation on the exact #2d2d2d Message surface."
+      },
+      {
+        "name": "drawer-start-light",
+        "value": "18px 0 48px rgb(15 23 42 / 20%), 6px 0 18px rgb(15 23 42 / 10%)",
+        "purpose": "Inward shadow for a light-theme Drawer docked at inline-start."
+      },
+      {
+        "name": "drawer-end-light",
+        "value": "-18px 0 48px rgb(15 23 42 / 20%), -6px 0 18px rgb(15 23 42 / 10%)",
+        "purpose": "Inward shadow for a light-theme Drawer docked at inline-end."
+      },
+      {
+        "name": "drawer-start-dark",
+        "value": "18px 0 52px rgb(0 0 0 / 54%), 6px 0 20px rgb(0 0 0 / 34%)",
+        "purpose": "Inward shadow for a dark-theme Drawer docked at inline-start."
+      },
+      {
+        "name": "drawer-end-dark",
+        "value": "-18px 0 52px rgb(0 0 0 / 54%), -6px 0 20px rgb(0 0 0 / 34%)",
+        "purpose": "Inward shadow for a dark-theme Drawer docked at inline-end."
       }
     ],
     "motion": [
@@ -281,6 +326,26 @@
         "name": "easing-standard",
         "value": "cubic-bezier(0.2, 0, 0, 1)",
         "purpose": "Confident deceleration without bounce or elastic overshoot."
+      },
+      {
+        "name": "message-enter",
+        "value": "260ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Physical right-side Message translation and fade-in."
+      },
+      {
+        "name": "message-leave",
+        "value": "180ms cubic-bezier(0.25, 1, 0.5, 1)",
+        "purpose": "Top-right-origin Message scale and fade without rightward return."
+      },
+      {
+        "name": "drawer-enter",
+        "value": "260ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Logical-edge Drawer entry with backdrop fade."
+      },
+      {
+        "name": "drawer-leave",
+        "value": "180ms cubic-bezier(0.25, 1, 0.5, 1)",
+        "purpose": "Faster Drawer exit with discrete display and overlay retention."
       }
     ],
     "breakpoints": [
@@ -368,12 +433,28 @@
       "css": ".ds-select { display: inline-flex; min-width: 180px; flex-direction: column; gap: 6px; font: inherit; color: var(--omg-color-text, #273040); } .ds-select-trigger { display: flex; min-height: 38px; align-items: center; justify-content: space-between; padding: 0 12px; border: 1px solid var(--omg-color-border, rgb(24 30 40 / 18%)); border-radius: 8px; background: var(--omg-color-surface, #fff); color: inherit; font: inherit; } .ds-select-trigger:hover { border-color: var(--omg-color-brand-border, rgb(29 78 216 / 28%)); } .ds-select-trigger:focus-visible { outline: 3px solid var(--omg-color-focus-ring, #1d4ed8); outline-offset: 2px; } .ds-select-panel { padding: 4px; border-radius: 8px; background: var(--omg-color-surface, #fff); box-shadow: var(--omg-shadow-sm, 0 1px 2px rgb(15 23 42 / 10%)); } .ds-select-option { display: flex; min-height: 36px; align-items: center; justify-content: space-between; padding: 0 8px; border-radius: 6px; } .ds-select-option:hover { background: var(--omg-color-neutral-soft, rgb(32 34 38 / 8%)); } .ds-select-option.ds-selected { color: var(--omg-color-brand, #1d4ed8); font-weight: 650; }"
     },
     {
+      "name": "Solid Status Message",
+      "kind": "custom",
+      "refersTo": "message-surface",
+      "description": "A borderless opaque top-right status surface with Lucide status semantics and short spatial motion.",
+      "html": "<div class=\"ds-message ds-message-success\" role=\"status\" aria-atomic=\"true\"><span class=\"ds-message-icon\" aria-hidden=\"true\"></span><span>Saved successfully</span><button type=\"button\" aria-label=\"Close message\">Close</button></div>",
+      "css": ".ds-message { display: flex; width: min(360px, calc(100vw - 32px)); align-items: flex-start; gap: 12px; padding: 12px 16px; border: 0; border-radius: 12px; background: var(--omg-color-message-surface, #fff); box-shadow: var(--omg-shadow-message, 0 14px 36px rgb(15 23 42 / 18%), 0 4px 12px rgb(15 23 42 / 10%)); color: var(--omg-color-text, #273040); font: inherit; } .ds-message-icon { width: 20px; height: 20px; flex: 0 0 auto; border-radius: 999px; background: var(--omg-color-success, #067647); } .ds-message button { margin-inline-start: auto; border: 0; background: transparent; color: inherit; font: inherit; } @media (prefers-color-scheme: dark) { .ds-message { background: var(--omg-color-message-surface, #2d2d2d); } }"
+    },
+    {
       "name": "Native Modal Dialog",
       "kind": "custom",
       "refersTo": "dialog-surface",
       "description": "A borderless native top-layer modal with explicit naming, close action, and dedicated semantic elevation.",
       "html": "<dialog class=\"ds-dialog\" open aria-labelledby=\"ds-dialog-title\"><h2 id=\"ds-dialog-title\">Review details</h2><button type=\"button\" aria-label=\"Close dialog\">×</button><p>Dialog content</p></dialog>",
       "css": ".ds-dialog { width: min(520px, calc(100% - 32px)); padding: 20px; border: 0; border-radius: 12px; background: var(--omg-color-surface, #fff); color: var(--omg-color-text, #273040); box-shadow: var(--omg-shadow-dialog, 0 24px 64px rgb(15 23 42 / 24%), 0 8px 24px rgb(15 23 42 / 14%)); font: inherit; } .ds-dialog::backdrop { background: var(--omg-color-overlay, rgb(0 0 0 / 62%)); }"
+    },
+    {
+      "name": "Logical Side Drawer",
+      "kind": "custom",
+      "refersTo": "drawer-surface",
+      "description": "A borderless native-dialog composition docked to logical start or end with body-only scrolling.",
+      "html": "<dialog class=\"ds-drawer\" open aria-labelledby=\"ds-drawer-title\"><header><h2 id=\"ds-drawer-title\">Project settings</h2><button type=\"button\" aria-label=\"Close drawer\">Close</button></header><div class=\"ds-drawer-body\">Drawer content</div><footer>Actions</footer></dialog>",
+      "css": ".ds-drawer { position: fixed; inset-block: 0; inset-inline-end: 0; display: flex; width: min(400px, 100vw); height: 100dvh; max-height: 100dvh; flex-direction: column; margin: 0 0 0 auto; padding: 0; border: 0; border-start-end-radius: 0; border-end-end-radius: 0; background: var(--omg-color-surface, #fff); box-shadow: var(--omg-shadow-drawer-end, -18px 0 48px rgb(15 23 42 / 20%)); color: var(--omg-color-text, #273040); font: inherit; } .ds-drawer header, .ds-drawer footer { flex: 0 0 auto; padding: 20px; } .ds-drawer-body { min-height: 0; flex: 1; overflow: auto; padding: 20px; }"
     },
     {
       "name": "Danger Confirm Dialog",
@@ -448,7 +529,8 @@
       "Theme-aware semantic tokens instead of page-specific values.",
       "Protected personal effects over generic redesigns.",
       "Deliberate composition without forced public-component coupling.",
-      "Borders reserved for input, state, focus, separation, or irreplaceable hierarchy."
+      "Borders reserved for input, state, focus, separation, or irreplaceable hierarchy.",
+      "Solid Message and native Drawer overlays with short directional motion."
     ],
     "rules": [
       {
@@ -468,12 +550,12 @@
       },
       {
         "name": "The Purposeful Elevation Rule",
-        "body": "Controls and ordinary floating panels use the compact structural shadow. Only native modal Dialog may use the wider --omg-shadow-dialog; decorative card shadows remain prohibited.",
+        "body": "Controls and ordinary floating panels use the compact structural shadow. Native Dialog/Drawer and top-right Message use named semantic elevation; decorative card shadows remain prohibited.",
         "section": "elevation"
       },
       {
         "name": "The Portal Surface Rule",
-        "body": "Menus and listboxes use fixed positioning through a portal so overflow containers cannot clip them.",
+        "body": "Menus and listboxes use fixed positioning through a portal. Message creates one lazy Host per target, while Drawer/Dialog content uses an in-layer target for portalled surfaces.",
         "section": "elevation"
       },
       {
@@ -493,19 +575,20 @@
       }
     ],
     "dos": [
-      "Do express reusable visual and interaction behavior while leaving requests, routing, permissions, countdowns, and state mapping to consumers.",
+      "Do express reusable visual and interaction behavior while leaving requests, routing, permissions, business countdowns, and state mapping to consumers; Message display timing is UI lifecycle.",
       "Do use one O* name, one .o-* class vocabulary, and one --omg-* token source for each concept.",
       "Do use vue-icons-plus/lu for every built-in and documentation icon.",
       "Do virtualize only fixed-row collections large enough to benefit, and preserve native editing or complete focusable lists elsewhere.",
       "Do verify keyboard focus, ARIA, contrast, SSR, dark theme, and prefers-reduced-motion for every interactive component.",
-      "Do keep control motion at 160ms for direct feedback and 240ms or less for larger state changes.",
+      "Do keep direct feedback near 160ms, standard state changes near 240ms, approved overlay entry at no more than 260ms, and exits faster.",
       "Do treat user-approved motion, layout, and visual identity as tested behavior during reviews and merges.",
       "Do allow personal, high-frequency, or stylistically specific public components when they are valuable to the owner's projects.",
       "Do share internal foundations when they reduce real duplication; keep a component self-contained when public composition adds coupling without a user-facing benefit.",
-      "Do spend borders on form boundaries, state, focus, and real separation; prefer surface, spacing, or one shadow for ordinary layers."
+      "Do spend borders on form boundaries, state, focus, and real separation; prefer surface, spacing, or one shadow for ordinary layers.",
+      "Do keep Message and Drawer opaque, borderless, keyboard-safe, SSR-safe, and reduced-motion aware."
     ],
     "donts": [
-      "Don't put remote requests, countdowns, permissions, routing, or business-state mapping inside foundational components.",
+      "Don't put remote requests, business countdowns, permissions, routing, retry, or result mapping inside foundational components.",
       "Don't add complex decoration, exaggerated shadows, unrequested motion, or extra states that dilute an approved effect.",
       "Don't copy the appearance or API of Element Plus, Naive UI, or another framework; only adopt proven architecture, accessibility, and release practices.",
       "Don't use multiple icon sources, copied SVG assets, or a pass-through OIcon layer.",
@@ -514,7 +597,7 @@
       "Don't combine a decorative border with a surface or shadow that already communicates the same boundary.",
       "Don't override --vp-c-brand-* or allow VitePress theme values to become component tokens.",
       "Don't preserve pre-release compatibility aliases, private branches, CommonJS, or UMD entries.",
-      "Don't add borders to Dialog surfaces, decorative card shadows, controls rounded beyond 12px, or color-only status signals."
+      "Don't add borders to Dialog, Drawer, or Message surfaces, decorative card shadows, controls rounded beyond 12px, or color-only status signals."
     ]
   }
 }

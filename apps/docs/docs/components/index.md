@@ -1,6 +1,6 @@
 # 组件总览
 
-OMG UI 当前提供 20 个组件族、21 个 Vue 组件。所有组件仅面向 Vue 3，支持根入口与独立子入口导入，并共享 `O*` 命名、`.o-*` 样式类和 `--omg-*` 主题变量。
+OMG UI 当前提供 23 个组件族、24 个公开 Vue 组件。所有组件仅面向 Vue 3，支持根入口与独立子入口导入，并共享 `O*` 命名、`.o-*` 样式类和 `--omg-*` 主题变量。
 
 ## 基础与展示
 
@@ -21,12 +21,15 @@ OMG UI 当前提供 20 个组件族、21 个 Vue 组件。所有组件仅面向 
 - [Code Input 验证码输入](/components/code-input)：六位输入、粘贴与边框焦点反馈。
 - [Select 选择器](/components/select)：单选、键盘导航、浮层定位与大型集合虚拟化。
 - [Upload 文件选择](/components/upload)：点击或拖拽选择、受控列表与 UI 状态展示。
+- [Widget 小组件](/components/widget)：个人高频数据卡片、迷你趋势与活动状态展示。
 
 ## 浮层、导航与流程
 
+- [Message 消息](/components/message)：右上角实体消息、状态图标、自动关闭与堆叠动效。
 - [Dropdown 下拉菜单](/components/dropdown)：菜单按钮、操作项与焦点恢复。
 - [Avatar Dropdown 头像下拉](/components/avatar-dropdown)：Avatar 与 Dropdown 的轻量组合。
 - [Tabs 标签页](/components/tabs)：稳定值选择、roving focus 与可选 panel。
+- [Drawer 侧边面板](/components/drawer)：逻辑方向、原生模态焦点与独立滚动内容。
 - [Dialog 对话框](/components/dialog)：原生 top layer、焦点约束与受控关闭。
 - [Confirm Dialog 确认弹窗](/components/confirm-dialog)：UI-only 的普通或危险确认意图。
 - [Form Dialog 表单弹窗](/components/form-dialog)：原生表单关联、约束校验与提交事件。
