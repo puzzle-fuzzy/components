@@ -71,6 +71,7 @@ export interface OMessageOptions {
   readonly status?: OMessageStatus
   readonly duration?: number
   readonly closable?: boolean
+  readonly closeAriaLabel?: string
   readonly pauseOnHover?: boolean
   readonly appendTo?: string | HTMLElement
   readonly onClose?: () => void
@@ -92,7 +93,7 @@ export interface OMessageService {
 export const oMessage: OMessageService
 ```
 
-Service defaults are `status='info'`, `duration=3000`, `closable=false`, `pauseOnHover=true`, and `appendTo=document.body`. `normalizeOMessageDuration()` maps `undefined` and non-finite values to `3000`, values at or below zero to `0`, and positive values to `Math.floor(value)`; `0` means persistent. Empty message strings remain valid UI content and are not replaced with business copy.
+Service defaults are `status='info'`, `duration=3000`, `closable=false`, `closeAriaLabel='Close message'`, `pauseOnHover=true`, and `appendTo=document.body`. `normalizeOMessageDuration()` maps `undefined` and non-finite values to `3000`, values at or below zero to `0`, and positive values to `Math.floor(value)`; `0` means persistent. Empty message strings remain valid UI content and are not replaced with business copy.
 
 `appendTo` may be a connected `HTMLElement` or selector. A disconnected element or missing selector falls back to `document.body`. Each mounted target has at most one internal host. This permits local theme inheritance and messages inside native-dialog top-layer content without forcing theme mirroring into the service.
 
