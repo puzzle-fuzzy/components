@@ -4,6 +4,11 @@ import { relative, resolve } from 'node:path'
 const repositoryRoot = resolve(import.meta.dirname, '..')
 const componentsRoot = resolve(repositoryRoot, 'packages/ui/src/components')
 const docsThemePath = resolve(repositoryRoot, 'apps/docs/docs/.vitepress/theme/custom.less')
+const docsConfigPath = resolve(repositoryRoot, 'apps/docs/docs/.vitepress/config.mts')
+const docsOverviewPath = resolve(repositoryRoot, 'apps/docs/docs/components/index.md')
+const docsComponentsRoot = resolve(repositoryRoot, 'apps/docs/docs/components')
+const docsExamplesRoot = resolve(repositoryRoot, 'apps/docs/examples')
+const docsE2ePath = resolve(repositoryRoot, 'apps/docs/tests/e2e/components.spec.ts')
 const expectedComponents = [
   'avatar',
   'avatar-dropdown',
@@ -15,10 +20,12 @@ const expectedComponents = [
   'confirm-dialog',
   'dialog',
   'divider',
+  'drawer',
   'dropdown',
   'form-dialog',
   'image',
   'input',
+  'message',
   'radio',
   'reference-textarea',
   'select',
@@ -38,7 +45,6 @@ const toComponentName = (directory) =>
 const errors = []
 
 const uiSourceRoot = resolve(repositoryRoot, 'packages/ui/src')
-const docsExamplesRoot = resolve(repositoryRoot, 'apps/docs/examples')
 const forbiddenIconPackages = ['lucide-vue-next', '@heroicons', '@fortawesome', '@iconify']
 
 const collectFiles = async (directory) => {
@@ -91,6 +97,9 @@ for (const root of [uiSourceRoot, docsExamplesRoot]) {
 }
 
 const docsTheme = await readFile(docsThemePath, 'utf8')
+const docsConfig = await readFile(docsConfigPath, 'utf8')
+const docsOverview = await readFile(docsOverviewPath, 'utf8')
+const docsE2e = await readFile(docsE2ePath, 'utf8')
 if (/--vp-c-brand-[\w-]+\s*:/u.test(docsTheme)) {
   errors.push('docs theme must not override VitePress brand variables')
 }
@@ -110,6 +119,34 @@ for (const directory of expectedComponents) {
       await access(resolve(componentsRoot, directory, file))
     } catch {
       errors.push(directory + ': missing ' + file)
+    }
+  }
+
+  try {
+    await access(resolve(docsComponentsRoot, directory + '.md'))
+  } catch {
+    errors.push(directory + ': missing docs page')
+  }
+
+  const sourceAlias = 'find: /^@puzzle-fuzzy\\/ui\\/' + directory + '$/'
+  if (!docsConfig.includes(sourceAlias)) {
+    errors.push(directory + ': missing VitePress source alias')
+  }
+  if (!docsConfig.includes("link: '/components/" + directory + "'")) {
+    errors.push(directory + ': missing VitePress sidebar entry')
+  }
+  if (!docsOverview.includes('](/components/' + directory + ')')) {
+    errors.push(directory + ': missing component overview link')
+  }
+  if (!docsE2e.includes("page.goto('/components/" + directory + "')")) {
+    errors.push(directory + ': missing Playwright route visit')
+  }
+
+  if (directory === 'drawer' || directory === 'message') {
+    try {
+      await access(resolve(docsExamplesRoot, directory, 'Basic.vue'))
+    } catch {
+      errors.push(directory + ': missing Basic.vue capability example')
     }
   }
 

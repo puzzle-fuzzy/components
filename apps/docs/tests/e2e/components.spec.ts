@@ -60,6 +60,93 @@ const expectNoSeriousAccessibilityViolations = async (
   expect(violations).toEqual([])
 }
 
+interface TransitionFrameSnapshot {
+  readonly opacity: string
+  readonly scaleX: number
+  readonly scaleY: number
+  readonly transform: string
+  readonly translateX: number
+}
+
+interface TransitionSnapshot {
+  readonly frames: readonly TransitionFrameSnapshot[]
+  readonly property: string
+}
+
+const captureOpacityAndTransformTransitions = (
+  locator: Locator,
+): Promise<readonly TransitionSnapshot[]> =>
+  locator.evaluate(
+    (element) =>
+      new Promise<readonly TransitionSnapshot[]>((resolve, reject) => {
+        let attempts = 0
+        const inspect = () => {
+          const transitions = element
+            .getAnimations()
+            .filter(
+              (animation): animation is CSSTransition =>
+                animation instanceof CSSTransition &&
+                (animation.transitionProperty === 'opacity' ||
+                  animation.transitionProperty === 'transform'),
+            )
+          const properties = new Set(transitions.map((transition) => transition.transitionProperty))
+
+          if (properties.has('opacity') && properties.has('transform')) {
+            for (const transition of transitions) transition.pause()
+            const snapshots = transitions.map((transition) => ({
+              frames: (transition.effect as KeyframeEffect).getKeyframes().map((frame) => {
+                const transform = String(frame.transform ?? '')
+                let matrix = new DOMMatrixReadOnly()
+                if (transform && transform !== 'none') {
+                  try {
+                    matrix = new DOMMatrixReadOnly(transform)
+                  } catch {
+                    // Keep the identity matrix when the browser exposes an unresolved transform.
+                  }
+                }
+
+                return {
+                  opacity: String(frame.opacity ?? ''),
+                  scaleX: Math.hypot(matrix.m11, matrix.m12, matrix.m13),
+                  scaleY: Math.hypot(matrix.m21, matrix.m22, matrix.m23),
+                  transform,
+                  translateX: matrix.m41,
+                }
+              }),
+              property: transition.transitionProperty,
+            }))
+            for (const transition of transitions) transition.play()
+            resolve(snapshots)
+            return
+          }
+
+          attempts += 1
+          if (attempts >= 8) {
+            reject(new Error('Expected active opacity and transform transitions'))
+            return
+          }
+          requestAnimationFrame(inspect)
+        }
+
+        requestAnimationFrame(inspect)
+      }),
+  )
+
+const waitForAnimations = (locator: Locator): Promise<void> =>
+  locator.evaluate(async (element) => {
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    })
+    const animations = element.getAnimations()
+    await Promise.all(animations.map((animation) => animation.finished.catch(() => undefined)))
+  })
+
+const framesFor = (
+  snapshots: readonly TransitionSnapshot[],
+  property: 'opacity' | 'transform',
+): readonly TransitionFrameSnapshot[] =>
+  snapshots.find((snapshot) => snapshot.property === property)?.frames ?? []
+
 const buildInlineDropdownFixture = async (): Promise<string> => {
   const entryId = 'virtual:omg-inline-dropdown-fixture'
   const uiEntry = new URL('../../../../packages/ui/dist/index.js', import.meta.url).href
@@ -1140,4 +1227,254 @@ test('renders upload selection and file list states', async ({ page }) => {
   await expect(statesDemo.locator('[data-upload-file-id="poster"]')).toContainText('上传失败')
 
   await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('renders opaque top-right Message statuses, stacks, and scoped themes', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 })
+  await page.goto('/components/message')
+
+  await page.getByRole('button', { name: '显示普通消息', exact: true }).click()
+  await page.getByRole('button', { name: '显示成功消息', exact: true }).click()
+  await page.getByRole('button', { name: '显示警告消息', exact: true }).click()
+  await page.getByRole('button', { name: '显示错误消息', exact: true }).click()
+
+  const host = page.locator('.o-message-host')
+  const messages = host.locator('.o-message')
+  const success = host.getByRole('status').filter({ hasText: '保存成功' })
+  await expect(host).toHaveCount(1)
+  await expect(messages).toHaveCount(4)
+  await expect(success).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+  await expect(success).toHaveCSS('border-left-width', '0px')
+  expect(await success.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe('none')
+
+  const hostBounds = await host.boundingBox()
+  expect(hostBounds).not.toBeNull()
+  expect(Math.round((hostBounds?.x ?? 0) + (hostBounds?.width ?? 0))).toBe(1264)
+  const iconMarkup = await host
+    .locator('.o-message__icon svg')
+    .evaluateAll((icons) => icons.map((icon) => icon.innerHTML))
+  expect(new Set(iconMarkup).size).toBe(4)
+
+  await page.evaluate(() => {
+    document.documentElement.dir = 'rtl'
+  })
+  const rtlBounds = await host.boundingBox()
+  expect(Math.round((rtlBounds?.x ?? 0) + (rtlBounds?.width ?? 0))).toBe(1264)
+  await page.evaluate(() => {
+    document.documentElement.removeAttribute('dir')
+  })
+
+  await page.getByRole('button', { name: '关闭全部消息', exact: true }).click()
+  await expect(host).toHaveCount(0)
+
+  await page.getByRole('button', { name: '显示三条消息', exact: true }).click()
+  const stackItems = page.locator('.o-message-host__item')
+  await expect(stackItems).toHaveCount(3)
+  const stackBoxes = await stackItems.evaluateAll((items) =>
+    items.map((item) => {
+      const bounds = item.getBoundingClientRect()
+      return { bottom: bounds.bottom, top: bounds.top }
+    }),
+  )
+  expect(Math.round(stackBoxes[1]!.top - stackBoxes[0]!.bottom)).toBe(10)
+  expect(Math.round(stackBoxes[2]!.top - stackBoxes[1]!.bottom)).toBe(10)
+
+  await page.getByRole('button', { name: '关闭全部消息', exact: true }).click()
+  await expect(host).toHaveCount(0)
+  await page.getByRole('button', { name: '显示长消息', exact: true }).click()
+  const longItem = page.locator('.o-message-host__item').filter({ hasText: '长文本换行' })
+  await waitForAnimations(longItem)
+  const longMessage = longItem.getByRole('status')
+  const longBounds = await longMessage.boundingBox()
+  expect(longBounds).not.toBeNull()
+  expect(longBounds?.width).toBeLessThanOrEqual(360)
+  expect(Math.round((longBounds?.x ?? 0) + (longBounds?.width ?? 0))).toBe(1264)
+
+  await page.getByRole('button', { name: '关闭全部消息', exact: true }).click()
+  await expect(host).toHaveCount(0)
+  await page.getByRole('button', { name: '显示浅色消息', exact: true }).click()
+  await expect(host.getByRole('status').filter({ hasText: '白色消息表面' })).toHaveCSS(
+    'background-color',
+    'rgb(255, 255, 255)',
+  )
+  await page.getByRole('button', { name: '关闭全部消息', exact: true }).click()
+  await expect(host).toHaveCount(0)
+  await page.getByRole('button', { name: '显示深色消息', exact: true }).click()
+  const darkMessage = host.getByRole('status').filter({ hasText: '深色消息表面' })
+  await expect(darkMessage).toHaveCSS('background-color', 'rgb(45, 45, 45)')
+  await expect(darkMessage).toHaveCSS('border-left-width', '0px')
+
+  await expectNoSeriousAccessibilityViolations(page, ['.omg-docs-demo', '.o-message-host'])
+  await page.getByRole('button', { name: '关闭全部消息', exact: true }).click()
+  await expect(host).toHaveCount(0)
+})
+
+test('runs Message right-entry, scale-fade exit, and reduced-motion cleanup', async ({ page }) => {
+  await page.goto('/components/message')
+  await page.getByRole('button', { name: '显示持久消息', exact: true }).click()
+
+  const item = page.locator('.o-message-host__item').filter({ hasText: '这条消息会一直保留' })
+  await expect(item).toBeVisible()
+  const enterSnapshots = await captureOpacityAndTransformTransitions(item)
+  const enterOpacity = framesFor(enterSnapshots, 'opacity')
+  const enterTransform = framesFor(enterSnapshots, 'transform')
+  expect(enterOpacity.some((frame) => frame.opacity === '0')).toBe(true)
+  expect(
+    enterTransform.some(
+      (frame) =>
+        frame.translateX > 0 || /translate(?:X)?\(\s*calc\(\s*100%\s*\+\s*/u.test(frame.transform),
+    ),
+  ).toBe(true)
+
+  await waitForAnimations(item)
+  const leaveSnapshotsPromise = captureOpacityAndTransformTransitions(item)
+  await item.getByRole('button', { name: '关闭这条持久消息' }).click()
+  const leaveSnapshots = await leaveSnapshotsPromise
+  const leaveOpacity = framesFor(leaveSnapshots, 'opacity')
+  const leaveTransform = framesFor(leaveSnapshots, 'transform')
+  expect(leaveOpacity.some((frame) => frame.opacity === '0')).toBe(true)
+  expect(leaveTransform.some((frame) => frame.scaleX < 1 && frame.scaleY < 1)).toBe(true)
+  expect(leaveTransform.every((frame) => Math.abs(frame.translateX) < 0.5)).toBe(true)
+  await expect(page.locator('.o-message-host')).toHaveCount(0)
+
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.getByRole('button', { name: '显示持久消息', exact: true }).click()
+  const reducedItem = page.locator('.o-message-host__item').filter({
+    hasText: '这条消息会一直保留',
+  })
+  await expect(reducedItem).toBeVisible()
+  expect(await reducedItem.evaluate((element) => element.getAnimations().length)).toBe(0)
+  await reducedItem.getByRole('button', { name: '关闭这条持久消息' }).click()
+  await expect(page.locator('.o-message-host')).toHaveCount(0)
+})
+
+test('opens a controlled borderless Drawer with native modal focus and close motion', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 720 })
+  await page.goto('/components/drawer')
+
+  const trigger = page.getByRole('button', { name: '从右侧打开', exact: true })
+  await trigger.click()
+  const drawer = page.getByRole('dialog', { name: '项目设置' })
+  const drawerElement = page.locator('dialog.o-drawer--end').filter({ hasText: '项目设置' })
+  await expect(drawer).toBeVisible()
+  await expect(drawerElement).toHaveAttribute('open', '')
+  await expect(drawerElement).toHaveCSS('border-left-width', '0px')
+  await expect(drawerElement).toHaveCSS('border-right-width', '0px')
+  expect(await drawerElement.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe(
+    'none',
+  )
+  await waitForAnimations(drawerElement)
+
+  const bounds = await drawerElement.boundingBox()
+  expect(bounds).not.toBeNull()
+  expect(Math.round(bounds?.width ?? 0)).toBe(400)
+  expect(Math.round(bounds?.height ?? 0)).toBe(720)
+  expect(Math.round((bounds?.x ?? 0) + (bounds?.width ?? 0))).toBe(1280)
+  await expect(page.locator('html')).toHaveCSS('overflow', 'hidden')
+
+  const close = drawer.getByRole('button', { name: '关闭项目设置面板' })
+  const done = drawer.getByRole('button', { name: '完成', exact: true })
+  await expect(close).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  await expect(done).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(close).toBeFocused()
+
+  await waitForAnimations(drawerElement)
+  const leaveSnapshotsPromise = captureOpacityAndTransformTransitions(drawerElement)
+  await page.keyboard.press('Escape')
+  const leaveSnapshots = await leaveSnapshotsPromise
+  await expect(drawerElement).not.toHaveAttribute('open', '')
+  await expect(drawerElement).toBeVisible()
+  expect(framesFor(leaveSnapshots, 'opacity').some((frame) => frame.opacity === '0')).toBe(true)
+  expect(framesFor(leaveSnapshots, 'transform').some((frame) => frame.transform !== 'none')).toBe(
+    true,
+  )
+  await expect(drawerElement).toBeHidden()
+  await expect(trigger).toBeFocused()
+  await expect(page.locator('html')).not.toHaveCSS('overflow', 'hidden')
+
+  await trigger.click()
+  await expect(drawer).toBeVisible()
+  await page.mouse.click(120, 120)
+  await expect(drawerElement).toBeHidden()
+
+  await trigger.click()
+  await expect(drawer).toBeVisible()
+  await expectNoSeriousAccessibilityViolations(page, ['dialog.o-drawer'])
+  await close.click()
+  await expect(drawerElement).toBeHidden()
+})
+
+test('supports Drawer logical placement, scrolling, locked dismissal, and reduced motion', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 720 })
+  await page.goto('/components/drawer')
+
+  await page.getByRole('button', { name: '从起始侧打开', exact: true }).click()
+  const startDrawer = page.locator('dialog.o-drawer--start[open]')
+  await expect(startDrawer).toBeVisible()
+  await waitForAnimations(startDrawer)
+  let bounds = await startDrawer.boundingBox()
+  expect(Math.round(bounds?.x ?? -1)).toBe(0)
+  expect(Math.round(bounds?.width ?? 0)).toBe(320)
+  expect(await startDrawer.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe(
+    'none',
+  )
+  await startDrawer.locator('.o-dialog__close').click()
+  await expect(startDrawer).toBeHidden()
+
+  await page.getByRole('button', { name: '在 RTL 中从起始侧打开', exact: true }).click()
+  const rtlDrawer = page.locator('dialog.o-drawer--start[open]').filter({
+    hasText: 'RTL 起始侧面板',
+  })
+  await expect(rtlDrawer).toBeVisible()
+  await waitForAnimations(rtlDrawer)
+  bounds = await rtlDrawer.boundingBox()
+  expect(Math.round((bounds?.x ?? 0) + (bounds?.width ?? 0))).toBe(1280)
+  await expect(rtlDrawer).toHaveCSS('background-color', 'rgb(20, 24, 33)')
+  await rtlDrawer.getByRole('button', { name: '关闭 RTL 起始侧面板' }).click()
+  await expect(rtlDrawer).toBeHidden()
+
+  await page.getByRole('button', { name: '打开滚动面板', exact: true }).click()
+  const scrollDrawer = page.locator('dialog.o-drawer[open]').filter({ hasText: '组件设置' })
+  await expect(scrollDrawer).toBeVisible()
+  await waitForAnimations(scrollDrawer)
+  const body = scrollDrawer.locator('.o-dialog__body')
+  expect(await body.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true)
+  await expect(scrollDrawer.locator('.o-dialog__header')).toBeVisible()
+  await expect(scrollDrawer.locator('.o-dialog__footer')).toBeVisible()
+  const select = scrollDrawer.getByRole('combobox', { name: '抽屉内选择器' })
+  await select.click()
+  const listbox = scrollDrawer.getByRole('listbox')
+  await expect(listbox).toBeVisible()
+  await listbox.getByRole('option', { name: '紧凑' }).click()
+  await scrollDrawer.getByRole('button', { name: '关闭组件设置', exact: true }).click()
+  await expect(scrollDrawer).toBeHidden()
+
+  await page.getByRole('button', { name: '打开锁定面板', exact: true }).click()
+  const lockedDrawer = page.getByRole('dialog', { name: '锁定面板' })
+  await expect(lockedDrawer).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(lockedDrawer).toBeVisible()
+  await page.mouse.click(120, 120)
+  await expect(lockedDrawer).toBeVisible()
+  await expectNoSeriousAccessibilityViolations(page, ['dialog.o-drawer'])
+  await lockedDrawer.getByRole('button', { name: '关闭锁定面板', exact: true }).click()
+  await expect(lockedDrawer).toBeHidden()
+
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.setViewportSize({ width: 320, height: 640 })
+  await page.getByRole('button', { name: '从起始侧打开', exact: true }).click()
+  const compactDrawer = page.locator('dialog.o-drawer--start[open]')
+  await expect(compactDrawer).toBeVisible()
+  bounds = await compactDrawer.boundingBox()
+  expect(Math.round(bounds?.x ?? -1)).toBe(0)
+  expect(Math.round(bounds?.width ?? 0)).toBe(320)
+  expect(await compactDrawer.evaluate((element) => element.getAnimations().length)).toBe(0)
+  await compactDrawer.locator('.o-dialog__close').click()
+  await expect(compactDrawer).toBeHidden()
 })

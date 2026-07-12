@@ -13,10 +13,12 @@ import {
   OConfirmDialog,
   ODialog,
   ODivider,
+  ODrawer,
   ODropdown,
   OFormDialog,
   OImage,
   OInput,
+  OMessage,
   ORadio,
   ORadioGroup,
   OReferenceTextarea,
@@ -25,6 +27,7 @@ import {
   OTextarea,
   OUpload,
   OWidget,
+  oMessage,
   type OAvatarFlowPeer,
   type OAvatarGroupItem,
   type ODropdownItem,
@@ -463,6 +466,75 @@ describe('server rendering', () => {
     expect(html).toContain('<dialog')
     expect(html).toContain('class="o-dialog')
     expect(html).not.toContain(' open')
+  })
+
+  test('renders stable ODrawer markup without opening native top layer on the server', async () => {
+    const renderDrawer = () =>
+      renderToString(
+        createSSRApp({
+          render: () =>
+            h(
+              ODrawer,
+              {
+                open: true,
+                title: '项目设置',
+                description: '调整当前项目界面',
+                placement: 'end',
+                size: 420,
+              },
+              () => '设置内容',
+            ),
+        }),
+      )
+
+    const first = await renderDrawer()
+    const second = await renderDrawer()
+    const firstTitleId = first.match(/aria-labelledby="([^"]+)"/u)?.[1]
+    const secondTitleId = second.match(/aria-labelledby="([^"]+)"/u)?.[1]
+
+    expect(first).toContain('<dialog')
+    expect(first).toContain('o-drawer')
+    expect(first).toContain('o-drawer--end')
+    expect(first).toContain('项目设置')
+    expect(first).toContain('设置内容')
+    expect(first).not.toContain(' open')
+    expect(firstTitleId).toBeDefined()
+    expect(secondTitleId).toBe(firstTitleId)
+  })
+
+  test('renders accessible OMessage surfaces and keeps the service inert without DOM', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h('div', [
+            h(OMessage, {
+              message: '保存成功',
+              status: 'success',
+              closable: true,
+              closeAriaLabel: '关闭保存消息',
+            }),
+            h(OMessage, { message: '保存失败', status: 'error' }),
+          ]),
+      }),
+    )
+
+    expect(html).toContain('class="o-message')
+    expect(html).toContain('role="status"')
+    expect(html).toContain('role="alert"')
+    expect(html).toContain('保存成功')
+    expect(html).toContain('aria-label="关闭保存消息"')
+    expect(document.querySelector('.o-message-host')).toBeNull()
+
+    vi.stubGlobal('document', undefined)
+    try {
+      const handle = oMessage('SSR')
+      handle.close()
+      handle.close()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+
+    expect(document.querySelector('.o-message-host')).toBeNull()
   })
 
   test('renders ODivider without DOM globals', async () => {
