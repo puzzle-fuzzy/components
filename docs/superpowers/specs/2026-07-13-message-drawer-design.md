@@ -198,11 +198,12 @@ Both pages receive focused Playwright coverage and axe checks. VitePress source 
 The naming checker is extended so each public component family must have:
 
 - `apps/docs/docs/components/<family>.md`;
-- `apps/docs/examples/<family>/Basic.vue`;
 - a VitePress source alias;
 - a sidebar entry;
 - a component-overview link;
 - at least one Playwright route visit.
+
+Existing example filenames and sharing stay valid: several mature pages intentionally use semantic names such as `Variants.vue`, `States.vue`, or a shared Avatar example instead of a family-local `Basic.vue`. The new Message and Drawer families each add `apps/docs/examples/<family>/Basic.vue` plus their capability-specific examples, and their documentation pages import every new example.
 
 Existing documentation drift is corrected at the same time: Widget is added to the overview, and the final totals become 23 component families and 24 public Vue components.
 
