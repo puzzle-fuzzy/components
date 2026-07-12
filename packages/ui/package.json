@@ -1,46 +1,71 @@
 {
-  "name": "@components/ui",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@puzzle-fuzzy/ui",
+  "version": "0.1.0",
+  "description": "OMG UI — a personal Vue 3 component library",
+  "keywords": [
+    "vue",
+    "vue3",
+    "component-library",
+    "ui",
+    "omg-ui"
+  ],
+  "homepage": "https://github.com/puzzle-fuzzy/components#readme",
+  "bugs": {
+    "url": "https://github.com/puzzle-fuzzy/components/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/puzzle-fuzzy/components.git",
+    "directory": "packages/ui"
+  },
+  "private": false,
   "type": "module",
+  "license": "UNLICENSED",
   "files": [
     "dist"
   ],
-  "main": "./dist/components-ui.umd.cjs",
-  "module": "./dist/components-ui.es.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/components-ui.es.js",
-      "require": "./dist/components-ui.umd.cjs"
+      "import": "./dist/index.js"
     },
-    "./style.css": "./dist/components-ui.css"
+    "./button": {
+      "types": "./dist/components/button/index.d.ts",
+      "import": "./dist/components/button/index.js"
+    },
+    "./avatar": {
+      "types": "./dist/components/avatar/index.d.ts",
+      "import": "./dist/components/avatar/index.js"
+    },
+    "./avatar-flow": {
+      "types": "./dist/components/avatar-flow/index.d.ts",
+      "import": "./dist/components/avatar-flow/index.js"
+    },
+    "./styles.css": "./dist/styles.css"
   },
   "sideEffects": [
-    "*.css",
-    "*.vue"
+    "./dist/styles.css"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@vueuse/core": "^14.3.0"
-  },
-  "devDependencies": {
-    "@types/node": "^24.13.2",
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@vue/tsconfig": "^0.9.1",
-    "less": "^4.6.7",
-    "typescript": "~6.0.2",
-    "vite": "^8.1.1",
-    "vite-plugin-dts": "^5.0.3",
-    "vue": "^3.5.39",
-    "vue-tsc": "^3.3.5"
+    "build": "pnpm typecheck && vite build && pnpm build:types",
+    "build:types": "vue-tsc -p tsconfig.build.json",
+    "prepack": "pnpm build",
+    "typecheck": "vue-tsc --noEmit"
   },
   "peerDependencies": {
     "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:",
+    "less": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vue": "catalog:",
+    "vue-tsc": "catalog:"
   }
 }

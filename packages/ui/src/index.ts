@@ -1,19 +1,37 @@
-export { default as OAvatar } from './components/OAvatar.vue'
-export { default as OAvatarFlow } from './components/OAvatarFlow.vue'
-export { default as OButton } from './components/OButton.vue'
-export type {
-  AvatarShape,
-  AvatarSize,
-  AvatarStatus,
-  AvatarTheme,
-  OAvatarProps,
+export {
+  OAvatar,
+  oAvatarProps,
+  oAvatarShapes,
+  oAvatarSizes,
+  oAvatarStatuses,
 } from './components/avatar'
-export type { AvatarFlowPeer, AvatarFlowPhase, OAvatarFlowProps } from './components/avatar-flow'
 export type {
-  ButtonSize,
-  ButtonTheme,
-  ButtonTone,
-  ButtonVariant,
-  NativeButtonType,
+  OAvatarEmits,
+  OAvatarFallbackSlotProps,
+  OAvatarProps,
+  OAvatarShape,
+  OAvatarSize,
+  OAvatarSlots,
+  OAvatarStatus,
+} from './components/avatar'
+
+export { OAvatarFlow, oAvatarFlowPhases, oAvatarFlowProps } from './components/avatar-flow'
+export type { OAvatarFlowPeer, OAvatarFlowPhase, OAvatarFlowProps } from './components/avatar-flow'
+
+export {
+  OButton,
+  oButtonNativeTypes,
+  oButtonProps,
+  oButtonSizes,
+  oButtonTones,
+  oButtonVariants,
+} from './components/button'
+export type {
+  OButtonEmits,
+  OButtonNativeType,
   OButtonProps,
+  OButtonSize,
+  OButtonSlots,
+  OButtonTone,
+  OButtonVariant,
 } from './components/button'

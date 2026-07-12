@@ -1,0 +1,172 @@
+@import '../../../styles/mixins.less';
+
+.o-avatar {
+  --omg-avatar-size: var(--omg-avatar-size-md);
+  --omg-avatar-radius: var(--omg-radius-full);
+  --omg-avatar-background: var(--omg-color-surface-muted);
+  --omg-avatar-color: var(--omg-color-text);
+  --omg-avatar-border-color: var(--omg-color-border-subtle);
+  --omg-avatar-border-width: 1px;
+  --omg-avatar-shadow: var(--omg-shadow-sm);
+  --omg-avatar-font-size: var(--omg-font-size-md);
+  --omg-avatar-status-size: calc(var(--omg-avatar-size) * 0.28);
+  --omg-avatar-status-border-width: calc(var(--omg-avatar-size) * 0.04);
+  --omg-avatar-status-background: var(--omg-color-status-offline);
+  --omg-avatar-status-ring-color: var(--omg-color-surface);
+  --omg-avatar-status-symbol-color: var(--omg-color-status-symbol);
+
+  position: relative;
+  display: inline-grid;
+  width: var(--omg-avatar-size);
+  height: var(--omg-avatar-size);
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: visible;
+  box-sizing: border-box;
+  border: var(--omg-avatar-border-width) solid var(--omg-avatar-border-color);
+  border-radius: var(--omg-avatar-radius);
+  background: var(--omg-avatar-background);
+  box-shadow: var(--omg-avatar-shadow);
+  color: var(--omg-avatar-color);
+  font-family: inherit;
+  font-size: var(--omg-avatar-font-size);
+  font-weight: var(--omg-font-weight-bold);
+  line-height: 1;
+  vertical-align: middle;
+  user-select: none;
+}
+
+.o-avatar--xs {
+  --omg-avatar-size: var(--omg-avatar-size-xs);
+  --omg-avatar-font-size: var(--omg-font-size-xs);
+}
+
+.o-avatar--sm {
+  --omg-avatar-size: var(--omg-avatar-size-sm);
+  --omg-avatar-font-size: var(--omg-font-size-sm);
+}
+
+.o-avatar--md {
+  --omg-avatar-size: var(--omg-avatar-size-md);
+  --omg-avatar-font-size: var(--omg-font-size-md);
+}
+
+.o-avatar--lg {
+  --omg-avatar-size: var(--omg-avatar-size-lg);
+  --omg-avatar-font-size: var(--omg-font-size-lg);
+}
+
+.o-avatar--xl {
+  --omg-avatar-size: var(--omg-avatar-size-xl);
+  --omg-avatar-font-size: var(--omg-font-size-xl);
+}
+
+.o-avatar--circle {
+  --omg-avatar-radius: var(--omg-radius-full);
+}
+
+.o-avatar--rounded {
+  --omg-avatar-radius: var(--omg-radius-md);
+}
+
+.o-avatar--square {
+  --omg-avatar-radius: var(--omg-radius-sm);
+}
+
+.o-avatar__image,
+.o-avatar__fallback {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border-radius: calc(var(--omg-avatar-radius) - var(--omg-avatar-border-width));
+}
+
+.o-avatar__image {
+  display: block;
+  object-fit: cover;
+  opacity: 0;
+}
+
+.o-avatar__image--loaded {
+  opacity: 1;
+}
+
+.o-avatar__fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0;
+  text-transform: uppercase;
+}
+
+.o-avatar__status {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: inline-grid;
+  width: var(--omg-avatar-status-size);
+  height: var(--omg-avatar-status-size);
+  place-items: center;
+  box-sizing: border-box;
+  border: var(--omg-avatar-status-border-width) solid var(--omg-avatar-status-ring-color);
+  border-radius: var(--omg-radius-full);
+  background: var(--omg-avatar-status-background);
+}
+
+.o-avatar__status--online {
+  --omg-avatar-status-background: var(--omg-color-status-online);
+}
+
+.o-avatar__status--away {
+  --omg-avatar-status-background: var(--omg-color-status-away);
+}
+
+.o-avatar__status--busy {
+  --omg-avatar-status-background: var(--omg-color-status-busy);
+}
+
+.o-avatar__status--offline {
+  --omg-avatar-status-background: var(--omg-color-status-offline);
+}
+
+.o-avatar__status-symbol {
+  display: block;
+  box-sizing: border-box;
+  color: var(--omg-avatar-status-symbol-color);
+}
+
+.o-avatar__status--online .o-avatar__status-symbol {
+  width: 30%;
+  height: 30%;
+  border-radius: var(--omg-radius-full);
+  background: currentcolor;
+}
+
+.o-avatar__status--away .o-avatar__status-symbol {
+  width: 48%;
+  height: 48%;
+  border: var(--omg-avatar-status-border-width) solid currentcolor;
+  border-top-color: transparent;
+  border-radius: var(--omg-radius-full);
+  transform: rotate(-45deg);
+}
+
+.o-avatar__status--busy .o-avatar__status-symbol {
+  width: 58%;
+  height: var(--omg-avatar-status-border-width);
+  border-radius: var(--omg-radius-full);
+  background: currentcolor;
+}
+
+.o-avatar__status--offline .o-avatar__status-symbol {
+  width: 42%;
+  height: 42%;
+  border: var(--omg-avatar-status-border-width) solid currentcolor;
+  border-radius: var(--omg-radius-full);
+}
+
+.o-avatar__status-label {
+  .visually-hidden();
+}

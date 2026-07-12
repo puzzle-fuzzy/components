@@ -1,121 +1,154 @@
 # OMG UI 架构重建设计
 
-- 状态：已确认
+- 状态：已确认（按用户授权参考主流 Vue UI 库择优）
 - 日期：2026-07-12
+- 品牌：OMG UI
 - 发布包：`@puzzle-fuzzy/ui`
-- 产品名称：OMG UI
+- 适用范围：Vue 3 项目
 
-## 1. 背景
+## 1. 最终选型
 
-当前仓库已经有 `OButton`、`OAvatar` 和 `OAvatarFlow` 三个 Vue 组件，但工程仍混合了 Vue 脚手架应用、组件库源码和 VitePress 示例。文档通过源码别名绕过包导出，发布入口全部指向尚未生成的 `dist`，UI 包被标记为 `private`，测试和统一验证命令缺失，并且仓库同时跟踪三个相互漂移的 `bun.lock`。
+OMG UI 不做 Element Plus 或 Naive UI 的缩小复刻，而是选择两者中适合个人组件库的部分：
 
-样式层也尚未形成设计系统。组件分别维护颜色和主题分支，Less 已安装但没有实际使用，`packages/ui/src/style.css` 还包含无法解析的残缺声明。组件 API、文件名、公共类型、CSS 类名和品牌名没有统一合同。
+- 采用 Element Plus 的 workspace 边界、组件自治目录、静态主题变量、真实示例和成品包验证思路。
+- 采用两者共同的强类型公共入口、行为测试、SSR 验证和 Vue peer dependency。
+- 不复制 Element Plus 的内部构建包、ESM/CJS/UMD 多矩阵、独立主题包和多包发布流程。
+- 不复制 Naive UI 的运行时 CSS-in-JS、复杂 theme object、Provider 注入体系和兼容产物矩阵。
+- 不再强制 Bun。开发工具链统一为 Node LTS、pnpm、Vite 与 Vitest，构建和测试共享官方 Vue SFC 转换链路。
 
-本次重建发生在首次发布前，不保留旧包名、旧目录、UMD、CommonJS、源码别名行为或其他兼容层。
+最终路线是：**Element Plus 式工程边界 + 原生 Vue 强类型 API + Less/CSS Variables 主题 + 小型 ESM-only 发布包**。
 
-## 2. 目标
+## 2. 当前问题
 
-1. 建立一个只服务 Vue 3 项目的个人 UI 组件库。
-2. 只发布一个公开 npm 包 `@puzzle-fuzzy/ui`。
-3. 让组件、类型、主题、样式和文档遵循同一套命名与边界规则。
-4. 用一个根命令验证格式、命名、类型、测试、构建、成品包、文档和浏览器行为。
-5. 让文档展示与真实 npm 成品包的消费合同保持一致。
-6. 为后续新增组件提供可复制的目录、测试和文档模式。
+当前仓库已经有 `OButton`、`OAvatar` 和 `OAvatarFlow`，但存在以下结构性问题：
 
-## 3. 非目标
+1. `packages/ui` 混入 `App.vue`、`main.ts`、`index.html`、HelloWorld、Vite/Vue 素材等应用脚手架。
+2. 文档通过源码 alias 使用组件，掩盖了真实 package exports 是否可用。
+3. UI 包仍是 `private: true`、`0.0.0`，入口指向未验证的 ESM/UMD 产物。
+4. 根目录和两个子目录分别维护 Bun lockfile，依赖状态会漂移。
+5. 没有统一 lint、格式、类型、组件测试、SSR、成品包测试和 CI 门禁。
+6. 组件、类型、CSS 类、CSS 变量和品牌命名不一致。
+7. 色值、暗色逻辑和动效分散在各 SFC，尚未形成 token 系统。
+8. `OAvatar` 为同一图片创建预加载和真实 `img` 两条加载链路。
+9. `OAvatarFlow` 声明五个阶段，但多数阶段没有清晰的视觉和无障碍语义。
+10. `packages/ui/src/style.css` 存在残缺 CSS，缓存与模板内容也被提交。
 
-- 不支持 React、Web Components 或原生 JavaScript 包装层。
-- 不拆分独立 tokens、composables、icons 或 config npm 包。
-- 不提供全局 `app.use()` 安装插件。
-- 不输出 UMD、CommonJS、IIFE 或全局变量版本。
-- 不为旧的 `@components/ui`、旧文件路径或旧构建产物提供别名。
-- 不在本次重建中实际执行 npm 发布。
-- 不引入多包版本协调、Changesets 或自动发布机器人。
+项目尚未发布，因此本次直接建立新合同，不保留旧包名、旧路径、旧主题 prop、CJS、UMD 或兼容 shim。
 
-## 4. 已确认的工程决策
+## 3. 目标与非目标
 
-| 主题 | 决策 |
-| --- | --- |
-| 消费方式 | 独立安装包 |
-| npm 包 | `@puzzle-fuzzy/ui` |
-| 发布范围 | 公开 npm 包 |
-| 品牌 | OMG UI |
-| 组件前缀 | `O` |
-| CSS 类前缀 | `o-` |
-| CSS 变量前缀 | `--omg-` |
-| 框架边界 | Vue 3.5+，不可选 peer dependency |
-| 包数量 | 一个发布包 |
-| 模块格式 | ESM only |
-| 包管理与脚本 | Bun |
-| Vue SFC 构建 | Vite 作为明确的 Vue 专用例外 |
-| 文档 | VitePress 作为明确的 Vue 专用例外 |
-| 测试运行器 | `bun test`，不使用 Jest 或 Vitest |
-| 许可证 | `UNLICENSED` |
+### 目标
 
-`UNLICENSED` 与公开 npm 可见性是有意组合：包可以从 npm 安装，但公开可见不等于授予第三方复制、修改或再发布权利。
+1. 只发布一个 Vue 3 组件包 `@puzzle-fuzzy/ui`。
+2. 组件、类型、样式、主题、文档和测试遵循同一模板。
+3. 根命令能够验证源码质量、构建产物和真实消费方式。
+4. 文档开发体验支持源码 HMR，生产构建必须验证真实包导出。
+5. 后续新增组件可以复制目录模板，而不重新发明架构。
 
-## 5. 目标仓库结构
+### 非目标
+
+- 不支持 React、Web Components 或无框架消费。
+- 不输出 CommonJS、UMD、IIFE 或全局 CDN 包。
+- 不拆分 tokens、themes、composables、icons 等独立 npm 包。
+- 不建立自研构建系统、运行时 CSS-in-JS 或复杂配置 Provider。
+- 不提供旧 `@components/ui` 的兼容入口。
+- 不在本次任务中实际发布 npm 包。
+- 单人、单发布包阶段不引入 Changesets、commitlint、nightly 或 PR 预览包。
+
+## 4. 工程决策
+
+| 领域       | 决策                                               |
+| ---------- | -------------------------------------------------- |
+| 开发运行时 | Node.js 24 LTS                                     |
+| 包管理     | `pnpm@11.11.0`，根目录单锁文件                     |
+| workspace  | `apps/docs` + `packages/ui`                        |
+| 框架       | Vue `^3.5.0`，必需 peer dependency                 |
+| 语言       | TypeScript strict                                  |
+| 构建       | Vite 8 library mode，多入口、ESM-only              |
+| 声明       | `vue-tsc` 生成并检查声明                           |
+| 样式       | Less 编译期复用 + `--omg-*` CSS Variables          |
+| 测试       | Vitest 4 + Vue Test Utils + jsdom                  |
+| 浏览器     | Playwright 验证构建后的文档                        |
+| 文档       | 稳定版 VitePress                                   |
+| 发布检查   | `pnpm pack` + `publint` + ATTW + 临时 Vue consumer |
+| 许可证     | `UNLICENSED`                                       |
+
+Node 与 pnpm 只约束仓库开发环境，不会被打进浏览器组件包。发布包不声明 Node runtime dependency。
+
+## 5. 目标结构
 
 ```text
 components/
 ├─ apps/
 │  └─ docs/
 │     ├─ docs/
+│     │  └─ .vitepress/
 │     ├─ examples/
-│     ├─ tests/
-│     └─ package.json
+│     │  ├─ avatar/
+│     │  ├─ avatar-flow/
+│     │  └─ button/
+│     ├─ tests/e2e/
+│     ├─ package.json
+│     └─ tsconfig.json
 ├─ packages/
 │  └─ ui/
 │     ├─ src/
 │     │  ├─ components/
 │     │  │  ├─ avatar/
+│     │  │  │  ├─ __tests__/
+│     │  │  │  ├─ src/
+│     │  │  │  ├─ style/
+│     │  │  │  └─ index.ts
 │     │  │  ├─ avatar-flow/
 │     │  │  └─ button/
 │     │  ├─ shared/
 │     │  ├─ styles/
+│     │  │  ├─ tokens/
+│     │  │  ├─ themes/
+│     │  │  ├─ mixins.less
+│     │  │  └─ index.less
 │     │  └─ index.ts
 │     ├─ tests/
 │     │  ├─ package/
-│     │  └─ types/
+│     │  └─ ssr/
 │     ├─ package.json
 │     ├─ tsconfig.json
+│     ├─ tsconfig.build.json
 │     └─ vite.config.ts
 ├─ scripts/
-│  └─ check-naming.ts
-├─ docs/superpowers/
-├─ bunfig.toml
-├─ bun.lock
-├─ eslint.config.ts
+│  ├─ check-naming.mjs
+│  └─ test-package.mjs
+├─ .github/workflows/ci.yml
+├─ .node-version
+├─ eslint.config.mjs
 ├─ package.json
+├─ pnpm-lock.yaml
+├─ pnpm-workspace.yaml
 ├─ prettier.config.mjs
 ├─ stylelint.config.mjs
 └─ tsconfig.base.json
 ```
 
-`apps/docs` 是文档和真实交互示例，不是发布包。`packages/ui` 只保留会进入发布合同的源码、测试和构建配置。根目录只保留一个 `bun.lock`，所有安装命令从仓库根运行。
+`apps/docs` 是不发布的真实消费应用。`packages/ui` 是唯一发布边界；演示、缓存、测试报告和仓库脚本不得进入 tarball。
 
 ## 6. 包合同
 
-### 6.1 元数据
+### 元数据
 
-`packages/ui/package.json` 使用以下发布原则：
+- `name`：`@puzzle-fuzzy/ui`
+- `version`：`0.1.0`
+- `private`：`false`
+- `type`：`module`
+- `files`：只包含 `dist` 和必要说明文件
+- `publishConfig.access`：`public`
+- `license`：`UNLICENSED`
+- `peerDependencies.vue`：`^3.5.0`，不可选
+- 初始版本不依赖 `@vueuse/core`；出现两个以上真实复用场景时再加入
+- `sideEffects` 只保留构建后的 CSS
 
-- `name` 为 `@puzzle-fuzzy/ui`。
-- 初始版本为 `0.1.0`。
-- `private` 为 `false`。
-- `type` 为 `module`。
-- `files` 只包含 `dist` 和必要说明文件。
-- `publishConfig.access` 为 `public`。
-- `license` 为 `UNLICENSED`。
-- `vue` 以 `^3.5.0` 同时出现在 peer dependency 和开发依赖中；peer 不可选。
-- `@vueuse/core` 不作为初始运行时依赖。
-- `sideEffects` 只标记实际发布的 CSS 入口。
+“仅 Vue 项目使用”通过必需 Vue peer、纯 Vue SFC API 和不提供框架中立入口落实。npm 无法判断宿主项目框架，因此不做伪运行时检查。
 
-npm 无法检查安装方是否真的是 Vue 项目。因此“只允许 Vue 项目”通过不可选 Vue peer dependency、纯 Vue 组件 API 和不提供框架中立入口来落实。
-
-### 6.2 导出
-
-根入口是推荐入口，同时提供稳定的组件子路径：
+### 公共入口
 
 ```text
 @puzzle-fuzzy/ui
@@ -125,305 +158,268 @@ npm 无法检查安装方是否真的是 Vue 项目。因此“只允许 Vue 项
 @puzzle-fuzzy/ui/styles.css
 ```
 
-对应成品结构：
+所有入口只提供命名导出，不提供默认导出、`require` 或 wildcard export。`exports` 同时声明 `types` 与 `import`，未公开的内部路径由 package exports 封闭。
+
+目标产物：
 
 ```text
 dist/
 ├─ index.js
 ├─ index.d.ts
 ├─ styles.css
-└─ components/
-   ├─ button/index.js
-   ├─ button/index.d.ts
-   ├─ avatar/index.js
-   ├─ avatar/index.d.ts
-   ├─ avatar-flow/index.js
-   └─ avatar-flow/index.d.ts
+├─ components/
+│  ├─ avatar/index.js
+│  ├─ avatar/index.d.ts
+│  ├─ avatar-flow/index.js
+│  ├─ avatar-flow/index.d.ts
+│  └─ button/index.{js,d.ts}
+└─ shared declaration files required by public entries
 ```
 
-包不提供默认导出。每个 `exports` 条目都同时声明 `types` 和 `import`，不声明 `require`。消费者只需在应用入口导入一次 `@puzzle-fuzzy/ui/styles.css`。
+Vite 显式设置 `formats: ['es']` 并 externalize `vue`。发布构建不输出 source map，避免
+`UNLICENSED` 包通过 `sourcesContent` 泄露源码；同时不输出 CJS、UMD 或完整 CDN bundle。
 
-## 7. 组件目录与命名合同
+## 7. 组件目录和命名
 
-每个组件遵循同一结构：
+每个组件采用同一模板：
 
 ```text
 components/button/
-├─ OButton.vue
-├─ button.types.ts
-├─ button.constants.ts
-├─ button.test.ts
+├─ __tests__/
+│  └─ button.test.ts
+├─ src/
+│  ├─ OButton.vue
+│  └─ button.ts
+├─ style/
+│  └─ index.less
 └─ index.ts
 ```
 
-规则如下：
+规则：
 
-- 组件目录使用 kebab-case。
-- Vue SFC 使用 PascalCase，并带 `O` 品牌前缀。
-- 支持文件使用 kebab-case 和职责后缀。
-- 公开组件使用 `OButton`、`OAvatar`、`OAvatarFlow`。
-- 公开类型使用完整组件前缀，例如 `OButtonProps`、`OButtonVariant`、`OAvatarFlowPhase`。
-- 共享类型使用品牌前缀，例如 `OThemeMode`。
-- 布尔变量以 `is`、`has`、`can` 或 `should` 开头。
-- 数量使用 `*Count`，例如 `overflowCount`。
-- 事件处理函数以 `handle` 开头。
-- 稳定词汇表使用语义化 camelCase 常量和 `as const`，联合类型从常量派生。
-- 组件显式声明 `defineProps`、`defineEmits` 和 `defineSlots`。
-- 根入口和组件入口使用显式导出，不使用无约束的 `export *`。
-- 一个组件引用另一个组件时，只能通过对方目录的 `index.ts`，不能深层导入内部文件。
+- 目录和普通文件使用 kebab-case。
+- Vue SFC 使用 PascalCase，并带公开前缀 `O`。
+- 组件类使用 BEM：`.o-button`、`.o-button__icon`、`.o-button--solid`。
+- 公共 CSS 变量统一使用 `--omg-*`，不再使用 `--o-*`。
+- 公共组件：`OButton`、`OAvatar`、`OAvatarFlow`。
+- 公共类型带完整组件前缀：`OButtonProps`、`OButtonVariant`、`OAvatarSize`、`OAvatarFlowPhase`。
+- 布尔变量以 `is/has/can/should` 开头；数量以 `Count` 结尾；事件处理函数以 `handle` 开头。
+- 枚举词汇使用 `as const` 常量，类型从常量派生；开发态 runtime validator 复用同一常量。
+- `index.ts` 只做显式公共导出。组件间只能通过目标组件的 `index.ts` 引用。
+- 只有出现真实复杂度时才拆 `constants`、`composables` 或 `instance` 文件。
 
-`check:naming` 脚本扫描组件目录并验证这些规则；ESLint 负责变量命名和禁止跨边界深层导入。
+`scripts/check-naming.mjs` 负责可机械验证的目录、SFC、测试和样式文件规则；ESLint 负责变量与导入边界。
 
-## 8. 样式与主题合同
+## 8. 组件 API
 
-### 8.1 文件职责
+### OButton
 
-```text
-styles/
-├─ tokens.less
-├─ themes.less
-├─ mixins.less
-└─ index.less
-```
-
-- `tokens.less` 定义原始色阶、尺寸、间距、圆角、层级和动效参数。
-- `themes.less` 将原始值映射为 light/dark 语义 CSS 变量。
-- `mixins.less` 只服务库内部的尺寸、状态和主题生成。
-- `index.less` 是唯一公开样式入口并汇总组件样式。
-
-Less 只承担编译期生成和复用。消费者可覆盖的运行时合同全部使用 `--omg-*` CSS Custom Properties。组件内部不得直接写品牌色、状态色、圆角、阴影或动效时长字面量。
-
-### 8.2 Token 层级
-
-Token 分三层：
-
-1. Primitive：原始色阶、数值尺寸和时间。
-2. Semantic：`--omg-color-text`、`--omg-color-surface`、`--omg-color-danger` 等主题语义。
-3. Component：`--omg-button-background`、`--omg-avatar-size` 等组件局部语义。
-
-### 8.3 主题优先级
-
-主题优先级从高到低为：
-
-1. 组件实例的 `theme` prop。
-2. 最近祖先的 `data-omg-theme="light|dark"`。
-3. 根节点显式 `data-omg-theme`。
-4. 没有任何显式主题时的 `prefers-color-scheme`。
-
-VitePress 主题适配只存在于文档应用中：文档主题变化时更新根节点 `data-omg-theme`。组件库本身不识别 VitePress 的 `.dark` 类，也不修改宿主主题。
-
-所有非必要动画提供 `prefers-reduced-motion: reduce` 静态表现。文字和图标对比度由 token 组合保证，普通文字目标不低于 4.5:1。
-
-## 9. 组件行为合同
-
-### 9.1 OButton
-
-- Props：`variant`、`size`、`tone`、`theme`、`type`、`loading`、`disabled`。
+- Props：`variant`、`size`、`tone`、`type`、`loading`、`disabled`。
 - Slots：`default`、`icon`。
 - Emits：类型化 `click`。
-- `type` 默认值固定为 `button`。
-- `loading` 同时设置原生 disabled 与 `aria-busy`，保留按钮文字的可访问性。
-- disabled 或 loading 时不发出业务 click。
-- 不使用 `min-width: max-content`，允许长文案、国际化和消费者宽度约束。
-- 所有 tone/variant 组合由测试验证可见状态和可访问名称。
+- `type` 默认 `button`。
+- loading 同时设置 native disabled 与 `aria-busy`，且不发业务 click。
+- attrs、class 和 style 正确透传到原生 button。
+- 不使用 `min-width: max-content`，允许长文本、窄容器和国际化。
 
-### 9.2 OAvatar
+### OAvatar
 
-- 使用真实 `<img>` 的 `load` 和 `error` 事件，不创建第二个预加载图片请求。
-- `src` 变化时重置加载和错误状态。
-- 图片失败后确定性回退到 initials。
-- initials 计算是独立纯函数并有单元测试。
+- Props：`src`、`alt`、`name`、`initials`、`size`、`shape`、`status`、`statusLabel`。
 - Emits：`load`、`error`。
-- Slot：类型化 fallback slot。
-- 可访问名称优先级为显式 `alt`、`name`、`initials`；显式空 `alt` 表示装饰性头像。
-- 不生成无信息量的默认“Avatar”名称。
-- 状态点同时使用颜色与形状/符号区分。
-- `statusLabel` 是可选的本地化可访问文字；状态具有业务意义时由消费者提供。
+- Slot：类型化 `fallback`。
+- 只依赖真实 `img` 的 load/error，不额外预加载。
+- `src` 改变时重置错误状态，失败后确定性回退。
+- initials 作为纯函数测试，最多三个 grapheme。
+- 可访问名称优先级为显式 `alt`、`name`、`initials`；空 `alt` 表示装饰图片。
+- 状态不能只靠颜色表达；有业务含义时通过 `statusLabel` 提供本地化文本。
 
-### 9.3 OAvatarFlow
+### OAvatarFlow
 
-五个 phase 都有真实语义和视觉差异：
-
-- `idle`：静态中性连接线。
-- `requesting`：等待/请求标记。
-- `transferring`：方向性流动点。
-- `complete`：成功连接线和非颜色成功标记。
-- `error`：错误连接线和非颜色错误标记。
-
-其他合同：
-
-- `receivers` 接受 readonly 数组。
+- Props：`sender`、readonly `receivers`、`phase`、`accessibleLabel`、`maxVisibleReceivers`、`size`、`shape`。
+- 五个 phase 均有不同语义：
+  - `idle`：静态中性连接。
+  - `requesting`：等待标记。
+  - `transferring`：方向性流动。
+  - `complete`：成功线与非颜色成功图形。
+  - `error`：错误线与非颜色错误图形。
 - `maxVisibleReceivers` 标准化为至少 1 的整数。
-- 没有 receiver 时只展示 sender。
-- overflow 头像跟随当前 `size` 和 `shape`。
-- 组件使用容器查询调整窄容器间距，不依赖整个 viewport。
-- `accessibleLabel` 是必填 prop，并作为 `role="status"` 内真实的视觉隐藏文本渲染。
-- phase 变化时，消费者同步更新 `accessibleLabel`，使 live region 播报完整的本地化状态。
-- reduced-motion 环境使用静态方向与状态标记，不播放循环动画。
+- 空 receivers 时只渲染 sender。
+- overflow 头像跟随 size 与 shape。
+- 用容器查询适应窄容器，不依赖 viewport media query。
+- `accessibleLabel` 作为真实视觉隐藏文本置于 `role="status"`，不只使用 `aria-label`。
+- reduced-motion 下所有循环动画退化为静态状态。
 
-## 10. 数据流与异常策略
+组件不再接收 `theme` prop。主题由祖先容器继承，避免每个组件复制主题 API。
 
-组件采用单向、局部的数据流：
+## 9. 样式和主题
+
+样式采用三层 token：
 
 ```text
-Props → 标准化 computed 状态 → 语义化 DOM/data 属性 → CSS tokens
+primitive Less token
+  → semantic CSS variable
+    → component CSS variable
 ```
 
-- 组件不修改输入对象或数组。
-- 组件不持有全局 store 或跨组件状态。
-- 组件模块顶层不访问 `window`、`document` 或 `Image`，保持 Vue SSR 可导入。
-- 图片失败、空 receiver 和非法显示数量属于可预期 UI 状态，采用确定性降级而不是抛异常。
-- TypeScript 负责静态合同，Vue runtime validator 在开发环境报告非法枚举值。
-- 构建、导出或安装合同错误必须让验证命令非零退出，不能静默忽略。
+- Less 变量和 mixin 只服务库内部生成。
+- 对消费者公开的主题合同全部是 `--omg-*` CSS Variables。
+- 组件样式不得直接写品牌色、状态色、圆角、阴影或动效时长字面量。
+- 默认浅色主题由 `:root` 提供。
+- 显式主题使用 `[data-omg-theme='light']` 与 `[data-omg-theme='dark']`，支持局部嵌套。
+- 没有显式主题时，根节点根据 `prefers-color-scheme` 选择系统主题。
+- 不识别 VitePress 的 `.dark` 或通用 `[data-theme]`；文档应用负责把自身状态映射为 `data-omg-theme`。
+- 非必要动画支持 `prefers-reduced-motion: reduce`。
+- 当前只有三个组件，只发布一份 `styles.css`。CSS 体积或组件数量显著增长后再加入按组件样式入口。
 
-## 11. 测试设计
+主题继承完全由 CSS 完成，首版不增加 `OConfigProvider`。将来只有在 locale、全局 size、z-index 或命名空间等配置形成真实需求后再引入 Provider。
 
-### 11.1 Bun 组件测试
+## 10. 测试设计
 
-组件测试使用：
+### 单元和组件测试
 
-- `bun test`
-- `@vue/test-utils`
-- HappyDOM
-- Bun preload 中注册的 Vue SFC loader
-- `vue/compiler-sfc`，其版本随 Vue runtime 保持一致
+使用 Vitest、`@vitejs/plugin-vue`、Vue Test Utils 与 jsdom。测试复用 Vite 官方 Vue SFC 转换，不维护自定义 loader。
 
-SFC loader 只服务测试，编译 `<script setup>` 和 template，并保留可映射的源码信息。测试不依赖 Jest 或 Vitest。
+每个组件至少覆盖：
 
-组件测试覆盖：
+- 默认渲染和原生语义。
+- props、slots、emits 与 attrs 透传。
+- disabled/loading/error/empty/overflow 等状态。
+- 键盘、焦点和可访问属性。
+- 响应式 prop 更新。
+- 公开类型和枚举边界。
 
-- OButton 默认值、slots、attrs、click、loading、disabled、aria 状态和所有 variant/tone。
-- OAvatar initials、装饰模式、src 更新、load/error、fallback 和 statusLabel。
-- OAvatarFlow 五阶段、空 receivers、readonly 输入、数量标准化、overflow、尺寸、主题和 live status。
-- shared helpers、常量词汇表和主题映射。
+测试行为和公共合同，避免大面积 snapshot。覆盖率目标为 lines/functions/statements 90%、branches 85%，覆盖率不是替代断言质量的指标。
 
-`bunfig.toml` 在 CI coverage 命令中启用 coverage、跳过测试文件并设置统一 `coverageThreshold = 0.9`。未达到 90% 的行、函数或语句覆盖率时测试失败。
+### SSR
 
-### 11.2 类型测试
+用 `@vue/server-renderer` 验证：
 
-`packages/ui/tests/types/*.test-d.ts` 与 `vue-tsc --noEmit` 验证：
+- 包入口在无 DOM 环境可导入。
+- 三个组件可以 `renderToString`。
+- 模块顶层不访问 `window`、`document` 或 `Image`。
 
-- 所有公开 Props、Emits 和 Slots 的推断。
-- readonly receivers 可用，非法 phase、size、tone 和 variant 被拒绝。
-- 根入口和每个组件子入口的类型一致。
-- 不泄漏内部文件类型或未声明依赖。
+### 成品包
 
-### 11.3 成品包测试
+`test:package` 必须：
 
-`test:package` 执行以下闭环：
+1. 构建 UI 包。
+2. 运行 `pnpm pack` 得到 tarball。
+3. 运行 `publint` 和 ATTW。
+4. 在系统临时目录创建最小 Vue/Vite consumer。
+5. 安装 tarball，导入根入口、三个子入口和 `styles.css`。
+6. 执行 `vue-tsc --noEmit` 与生产构建。
+7. 检查 tarball 不包含源码、文档、缓存和测试。
 
-1. 构建 `@puzzle-fuzzy/ui`。
-2. 使用 `bun pm pack` 生成 tarball。
-3. 在系统临时目录创建最小 Vue 消费项目。
-4. 从 tarball 安装包。
-5. 分别导入根入口、三个组件子入口和 `styles.css`。
-6. 运行类型检查和生产构建。
-7. 检查 tarball 不包含源码演示、缓存或未声明文件。
+成品测试禁止直接引用 `packages/ui/src`。
 
-该测试禁止直接引用 `packages/ui/src`。
+类型消费范围明确为 TypeScript `moduleResolution: "Bundler"`。ATTW 只检查四个 JavaScript
+公共入口，并忽略 Node16 无法建模 Vue `.vue.d.ts` 内部引用产生的
+`internal-resolution-error`；独立 Vue/Vite consumer 的严格类型检查仍是必须通过的最终合同。
 
-### 11.4 浏览器测试
+### 浏览器
 
-Playwright 从构建后的 VitePress 站点验证：
+Playwright 针对构建后的 VitePress 站点验证关键路径：
 
-- light/dark 显式主题。
-- 系统主题 fallback。
-- 窄容器与长文案。
+- 明暗主题和系统 fallback。
+- 键盘与 focus-visible。
 - reduced-motion。
-- 键盘和 focus-visible。
+- 长文本、窄容器和 overflow。
 - axe 可访问性规则。
 
-整页视觉截图不作为核心门禁，避免操作系统字体和渲染差异导致无意义失败。
+PR 只跑 Chromium。整页视觉截图不作为核心门禁。
 
-## 12. 质量门禁
+## 11. 文档
 
-### 12.1 工具
+- 文档是 private workspace，目录为 `apps/docs`。
+- 示例是 `apps/docs/examples/<component>/*.vue` 中的真实 SFC，不把大量示例代码复制进 Markdown。
+- 每个页面包含安装、基础、状态、尺寸、API、events、slots、CSS Variables、可访问性与边界案例。
+- `docs:dev` 可精确 alias 包入口到源码以获得 HMR。
+- `docs:build` 必须先构建 UI，并解析真实 `@puzzle-fuzzy/ui` exports。
+- 文档主题负责同步 `data-omg-theme`，组件库本身不依赖 VitePress。
+- 删除模板页面、模板仓库链接、缓存和重复 preview 样式。
 
-- ESLint flat config：Vue、TypeScript、变量命名、未使用代码、禁止 `any` 和边界导入。
-- Stylelint：Vue/Less 语法、重复声明和 token 使用。
-- Prettier：TypeScript、Vue、Less、JSON、Markdown。
-- `check:naming`：文件、目录和职责后缀。
+## 12. 标准化与质量门禁
+
+工具：
+
+- ESLint flat config：Vue、TypeScript、导入边界、未使用代码和命名。
+- Stylelint：Vue/Less、BEM、重复声明和非法颜色字面量。
+- Prettier：TS、Vue、Less、JSON、YAML 与 Markdown。
 - TypeScript：`strict`、`noUncheckedIndexedAccess`、`exactOptionalPropertyTypes`、`noUnusedLocals`、`noUnusedParameters`、`verbatimModuleSyntax`。
+- `check:naming`：组件目录合同。
 
-### 12.2 根命令
+根命令：
 
 ```text
-bun run check
+pnpm check
   format:check
   lint
   lint:styles
   check:naming
   typecheck
-  bun test
+  test:coverage
 
-bun run verify
+pnpm verify
   check
   build
+  test:ssr
   test:package
   docs:build
   test:e2e
 ```
 
-窄范围开发时可以运行包级命令；提交前和 CI 必须运行根 `verify`。
+CI 使用 `pnpm install --frozen-lockfile` 并执行 `pnpm verify`。失败项必须非零退出，不使用忽略错误的脚本。
 
-## 13. 文档设计
+## 13. 发布
 
-每个组件页面必须包含：
+- `prepack` 只负责保证 UI dist 为最新。
+- 实际发布前必须完成 `verify`。
+- 只发布 `packages/ui` 的成品合同，不发布 workspace 根目录。
+- 单包阶段使用手工 SemVer、CHANGELOG 和 tag；不引入 Changesets。
+- 将来自动发布时使用 npm Trusted Publishing/OIDC，不保存长期 npm token。
+- 本次只让包达到可发布状态，不执行 `npm publish`。
 
-1. 安装与样式导入。
-2. 基础用法。
-3. 完整 variants、sizes、tones、themes 和 states。
-4. Props 表。
-5. Emits 表。
-6. Slots 表。
-7. 可访问性说明。
-8. 真实边界案例。
+## 14. 清理范围
 
-交互示例存放在 `apps/docs/examples` 的真实 `.vue` 文件中，VitePress 页面和浏览器测试共同复用。共享 preview 样式只存在于文档主题，不复制到每个 Markdown 页面。
+直接删除：
 
-`docs:dev` 可以显式将包入口映射到源码以获得 HMR。`docs:build` 在 UI 包构建完成后解析真实 package exports，不使用源码别名。成品包合同由 `test:package` 再做独立验证。
+- 根与子目录的 Bun lockfile、Bun 专用配置和 Bun 强制说明。
+- `introduction` 旧目录；内容迁移到 `apps/docs`。
+- UI 应用脚手架、HelloWorld、favicon、starter assets 和损坏的 `style.css`。
+- VitePress cache、模板 README 与失效链接。
+- UMD/CJS 配置和旧 `@components/ui` exports。
+- 仅被 `useImage` 使用的 `@vueuse/core`。
+- 组件级 `theme` prop、`data-o-theme`、`--o-*` 和宿主 `.dark` 耦合。
 
-删除 VitePress 模板页面、模板 GitHub 链接、已提交的 `.vitepress/cache` 和重复示例样式。
+## 15. 完成标准
 
-## 14. 构建、CI 与发布
+1. 根目录只有 `pnpm-lock.yaml`，不存在 Bun lockfile。
+2. `packages/ui` 不包含应用入口或脚手架素材。
+3. 三个组件遵循统一目录和显式导出合同。
+4. 公共命名统一为 `O*`、`.o-*`、`--omg-*`。
+5. 主题只通过 CSS Variables 与 `data-omg-theme` 继承。
+6. 五个 AvatarFlow phase 有可区分的视觉与无障碍状态。
+7. 单测、SSR、类型、lint、样式和命名检查通过。
+8. ESM 根入口、组件子入口、声明与 CSS 均通过 tarball consumer。
+9. 构建后的 VitePress 通过关键 Playwright/axe 检查。
+10. `pnpm verify` 在干净安装后完整通过。
+11. 包为 `@puzzle-fuzzy/ui@0.1.0`、public、Vue 3.5+、ESM-only、`UNLICENSED`。
+12. 没有旧包名、旧入口、源码消费捷径或兼容层。
 
-- Vite 只负责编译 Vue SFC、Less、ESM 和类型入口。
-- 构建 externalize `vue`，不打包 Vue runtime。
-- 构建失败、声明缺失或 CSS 缺失都使命令失败。
-- `prepack` 自动构建包。
-- `prepublishOnly` 从仓库根运行完整 `verify`。
-- GitHub Actions 在 push 和 pull request 上执行 `bun install --frozen-lockfile` 与 `bun run verify`。
-- 安装使用 Bun isolated linker，阻止 workspace 幽灵依赖。
-- 首次实际发布由用户明确触发；本次架构重建只让包达到可发布状态。
+## 16. 选型依据
 
-## 15. 清理范围
+- Element Plus 当前固定 pnpm workspace，并以 Vitest、Vue Test Utils、VitePress、组件自治目录和 CSS Variables 组织大型组件库。
+- Naive UI 同样固定 pnpm 并使用 Vitest/Vue Test Utils，但其运行时 CSS-in-JS、ESM/CJS/UMD 和主题 Provider 是大型通用库成本。
+- Vue 官方推荐 Vite 项目使用 Vitest，并使用 Vue Test Utils 做组件测试。
+- Vite 官方 library mode 原生支持多入口和外部化依赖，足够覆盖本项目，无需私有构建框架。
 
-以下内容直接删除，不提供兼容层：
+参考：
 
-- `introduction` 旧目录，内容迁移到 `apps/docs`。
-- `packages/ui/index.html`、`src/main.ts`、`src/App.vue`。
-- `HelloWorld.vue`、Vite/Vue starter assets、favicon 和未使用 icons。
-- 演示用途且已损坏的 `src/style.css`。
-- `packages/ui/bun.lock` 与 `introduction/bun.lock`。
-- 已跟踪的 `.vitepress/cache`。
-- Vite 模板 README、失效的根 README 指令和 React JSX 根配置。
-- UMD/CJS 构建设置与对应 package exports。
-- 仅用于当前 `useImage` 的 `@vueuse/core` 依赖。
-
-## 16. 完成标准
-
-架构重建完成时必须同时满足：
-
-1. 工作区只有一个根 `bun.lock`。
-2. `packages/ui` 不包含应用入口或脚手架资产。
-3. 三个组件遵循统一目录、命名、类型、slots 和 emits 合同。
-4. 所有主题值来自 `--omg-*` token，显式主题优先级正确。
-5. OAvatarFlow 五个阶段具有不同的视觉和可访问表现。
-6. `bun test` 有真实组件测试并达到 90% coverage threshold。
-7. `bun run check` 全部通过。
-8. `bun run verify` 全部通过。
-9. tarball 临时 Vue 消费项目可以导入根入口、子入口、类型和样式并完成生产构建。
-10. VitePress 文档覆盖所有公开 API，并通过浏览器可访问性验证。
-11. 包元数据为公开、ESM-only、Vue 3.5+、`0.1.0`、`UNLICENSED`。
-12. 没有旧包名、旧入口、兼容 shim 或未声明运行时依赖。
-
+- [Element Plus package.json](https://github.com/element-plus/element-plus/blob/dev/package.json)
+- [Element Plus Button 目录](https://github.com/element-plus/element-plus/tree/dev/packages/components/button)
+- [Element Plus 主题说明](https://element-plus.org/en-US/guide/theming)
+- [Naive UI package.json](https://github.com/tusen-ai/naive-ui/blob/main/package.json)
+- [Naive UI Button 目录](https://github.com/tusen-ai/naive-ui/tree/main/src/button)
+- [Vue Testing Guide](https://vuejs.org/guide/scaling-up/testing.html)
+- [Vite Library Mode](https://vite.dev/guide/build.html#library-mode)
+- [pnpm Workspaces](https://pnpm.io/workspaces)

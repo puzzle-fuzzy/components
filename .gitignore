@@ -1,10 +1,11 @@
-# dependencies (bun install)
+# dependencies
 node_modules
 
 # output
 out
 dist
 *.tgz
+*.tar.gz
 
 # code coverage
 coverage
@@ -26,6 +27,10 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .eslintcache
 .cache
 *.tsbuildinfo
+**/.vitepress/cache/
+**/.vitepress/dist/
+playwright-report/
+test-results/
 
 # IntelliJ based IDEs
 .idea

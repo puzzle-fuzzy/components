@@ -1,0 +1,16 @@
+packages:
+  - apps/*
+  - packages/*
+
+allowBuilds:
+  # VitePress 1.x installs esbuild; allow only its native binary setup.
+  esbuild: true
+
+catalog:
+  '@vitejs/plugin-vue': ^6.0.7
+  '@vue/server-renderer': ^3.5.39
+  less: ^4.6.7
+  typescript: ~6.0.3
+  vite: ^8.1.1
+  vue: ^3.5.39
+  vue-tsc: ^3.3.5

@@ -1,0 +1,207 @@
+.o-button {
+  --omg-button-tone: var(--omg-color-brand);
+  --omg-button-tone-hover: var(--omg-color-brand-hover);
+  --omg-button-tone-soft: var(--omg-color-brand-soft);
+  --omg-button-tone-border: var(--omg-color-brand-border);
+  --omg-button-on-tone: var(--omg-color-on-brand);
+  --omg-button-background: var(--omg-button-tone);
+  --omg-button-background-hover: var(--omg-button-tone-hover);
+  --omg-button-foreground: var(--omg-button-on-tone);
+  --omg-button-border-color: transparent;
+  --omg-button-shadow: var(--omg-shadow-sm);
+  --omg-button-height: var(--omg-control-height-md);
+  --omg-button-gap: var(--omg-space-2);
+  --omg-button-padding-block: var(--omg-space-2);
+  --omg-button-padding-inline: var(--omg-space-4);
+  --omg-button-border-width: 1px;
+  --omg-button-font-weight: var(--omg-font-weight-semibold);
+  --omg-button-line-height: 1.2;
+  --omg-button-disabled-opacity: 0.56;
+  --omg-button-focus-ring-width: 3px;
+  --omg-button-focus-ring-offset: 2px;
+  --omg-button-active-offset: 1px;
+  --omg-button-spinner-size: 1em;
+  --omg-button-spinner-border-width: 2px;
+  --omg-button-spinner-duration: calc(var(--omg-duration-fast) * 4);
+
+  position: relative;
+  display: inline-flex;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  min-block-size: var(--omg-button-height);
+  align-items: center;
+  justify-content: center;
+  gap: var(--omg-button-gap);
+  margin: 0;
+  padding-block: var(--omg-button-padding-block);
+  padding-inline: var(--omg-button-padding-inline);
+  border: var(--omg-button-border-width) solid var(--omg-button-border-color);
+  border-radius: var(--omg-radius-md);
+  appearance: none;
+  background-color: var(--omg-button-background);
+  box-shadow: var(--omg-button-shadow);
+  color: var(--omg-button-foreground);
+  cursor: pointer;
+  font: inherit;
+  font-weight: var(--omg-button-font-weight);
+  line-height: var(--omg-button-line-height);
+  text-align: center;
+  text-decoration: none;
+  touch-action: manipulation;
+  user-select: none;
+  vertical-align: middle;
+  transition:
+    background-color var(--omg-duration-fast) var(--omg-easing-standard),
+    border-color var(--omg-duration-fast) var(--omg-easing-standard),
+    box-shadow var(--omg-duration-fast) var(--omg-easing-standard),
+    color var(--omg-duration-fast) var(--omg-easing-standard),
+    transform var(--omg-duration-fast) var(--omg-easing-standard);
+
+  &:focus-visible {
+    outline: var(--omg-button-focus-ring-width) solid var(--omg-color-focus-ring);
+    outline-offset: var(--omg-button-focus-ring-offset);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: var(--omg-button-disabled-opacity);
+  }
+
+  &:hover:not(:disabled) {
+    background-color: var(--omg-button-background-hover);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(var(--omg-button-active-offset));
+  }
+
+  &.is-loading:disabled {
+    cursor: wait;
+  }
+
+  &--brand {
+    --omg-button-tone: var(--omg-color-brand);
+    --omg-button-tone-hover: var(--omg-color-brand-hover);
+    --omg-button-tone-soft: var(--omg-color-brand-soft);
+    --omg-button-tone-border: var(--omg-color-brand-border);
+    --omg-button-on-tone: var(--omg-color-on-brand);
+  }
+
+  &--neutral {
+    --omg-button-tone: var(--omg-color-neutral);
+    --omg-button-tone-hover: var(--omg-color-neutral-hover);
+    --omg-button-tone-soft: var(--omg-color-neutral-soft);
+    --omg-button-tone-border: var(--omg-color-neutral-border);
+    --omg-button-on-tone: var(--omg-color-on-neutral);
+  }
+
+  &--danger {
+    --omg-button-tone: var(--omg-color-danger);
+    --omg-button-tone-hover: var(--omg-color-danger-hover);
+    --omg-button-tone-soft: var(--omg-color-danger-soft);
+    --omg-button-tone-border: var(--omg-color-danger-border);
+    --omg-button-on-tone: var(--omg-color-on-danger);
+  }
+
+  &--solid {
+    --omg-button-background: var(--omg-button-tone);
+    --omg-button-background-hover: var(--omg-button-tone-hover);
+    --omg-button-foreground: var(--omg-button-on-tone);
+    --omg-button-border-color: transparent;
+    --omg-button-shadow: var(--omg-shadow-sm);
+  }
+
+  &--soft {
+    --omg-button-background: var(--omg-button-tone-soft);
+    --omg-button-background-hover: var(--omg-button-tone-border);
+    --omg-button-foreground: var(--omg-button-tone);
+    --omg-button-border-color: transparent;
+    --omg-button-shadow: none;
+  }
+
+  &--outline {
+    --omg-button-background: transparent;
+    --omg-button-background-hover: var(--omg-button-tone-soft);
+    --omg-button-foreground: var(--omg-button-tone);
+    --omg-button-border-color: var(--omg-button-tone-border);
+    --omg-button-shadow: none;
+  }
+
+  &--ghost {
+    --omg-button-background: transparent;
+    --omg-button-background-hover: var(--omg-button-tone-soft);
+    --omg-button-foreground: var(--omg-button-tone);
+    --omg-button-border-color: transparent;
+    --omg-button-shadow: none;
+  }
+
+  &--sm {
+    --omg-button-height: var(--omg-control-height-sm);
+    --omg-button-gap: var(--omg-space-1);
+    --omg-button-padding-block: var(--omg-space-1);
+    --omg-button-padding-inline: var(--omg-space-3);
+  }
+
+  &--md {
+    --omg-button-height: var(--omg-control-height-md);
+    --omg-button-gap: var(--omg-space-2);
+    --omg-button-padding-block: var(--omg-space-2);
+    --omg-button-padding-inline: var(--omg-space-4);
+  }
+
+  &--lg {
+    --omg-button-height: var(--omg-control-height-lg);
+    --omg-button-gap: var(--omg-space-2);
+    --omg-button-padding-block: var(--omg-space-3);
+    --omg-button-padding-inline: var(--omg-space-5);
+  }
+
+  &__content {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  &__content,
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__icon,
+  &__spinner {
+    flex: none;
+  }
+
+  &__spinner {
+    box-sizing: border-box;
+    inline-size: var(--omg-button-spinner-size);
+    block-size: var(--omg-button-spinner-size);
+    border: var(--omg-button-spinner-border-width) solid currentcolor;
+    border-inline-end-color: transparent;
+    border-radius: var(--omg-radius-full);
+    opacity: var(--omg-button-disabled-opacity);
+    animation: o-button-spin var(--omg-button-spinner-duration) linear infinite;
+  }
+}
+
+@keyframes o-button-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .o-button {
+    transition: none;
+
+    &:active:not(:disabled) {
+      transform: none;
+    }
+
+    &__spinner {
+      animation: none;
+    }
+  }
+}

@@ -1,0 +1,11 @@
+@import '../tokens/semantic.less';
+
+[data-omg-theme='dark'] {
+  .omg-theme-dark();
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-omg-theme]) {
+    .omg-theme-dark();
+  }
+}

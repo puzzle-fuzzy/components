@@ -1,0 +1,24 @@
+{
+  "name": "@puzzle-fuzzy/docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "docs:build": "vitepress build docs",
+    "docs:dev": "node scripts/dev.mjs",
+    "docs:preview": "vitepress preview docs",
+    "test:e2e": "playwright test",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@puzzle-fuzzy/ui": "workspace:*",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
+    "@playwright/test": "^1.58.2",
+    "less": "catalog:",
+    "typescript": "catalog:",
+    "vitepress": "^1.6.4",
+    "vue-tsc": "catalog:"
+  }
+}

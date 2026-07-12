@@ -1,0 +1,52 @@
+:root {
+  --vp-c-brand-1: #1d4ed8;
+  --vp-c-brand-2: #1e40af;
+  --vp-c-brand-3: #1e3a8a;
+  --vp-c-brand-soft: rgb(29 78 216 / 12%);
+}
+
+.omg-docs-demo {
+  margin: 16px 0 28px;
+  overflow: hidden;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+}
+
+.omg-docs-demo__content {
+  display: flex;
+  min-height: 112px;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  padding: 24px;
+}
+
+.omg-example-stack {
+  display: grid;
+  width: 100%;
+  gap: 18px;
+}
+
+.omg-example-theme {
+  display: inline-flex;
+  min-height: 72px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--omg-color-border-subtle);
+  border-radius: var(--omg-radius-lg);
+  background: var(--omg-color-surface);
+  color: var(--omg-color-text);
+}
+
+.vp-doc table {
+  display: table;
+  width: 100%;
+}
+
+@media (width <= 640px) {
+  .omg-docs-demo__content {
+    align-items: stretch;
+    padding: 16px;
+  }
+}

@@ -1,42 +1,29 @@
-import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vite'
+import { resolve } from 'node:path'
 import vue from '@vitejs/plugin-vue'
-import dts from 'vite-plugin-dts'
+import { defineConfig } from 'vite'
 
-// https://vite.dev/config/
+const fromPackageRoot = (path: string) => resolve(import.meta.dirname, path)
+
 export default defineConfig({
-  plugins: [
-    vue(),
-    dts({
-      entryRoot: 'src',
-      outDirs: ['dist'],
-      tsconfigPath: './tsconfig.app.json',
-      insertTypesEntry: true,
-      exclude: ['src/App.vue', 'src/main.ts'],
-    }),
-  ],
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
-    },
-  },
+  plugins: [vue()],
   build: {
     copyPublicDir: false,
+    cssCodeSplit: true,
+    sourcemap: false,
     lib: {
-      entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
-      name: 'OmgUi',
-      cssFileName: 'components-ui',
-      formats: ['es', 'umd'],
-      fileName: (format) => `components-ui.${format === 'es' ? 'es.js' : 'umd.cjs'}`,
-    },
-    rollupOptions: {
-      external: ['vue', '@vueuse/core'],
-      output: {
-        globals: {
-          vue: 'Vue',
-          '@vueuse/core': 'VueUse',
-        },
+      entry: {
+        index: fromPackageRoot('src/index.ts'),
+        styles: fromPackageRoot('src/styles/index.less'),
+        'components/avatar/index': fromPackageRoot('src/components/avatar/index.ts'),
+        'components/avatar-flow/index': fromPackageRoot('src/components/avatar-flow/index.ts'),
+        'components/button/index': fromPackageRoot('src/components/button/index.ts'),
       },
+      cssFileName: 'styles',
+      fileName: (_format, entryName) => entryName + '.js',
+      formats: ['es'],
+    },
+    rolldownOptions: {
+      external: ['vue'],
     },
   },
 })
