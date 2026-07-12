@@ -227,6 +227,23 @@ describe('server rendering', () => {
     expect(html).toContain('type="button"')
   })
 
+  test('renders an accessibly named icon-only OButton without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h(
+            OButton,
+            { iconOnly: true, 'aria-label': 'Settings' },
+            { icon: () => h('span', { class: 'test-icon' }) },
+          ),
+      }),
+    )
+
+    expect(html).toContain('o-button--icon-only')
+    expect(html).toContain('aria-label="Settings"')
+    expect(html).toContain('aria-hidden="true"')
+  })
+
   test('renders OInput controls and standard icons without DOM globals', async () => {
     const html = await renderToString(
       createSSRApp({

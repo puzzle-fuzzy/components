@@ -90,7 +90,13 @@ const descriptions: Record<string, string> = {
     <div class="omg-example-theme">
       <div style="width: 100%">
         <div class="omg-example-label">fill 占满模式 + line</div>
-        <OTabs v-model="fillLineVal" :items="fillItems" variant="line" :fill="true" aria-label="占满底部标签">
+        <OTabs
+          v-model="fillLineVal"
+          :items="fillItems"
+          variant="line"
+          :fill="true"
+          aria-label="占满底部标签"
+        >
           <template #default="{ item }">
             <div class="omg-example-panel">{{ descriptions[item.value] }}</div>
           </template>
@@ -123,12 +129,14 @@ const descriptions: Record<string, string> = {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
 .omg-example-panel {
   padding: 8px 0;
   font-size: var(--omg-font-size-sm);
-  color: var(--omg-color-text-secondary);
+  color: var(--omg-color-text-muted);
   line-height: 1.6;
 }
+
 .omg-example-muted {
   color: var(--omg-color-text-muted);
   font-style: italic;

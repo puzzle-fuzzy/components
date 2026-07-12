@@ -20,6 +20,10 @@ const buttonSource = readFileSync(
   resolve('packages/ui/src/components/button/src/OButton.vue'),
   'utf8',
 )
+const buttonStyleSource = readFileSync(
+  resolve('packages/ui/src/components/button/style/index.less'),
+  'utf8',
+)
 
 describe('OButton', () => {
   it('keeps its public vocabularies and types aligned with runtime validation', () => {
@@ -30,6 +34,7 @@ describe('OButton', () => {
       type: 'submit',
       loading: true,
       disabled: true,
+      iconOnly: true,
     }
     const publicSlots: OButtonSlots = {
       default: () => 'Save changes',
@@ -50,6 +55,7 @@ describe('OButton', () => {
     expect(oButtonProps.tone.validator('invalid')).toBe(false)
     expect(oButtonProps.type.validator(publicProps.type)).toBe(true)
     expect(oButtonProps.type.validator('invalid')).toBe(false)
+    expect(oButtonProps.iconOnly.default).toBe(false)
     expect(publicSlots.default?.()).toBe('Save changes')
     expect(publicEmits.click).toEqual([event])
   })
@@ -66,7 +72,50 @@ describe('OButton', () => {
     expect(button.classes()).toEqual(
       expect.arrayContaining(['o-button', 'o-button--solid', 'o-button--md', 'o-button--brand']),
     )
+    expect(button.classes()).not.toContain('o-button--icon-only')
     expect(button.text()).toBe('Save changes')
+  })
+
+  it('renders an explicit icon-only mode without removing its accessible text', () => {
+    const wrapper = mount(OButton, {
+      props: { iconOnly: true },
+      slots: {
+        default: 'Open settings',
+        icon: '<span data-test="settings-icon" />',
+      },
+    })
+    const button = wrapper.get('button')
+
+    expect(button.classes()).toContain('o-button--icon-only')
+    expect(wrapper.get('.o-button__content').text()).toBe('Open settings')
+    expect(wrapper.get('.o-button__icon').attributes('aria-hidden')).toBe('true')
+    expect(wrapper.find('[data-test="settings-icon"]').exists()).toBe(true)
+  })
+
+  it('accepts a native aria-label when an icon-only button has no default content', () => {
+    const wrapper = mount(OButton, {
+      props: { iconOnly: true },
+      attrs: { 'aria-label': 'Add item' },
+      slots: { icon: '<span data-test="add-icon" />' },
+    })
+    const button = wrapper.get('button')
+
+    expect(button.attributes('aria-label')).toBe('Add item')
+    expect(button.classes()).toContain('o-button--icon-only')
+    expect(wrapper.get('.o-button__content').text()).toBe('')
+  })
+
+  it('uses the existing control height as both icon-only dimensions', () => {
+    expect(buttonStyleSource).toContain("@import '../../../styles/mixins.less';")
+    expect(buttonStyleSource).toMatch(
+      /&--icon-only\s*\{[^}]*inline-size:\s*var\(--omg-button-height\);/su,
+    )
+    expect(buttonStyleSource).toMatch(
+      /&--icon-only\s*\{[^}]*block-size:\s*var\(--omg-button-height\);/su,
+    )
+    expect(buttonStyleSource).toMatch(
+      /&--icon-only\s*\{[\s\S]*?\.o-button__content\s*\{\s*\.visually-hidden\(\);/u,
+    )
   })
 
   it('reacts to variant, size, tone, and native type changes', async () => {

@@ -13,6 +13,7 @@ import TabsBasic from '../../examples/tabs/Basic.vue'
 </DemoBlock>
 
 示例涵盖了：
+
 - **slider 变体**：默认样式，滑块以圆角 pill 形态滑动
 - **line 变体**：底部细线条滑动指示器
 - **fill 占满模式**：标签平分容器宽度，支持与 slider / line 组合
@@ -46,13 +47,13 @@ const items: OTabsItem[] = [
 
 ## Props
 
-| 名称 | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| modelValue | `string` | 必填 | 当前选中值 |
-| items | `OTabsItem[]` | `[]` | 标签列表 |
-| variant | `'slider' \| 'line'` | `'slider'` | 视觉样式 |
-| fill | `boolean` | `false` | 是否占满父容器宽度，标签平分空间 |
-| ariaLabel | `string` | `'Tabs'` | 可访问名称 |
+| 名称       | 类型                 | 默认值     | 说明                             |
+| ---------- | -------------------- | ---------- | -------------------------------- |
+| modelValue | `string`             | 必填       | 当前选中值                       |
+| items      | `OTabsItem[]`        | `[]`       | 标签列表                         |
+| variant    | `'slider' \| 'line'` | `'slider'` | 视觉样式                         |
+| fill       | `boolean`            | `false`    | 是否占满父容器宽度，标签平分空间 |
+| ariaLabel  | `string`             | `'Tabs'`   | 可访问名称                       |
 
 ```ts
 interface OTabsItem {
@@ -79,25 +80,25 @@ interface OTabsItem {
 
 ### 键盘导航
 
-| 按键 | 行为 |
-| --- | --- |
+| 按键  | 行为                 |
+| ----- | -------------------- |
 | ← / → | 在可用标签间循环切换 |
-| Home | 跳转到首个标签 |
-| End | 跳转到最后一个标签 |
+| Home  | 跳转到首个标签       |
+| End   | 跳转到最后一个标签   |
 
 禁用项会被跳过。选中的同时会自动移动焦点。
 
 ## Events
 
-| 名称 | 说明 |
-| --- | --- |
+| 名称                | 说明       |
+| ------------------- | ---------- |
 | `update:modelValue` | 选中值变化 |
-| `change` | 选中值变化 |
+| `change`            | 选中值变化 |
 
 ## Slots
 
-| 名称 | Slot Props | 说明 |
-| --- | --- | --- |
+| 名称      | Slot Props                               | 说明                                  |
+| --------- | ---------------------------------------- | ------------------------------------- |
 | `default` | `{ item: OTabsItem, selected: boolean }` | 为每个标签渲染关联的可访问 `tabpanel` |
 
 未提供默认 slot 时，组件只渲染标签列表；提供 slot 后，每个 tab 会通过稳定 ID 与对应 panel 建立 `aria-controls` / `aria-labelledby` 关联。

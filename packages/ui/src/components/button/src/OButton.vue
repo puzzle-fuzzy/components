@@ -36,6 +36,7 @@ const handleClick = (event: MouseEvent): void => {
       `o-button--${props.size}`,
       `o-button--${props.tone}`,
       {
+        'o-button--icon-only': props.iconOnly,
         'is-loading': props.loading,
         'is-disabled': isDisabled,
       },

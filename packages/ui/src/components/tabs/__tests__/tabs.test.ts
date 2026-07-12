@@ -1,7 +1,7 @@
 import { renderToString } from '@vue/server-renderer'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { createSSRApp, h, nextTick } from 'vue'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   OTabs,
@@ -86,6 +86,55 @@ describe('OTabs', () => {
 
     expect(wrapper.emitted('update:modelValue')).toEqual([['file']])
     expect(wrapper.emitted('change')).toEqual([['file']])
+  })
+
+  it('measures and moves the indicator to the active tab', async () => {
+    const widthSpy = vi
+      .spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        return this.textContent?.trim() === '传输文件' ? 96 : 72
+      })
+    const leftSpy = vi
+      .spyOn(HTMLElement.prototype, 'offsetLeft', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        return this.textContent?.trim() === '传输文件' ? 92 : 12
+      })
+
+    try {
+      const wrapper = mount(OTabs, {
+        props: { modelValue: 'text', items },
+      })
+      const indicator = wrapper.get<HTMLElement>('.o-tabs__indicator').element
+
+      await nextTick()
+
+      expect(indicator.style.width).toBe('72px')
+      expect(indicator.style.transform).toBe('translateX(12px)')
+
+      await wrapper.setProps({ modelValue: 'file' })
+      await nextTick()
+      await nextTick()
+
+      expect(indicator.style.width).toBe('96px')
+      expect(indicator.style.transform).toBe('translateX(92px)')
+    } finally {
+      widthSpy.mockRestore()
+      leftSpy.mockRestore()
+    }
+  })
+
+  it('keeps indicator measurement available without ResizeObserver', () => {
+    vi.stubGlobal('ResizeObserver', undefined)
+
+    try {
+      const wrapper = mount(OTabs, {
+        props: { modelValue: 'text', items },
+      })
+
+      expect(wrapper.get<HTMLElement>('.o-tabs__indicator').element.style.width).toBe('0px')
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('omits panels and aria-controls when the default slot is absent', () => {

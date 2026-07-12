@@ -432,13 +432,14 @@
   ],
   "narrative": {
     "northStar": "The Precision Workbench",
-    "overview": "OMG UI behaves like a carefully organized workbench: every control has one job, every state is visible, and every reusable part fits the same measuring system. The visual language is restrained and familiar so developers can compose product interfaces without relearning standard affordances. Precision does not mean sterility. Compact spacing, quiet surfaces, sharp focus treatment, and short state-driven motion create a responsive feel without decoration. Components inherit the host project's font and use scoped OMG tokens, allowing the library to remain recognizable without taking ownership of the consuming product's brand. The system rejects business logic inside primitives, copied framework aesthetics, gratuitous states, exaggerated shadows, bounce motion, fragmented icon sources, and documentation styles that leak into component tokens.",
+    "overview": "OMG UI behaves like a carefully organized personal workbench: every control has one job, every state is visible, and every reusable part fits the same measuring system. The visual language is restrained and familiar without requiring every component to become a generic market primitive. Precision does not mean sterility. Compact spacing, quiet surfaces, sharp focus treatment, short state-driven motion, and owner-approved effects create a responsive identity. Frequently reused personal patterns and stylistically specific components belong in the library when they improve the owner's projects. Engineering standards keep them understandable and reliable without sanding away that identity. The system rejects business logic inside primitives, copied framework aesthetics, gratuitous states, exaggerated shadows, unrequested motion, fragmented icon sources, and documentation styles that leak into component tokens.",
     "keyCharacteristics": [
       "Restrained blue accent on active, selected, and focused states.",
       "Compact 4px spacing rhythm with 6px, 8px, and 12px structural radii.",
       "Familiar controls with explicit keyboard, focus, disabled, and reduced-motion behavior.",
       "Theme-aware semantic tokens instead of page-specific values.",
-      "Composition over compatibility layers or premature public abstractions."
+      "Protected personal effects over generic redesigns.",
+      "Deliberate composition without forced public-component coupling."
     ],
     "rules": [
       {
@@ -465,6 +466,16 @@
         "name": "The Portal Surface Rule",
         "body": "Menus and listboxes use fixed positioning through a portal so overflow containers cannot clip them.",
         "section": "elevation"
+      },
+      {
+        "name": "The Protected Effect Rule",
+        "body": "User-approved motion, layout, and visual identity are product behavior. Reviews may fix correctness and make restrained adjustments, but they do not replace an approved effect with a generic alternative.",
+        "section": "components"
+      },
+      {
+        "name": "The Personal Workbench Rule",
+        "body": "Personal, frequently reused, and stylistically specific components are valid public components even when they are not conventional market primitives.",
+        "section": "components"
       }
     ],
     "dos": [
@@ -474,13 +485,17 @@
       "Do virtualize only fixed-row collections large enough to benefit, and preserve native editing or complete focusable lists elsewhere.",
       "Do verify keyboard focus, ARIA, contrast, SSR, dark theme, and prefers-reduced-motion for every interactive component.",
       "Do keep control motion at 160ms for direct feedback and 240ms or less for larger state changes.",
-      "Do reuse shared internal interaction foundations before exposing a new public primitive."
+      "Do treat user-approved motion, layout, and visual identity as tested behavior during reviews and merges.",
+      "Do allow personal, high-frequency, or stylistically specific public components when they are valuable to the owner's projects.",
+      "Do share internal foundations when they reduce real duplication; keep a component self-contained when public composition adds coupling without a user-facing benefit."
     ],
     "donts": [
       "Don't put remote requests, countdowns, permissions, routing, or business-state mapping inside foundational components.",
-      "Don't use complex decoration, exaggerated shadows, bounce motion, or extra states that add visual noise.",
+      "Don't add complex decoration, exaggerated shadows, unrequested motion, or extra states that dilute an approved effect.",
       "Don't copy the appearance or API of Element Plus, Naive UI, or another framework; only adopt proven architecture, accessibility, and release practices.",
       "Don't use multiple icon sources, copied SVG assets, or a pass-through OIcon layer.",
+      "Don't replace an approved effect with a generic alternative merely to resemble another component library.",
+      "Don't reject a useful personal component because it is not a conventional market primitive.",
       "Don't override --vp-c-brand-* or allow VitePress theme values to become component tokens.",
       "Don't preserve pre-release compatibility aliases, private branches, CommonJS, or UMD entries.",
       "Don't add borders to Dialog surfaces, decorative card shadows, controls rounded beyond 12px, or color-only status signals."

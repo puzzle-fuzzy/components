@@ -160,6 +160,27 @@ test('renders the built package examples and synchronizes theme state', async ({
   await expectNoSeriousAccessibilityViolations(page)
 })
 
+test('keeps icon-only buttons square and accessibly named at every size', async ({ page }) => {
+  await page.goto('/components/button')
+
+  const demo = page.getByRole('region', { name: 'Icon-only buttons' })
+  for (const [name, expectedSize] of [
+    ['新建', 32],
+    ['设置', 38],
+    ['删除', 46],
+  ] as const) {
+    const button = demo.getByRole('button', { name, exact: true })
+    const bounds = await button.boundingBox()
+
+    expect(bounds).not.toBeNull()
+    expect(bounds?.width).toBe(expectedSize)
+    expect(bounds?.height).toBe(expectedSize)
+  }
+
+  await expect(demo.getByRole('button', { name: '正在保存', exact: true })).toBeDisabled()
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
 test('renders avatar semantics and status labels', async ({ page }) => {
   await page.goto('/components/avatar')
 
@@ -748,9 +769,17 @@ test('opens and closes the image fullscreen preview', async ({ page }) => {
   await page.goto('/components/image')
 
   await expect(page.getByRole('heading', { level: 1, name: 'Image 图片' })).toBeVisible()
-  const imageDemo = page.getByRole('region', { name: 'Image click preview' })
+  const imageDemo = page.getByRole('region', { name: 'Image demos' })
   const previewTrigger = imageDemo.getByRole('button', {
     name: '预览山谷与蓝绿色坡地插画',
+  })
+
+  await previewTrigger.evaluate((element) => {
+    const image = element.closest('.o-image')
+    image?.setAttribute('data-omg-theme', 'dark')
+    image?.setAttribute('lang', 'zh-CN')
+    image?.setAttribute('dir', 'rtl')
+    element.style.setProperty('--omg-radius-md', '19px')
   })
 
   await previewTrigger.focus()
@@ -758,11 +787,28 @@ test('opens and closes the image fullscreen preview', async ({ page }) => {
 
   const dialog = page.getByRole('dialog', { name: '预览山谷与蓝绿色坡地插画' })
   await expect(dialog).toBeVisible()
-  await expect(dialog.getByRole('img', { name: '山谷与蓝绿色坡地插画' })).toBeVisible()
-  await expect(page.getByRole('button', { name: '关闭图片预览' })).toBeFocused()
-  await expectNoSeriousAccessibilityViolations(page, ['.o-image__preview-dialog'])
+  const previewImage = dialog.getByRole('img', { name: '山谷与蓝绿色坡地插画' })
+  await expect(previewImage).toBeVisible()
+  await expect(dialog).toBeFocused()
+  await expect(dialog).toHaveAttribute('data-omg-theme', 'dark')
+  await expect(dialog).toHaveAttribute('lang', 'zh-CN')
+  await expect(dialog).toHaveAttribute('dir', 'rtl')
+  await expect(dialog).toHaveCSS('--omg-radius-md', '19px')
+  await expect(page.locator('html')).toHaveCSS('overflow', 'hidden')
+  await expect(page.getByRole('button', { name: /关闭图片预览/u })).toHaveCount(0)
+  await expectNoSeriousAccessibilityViolations(page, ['.o-image__preview-mask'])
+
+  await previewImage.click()
+  await expect(dialog).toBeVisible()
 
   await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+  await expect(previewTrigger).toBeFocused()
+  await expect(page.locator('html')).not.toHaveCSS('overflow', 'hidden')
+
+  await previewTrigger.click()
+  await expect(dialog).toBeVisible()
+  await dialog.click({ position: { x: 4, y: 4 } })
   await expect(dialog).toBeHidden()
   await expect(previewTrigger).toBeFocused()
   await expectNoSeriousAccessibilityViolations(page)
@@ -995,12 +1041,15 @@ test('switches tabs with slider and line variants', async ({ page }) => {
   const transferTabs = page.getByRole('tablist', { name: '传输类型' })
   const textTab = transferTabs.getByRole('tab', { name: '传输文本' })
   const fileTab = transferTabs.getByRole('tab', { name: '传输文件' })
+  const sliderIndicator = transferTabs.locator('.o-tabs__indicator')
+  const initialIndicatorStyle = await sliderIndicator.getAttribute('style')
 
   await expect(textTab).toHaveAttribute('aria-selected', 'true')
   await textTab.focus()
   await page.keyboard.press('ArrowRight')
   await expect(fileTab).toHaveAttribute('aria-selected', 'true')
   await expect(fileTab).toBeFocused()
+  await expect.poll(() => sliderIndicator.getAttribute('style')).not.toBe(initialIndicatorStyle)
   await expect(page.getByRole('tabpanel', { name: '传输文件' })).toContainText('选择并传输')
 
   const contentTabs = page.getByRole('tablist', { name: '内容视图' })
@@ -1010,6 +1059,13 @@ test('switches tabs with slider and line variants', async ({ page }) => {
     'aria-selected',
     'true',
   )
+
+  const fillTabs = page.getByRole('tablist', { name: '占满标签' })
+  await expect(fillTabs.locator('..')).toHaveClass(/o-tabs--fill/u)
+  const fillWidths = await fillTabs
+    .getByRole('tab')
+    .evaluateAll((tabs) => tabs.map((tab) => Math.round(tab.getBoundingClientRect().width)))
+  expect(new Set(fillWidths).size).toBe(1)
 
   await expectNoSeriousAccessibilityViolations(page)
 })

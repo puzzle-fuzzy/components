@@ -4,9 +4,8 @@ import { resolve } from 'node:path'
 import { createSSRApp, h, nextTick } from 'vue'
 import { renderToString } from '@vue/server-renderer'
 import { mount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
-import { ODialog } from '../../dialog'
 import {
   OImage,
   oImageFits,
@@ -17,48 +16,13 @@ import {
 } from '../index'
 
 const imageSource = readFileSync(resolve('packages/ui/src/components/image/src/OImage.vue'), 'utf8')
+const imageStyleSource = readFileSync(
+  resolve('packages/ui/src/components/image/style/index.less'),
+  'utf8',
+)
 
-const showModal = vi.fn(function (this: HTMLDialogElement): void {
-  this.setAttribute('open', '')
-})
-const closeDialog = vi.fn(function (this: HTMLDialogElement): void {
-  this.removeAttribute('open')
-  this.dispatchEvent(new Event('close'))
-})
-
-let showModalDescriptor: PropertyDescriptor | undefined
-let closeDescriptor: PropertyDescriptor | undefined
-
-beforeEach(() => {
-  showModalDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')
-  closeDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close')
-  Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
-    configurable: true,
-    value: showModal,
-  })
-  Object.defineProperty(HTMLDialogElement.prototype, 'close', {
-    configurable: true,
-    value: closeDialog,
-  })
-  showModal.mockClear()
-  closeDialog.mockClear()
-})
-
-afterEach(() => {
-  if (showModalDescriptor) {
-    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', showModalDescriptor)
-  } else {
-    Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal')
-  }
-  if (closeDescriptor) {
-    Object.defineProperty(HTMLDialogElement.prototype, 'close', closeDescriptor)
-  } else {
-    Reflect.deleteProperty(HTMLDialogElement.prototype, 'close')
-  }
-})
-
-const findPreviewDialog = (): HTMLDialogElement | null =>
-  document.body.querySelector('dialog.o-image__preview-dialog')
+const findPreviewLayer = (): HTMLElement | null =>
+  document.body.querySelector('.o-image__preview-mask')
 const findPreviewImage = (): HTMLImageElement | null =>
   document.body.querySelector('.o-image__preview-image')
 
@@ -73,7 +37,6 @@ describe('OImage', () => {
       height: 180,
       preview: true,
       previewAriaLabel: 'Preview gallery photo',
-      closeAriaLabel: 'Close gallery preview',
       disabled: false,
     }
     const event = new Event('load')
@@ -89,9 +52,23 @@ describe('OImage', () => {
     expect(oImageProps.fit.validator('stretch')).toBe(false)
     expect(oImageProps.preview.default).toBe(true)
     expect(oImageProps.previewAriaLabel.default).toBe('Preview image')
-    expect(oImageProps.closeAriaLabel.default).toBe('Close image preview')
+    expect('closeAriaLabel' in oImageProps).toBe(false)
     expect(publicEmits.load).toEqual([event])
     expectTypeOf(publicProps.fit).toEqualTypeOf<OImageFit | undefined>()
+  })
+
+  it('owns a Teleport preview without Dialog or a zoom badge dependency', () => {
+    expect(imageSource).toContain('<Teleport')
+    expect(imageSource).not.toContain("from '../../dialog'")
+    expect(imageSource).not.toContain('<ODialog')
+    expect(imageSource).not.toContain('LuZoomIn')
+    expect(imageSource).not.toContain('o-image__preview-icon')
+  })
+
+  it('locks document scrolling while the teleported preview layer exists', () => {
+    expect(imageStyleSource).toMatch(
+      /html:has\(\.o-image__preview-mask\)\s*\{[^}]*overflow:\s*hidden;/su,
+    )
   })
 
   it('renders a native preview button with an explicit accessible name', () => {
@@ -115,15 +92,8 @@ describe('OImage', () => {
     expect(image.attributes('src')).toBe('/photo.jpg')
     expect(image.attributes('alt')).toBe('Gallery photo')
     expect(image.attributes('draggable')).toBe('false')
-    expect(wrapper.get('.o-image__preview-icon').attributes('aria-hidden')).toBe('true')
-    expect(wrapper.get('.o-image__preview-icon').element.tagName.toLowerCase()).toBe('svg')
-    expect(wrapper.get('dialog').attributes('open')).toBeUndefined()
-  })
-
-  it('uses the standard Lucide preview affordance', () => {
-    expect(imageSource).toContain("import { LuZoomIn } from 'vue-icons-plus/lu'")
-    expect(imageSource).toContain('<LuZoomIn')
-    expect(imageSource).not.toContain('<svg')
+    expect(wrapper.find('.o-image__preview-icon').exists()).toBe(false)
+    expect(findPreviewLayer()).toBeNull()
   })
 
   it('forwards native image attributes and uses numeric dimensions as native attributes', () => {
@@ -188,7 +158,7 @@ describe('OImage', () => {
     expect(wrapper.emitted('error')?.[0]?.[0]).toBeInstanceOf(Event)
   })
 
-  it('opens a fullscreen preview when the image is clicked', async () => {
+  it('opens a focused modal preview with the high-resolution source', async () => {
     const wrapper = mount(OImage, {
       attachTo: document.body,
       props: {
@@ -196,36 +166,35 @@ describe('OImage', () => {
         alt: 'Gallery photo',
         previewSrc: '/photo-large.jpg',
         previewAriaLabel: 'Preview gallery photo',
-        closeAriaLabel: 'Close gallery preview',
       },
     })
+    const trigger = wrapper.get<HTMLButtonElement>('button.o-image__trigger')
 
-    await wrapper.get('button.o-image__trigger').trigger('click')
+    trigger.element.focus()
+    await trigger.trigger('click')
     await nextTick()
 
-    const dialog = findPreviewDialog()
+    const layer = findPreviewLayer()
     const previewImage = findPreviewImage()
-    const dialogComponent = wrapper.getComponent(ODialog)
 
     expect(wrapper.classes()).toContain('is-previewing')
-    expect(dialog?.open).toBe(true)
-    expect(dialog?.getAttribute('aria-label')).toBe('Preview gallery photo')
-    expect(dialog?.classList.contains('o-image__preview-dialog')).toBe(true)
-    expect(dialogComponent.props()).toMatchObject({
-      closeAriaLabel: 'Close gallery preview',
-      closeOnEsc: true,
-      closeOnMask: true,
-      showClose: false,
-    })
+    expect(layer?.getAttribute('role')).toBe('dialog')
+    expect(layer?.getAttribute('aria-modal')).toBe('true')
+    expect(layer?.getAttribute('aria-label')).toBe('Preview gallery photo')
+    expect(layer?.getAttribute('tabindex')).toBe('-1')
+    expect(document.activeElement).toBe(layer)
     expect(previewImage?.getAttribute('src')).toBe('/photo-large.jpg')
     expect(previewImage?.getAttribute('alt')).toBe('Gallery photo')
-    expect(wrapper.get('button.o-image__trigger').attributes('aria-expanded')).toBe('true')
+    expect(trigger.attributes('aria-expanded')).toBe('true')
+    expect(wrapper.emitted('previewOpen')).toEqual([[]])
+
+    await trigger.trigger('click')
     expect(wrapper.emitted('previewOpen')).toEqual([[]])
 
     wrapper.unmount()
   })
 
-  it('closes the preview through the backdrop click', async () => {
+  it('closes only from the backdrop and restores trigger focus', async () => {
     const wrapper = mount(OImage, {
       attachTo: document.body,
       props: {
@@ -233,19 +202,22 @@ describe('OImage', () => {
         alt: 'Gallery photo',
       },
     })
+    const trigger = wrapper.get<HTMLButtonElement>('button.o-image__trigger')
 
-    await wrapper.get('button.o-image__trigger').trigger('click')
-    const dialog = findPreviewDialog()!
-    dialog.dispatchEvent(new MouseEvent('click', { clientX: 9999, clientY: 9999, bubbles: true }))
+    trigger.element.focus()
+    await trigger.trigger('click')
+    findPreviewLayer()?.click()
     await nextTick()
 
-    expect(findPreviewDialog()?.open).toBe(false)
+    expect(findPreviewLayer()).toBeNull()
+    expect(trigger.attributes('aria-expanded')).toBe('false')
+    expect(document.activeElement).toBe(trigger.element)
     expect(wrapper.emitted('previewClose')).toEqual([[]])
 
     wrapper.unmount()
   })
 
-  it('does not close when the preview image itself is clicked', async () => {
+  it('keeps the preview open when its image is clicked', async () => {
     const wrapper = mount(OImage, {
       attachTo: document.body,
       props: {
@@ -258,12 +230,41 @@ describe('OImage', () => {
     findPreviewImage()?.click()
     await nextTick()
 
-    expect(findPreviewDialog()?.open).toBe(true)
+    expect(findPreviewLayer()).not.toBeNull()
+    expect(wrapper.emitted('previewClose')).toBeUndefined()
 
     wrapper.unmount()
   })
 
-  it('closes the preview with Escape', async () => {
+  it('closes with Escape, restores focus, and emits one close transition', async () => {
+    const wrapper = mount(OImage, {
+      attachTo: document.body,
+      props: {
+        src: '/photo.jpg',
+        alt: 'Gallery photo',
+      },
+    })
+    const trigger = wrapper.get<HTMLButtonElement>('button.o-image__trigger')
+
+    trigger.element.focus()
+    await trigger.trigger('click')
+    const layer = findPreviewLayer()!
+    layer.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+    )
+    await nextTick()
+
+    expect(findPreviewLayer()).toBeNull()
+    expect(document.activeElement).toBe(trigger.element)
+    expect(wrapper.emitted('previewClose')).toEqual([[]])
+
+    await wrapper.setProps({ disabled: true })
+    expect(wrapper.emitted('previewClose')).toEqual([[]])
+
+    wrapper.unmount()
+  })
+
+  it('keeps keyboard focus inside the open preview layer', async () => {
     const wrapper = mount(OImage, {
       attachTo: document.body,
       props: {
@@ -273,11 +274,16 @@ describe('OImage', () => {
     })
 
     await wrapper.get('button.o-image__trigger').trigger('click')
-    findPreviewDialog()?.dispatchEvent(new Event('cancel', { cancelable: true }))
-    await nextTick()
+    const layer = findPreviewLayer()!
+    const tabEvent = new KeyboardEvent('keydown', {
+      key: 'Tab',
+      bubbles: true,
+      cancelable: true,
+    })
+    layer.dispatchEvent(tabEvent)
 
-    expect(findPreviewDialog()?.open).toBe(false)
-    expect(wrapper.emitted('previewClose')).toEqual([[]])
+    expect(tabEvent.defaultPrevented).toBe(true)
+    expect(document.activeElement).toBe(layer)
 
     wrapper.unmount()
   })
@@ -304,13 +310,12 @@ describe('OImage', () => {
     await disabled.get('button.o-image__trigger').trigger('click')
     await previewOff.get('img').trigger('click')
 
-    expect(disabled.get('dialog').attributes('open')).toBeUndefined()
-    expect(previewOff.get('dialog').attributes('open')).toBeUndefined()
+    expect(findPreviewLayer()).toBeNull()
     expect(disabled.emitted('previewOpen')).toBeUndefined()
     expect(previewOff.emitted('previewOpen')).toBeUndefined()
   })
 
-  it('closes an active preview when it becomes disabled', async () => {
+  it('closes an active preview once when previewing becomes unavailable', async () => {
     const wrapper = mount(OImage, {
       attachTo: document.body,
       props: {
@@ -321,16 +326,17 @@ describe('OImage', () => {
 
     await wrapper.get('button.o-image__trigger').trigger('click')
     await wrapper.setProps({ disabled: true })
+    await wrapper.setProps({ preview: false })
     await nextTick()
 
-    expect(findPreviewDialog()?.open).toBe(false)
+    expect(findPreviewLayer()).toBeNull()
     expect(wrapper.emitted('previewClose')).toEqual([[]])
-    expect(wrapper.get('button.o-image__trigger').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('button.o-image__trigger').exists()).toBe(false)
 
     wrapper.unmount()
   })
 
-  it('renders on the server without DOM globals', async () => {
+  it('renders on the server without DOM globals or preview markup', async () => {
     const html = await renderToString(
       createSSRApp({
         render: () =>
@@ -346,7 +352,7 @@ describe('OImage', () => {
     expect(html).toContain('aria-haspopup="dialog"')
     expect(html).toContain('src="/photo.jpg"')
     expect(html).toContain('alt="Gallery photo"')
-    expect(html).toContain('<dialog')
-    expect(html).not.toContain(' open')
+    expect(html).not.toContain('o-image__preview-mask')
+    expect(html).not.toContain('<dialog')
   })
 })

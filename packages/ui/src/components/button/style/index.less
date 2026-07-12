@@ -1,3 +1,5 @@
+@import '../../../styles/mixins.less';
+
 .o-button {
   --omg-button-tone: var(--omg-color-brand);
   --omg-button-tone-hover: var(--omg-color-brand-hover);
@@ -178,6 +180,18 @@
     block-size: var(--omg-button-spinner-size);
     opacity: var(--omg-button-disabled-opacity);
     animation: o-button-spin var(--omg-button-spinner-duration) linear infinite;
+  }
+
+  &--icon-only {
+    min-inline-size: var(--omg-button-height);
+    inline-size: var(--omg-button-height);
+    block-size: var(--omg-button-height);
+    gap: 0;
+    padding: 0;
+
+    .o-button__content {
+      .visually-hidden();
+    }
   }
 }
 

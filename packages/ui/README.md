@@ -2,6 +2,8 @@
 
 OMG UI 是一个仅面向 Vue 3 的个人组件库。
 
+它服务于个人项目中反复出现的视觉与交互习惯，不以收集“市面标准组件”为目标。工程规范负责保证组件可理解、可测试和可发布；已经确认的动画、布局与个人风格属于组件行为，合并和重构时应当保留。高频专用组件可以直接成为公开组件，不需要为了看起来更通用而拆散或改写。
+
 ## 安装
 
 ```bash
@@ -72,6 +74,8 @@ const items: readonly ODropdownItem[] = [{ value: 'settings', label: '设置', i
 
 状态点、分割线、Tabs 指示器和 Avatar Flow 连接线属于 CSS 状态几何，不作为图标替换。组件源码与文档示例不写内联 SVG，也不混用第二套图标库。
 
+`OButton` 的 `iconOnly` 模式继续通过 `#icon` 插槽接收图标，不增加图标注册表。图标本身是装饰内容；按钮必须通过默认插槽文本、`aria-label` 或 `aria-labelledby` 保留可访问名称。
+
 ## 表单与受控状态
 
 - `OInput` 保留真实单行 input，并提供清除、密码可见性和前后缀能力。
@@ -103,6 +107,8 @@ const items: readonly ODropdownItem[] = [{ value: 'settings', label: '设置', i
 
 默认 Teleport 会把 trigger 的 `--omg-*` tokens、继承排版、最近的 `data-omg-theme`、`lang` 与计算后的 `dir` 同步到面板，局部主题和 RTL 无需额外配置。依赖其他自定义变量或祖先选择器时，可选择对应作用域内的目标或关闭 Teleport。SSR 下不要在 setup 顶层查询 DOM；默认字符串目标和内联模式均可安全渲染，HTMLElement 目标应在客户端挂载后取得。
 
+`OImage` 的预览层固定 Teleport 到 `body`，但仍由组件自身管理。打开时会同步入口的局部主题、语言、方向和预览实际使用的 OMG tokens；预览存在期间锁定页面滚动，关闭后恢复，不需要依赖 `ODialog`。
+
 ## 主题
 
 默认跟随系统主题。需要显式或局部主题时，在祖先容器设置：
@@ -121,7 +127,7 @@ Teleported 浮层会同步 trigger 的 OMG tokens 与主题属性，具体规则
 - `ODialog` 使用浏览器原生 top layer、无边框 surface 与模态焦点模型，不包含确认、请求或路由逻辑。
 - `OConfirmDialog` 确认时保持受控打开状态，由使用方决定操作结果与关闭时机。
 - `OFormDialog` 保留原生 form association 和约束校验，只发出原始提交事件。
-- `OImage` 只负责图片展示和预览交互，预览复用 `ODialog`。
+- `OImage` 只负责图片展示和预览交互，并在组件内部维护 Teleport 预览层，不依赖 `ODialog` 或外部浮层管理器。
 - `OReferenceTextarea` 只渲染使用方传入的通用引用项，不解析成员、图片或私有文本协议。
 - `OUpload` 使用独立原生 file input 修复递归点击，并在每次选择后重置 input，使同一文件可再次选择；上传请求、校验、重试和持久化全部由使用方实现。
 

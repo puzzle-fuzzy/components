@@ -160,7 +160,9 @@ OMG UI behaves like a carefully organized workbench: every control has one job, 
 
 Precision does not mean sterility. Compact spacing, quiet surfaces, sharp focus treatment, and short state-driven motion create a responsive feel without decoration. Components inherit the host project's font and use scoped OMG tokens, allowing the library to remain recognizable without taking ownership of the consuming product's brand.
 
-The system rejects business logic inside primitives, copied framework aesthetics, gratuitous states, exaggerated shadows, bounce motion, fragmented icon sources, and documentation styles that leak into component tokens.
+This is a personal workbench, not a catalogue of generic market primitives. Approved motion, layout, and visual effects are product behavior. Frequently reused personal patterns and stylistically specific components belong in the library when they improve the owner's projects; engineering standards keep them understandable and reliable without sanding away their identity.
+
+The system rejects business logic inside primitives, copied framework aesthetics, gratuitous states, exaggerated shadows, unrequested motion, fragmented icon sources, and documentation styles that leak into component tokens.
 
 **Key Characteristics:**
 
@@ -168,7 +170,8 @@ The system rejects business logic inside primitives, copied framework aesthetics
 - Compact 4px spacing rhythm with 6px, 8px, and 12px structural radii.
 - Familiar controls with explicit keyboard, focus, disabled, and reduced-motion behavior.
 - Theme-aware semantic tokens instead of page-specific values.
-- Composition over compatibility layers or premature public abstractions.
+- Protected personal effects over generic redesigns.
+- Deliberate composition without forced public-component coupling.
 
 ## Colors
 
@@ -240,7 +243,7 @@ OMG UI is flat by default. Borders and tonal surface changes define structure; a
 `vue-icons-plus/lu` is the only icon source for component code and documentation examples. Icons remain direct named imports so bundlers can tree-shake them; the library does not expose a pass-through icon wrapper.
 
 - Decorative icons use `aria-hidden="true"`; the native control keeps the accessible name.
-- Checkbox check/mixed marks, Input clear/password controls, Upload actions and states, Image preview, Select indicators, Dialog close, and loading feedback all use Lucide Vue components.
+- Checkbox check/mixed marks, Input clear/password controls, Upload actions and states, Select indicators, Dialog close, Button icons, and loading feedback all use Lucide Vue components.
 - Avatar status marks, Avatar Flow connectors, Tabs indicators, Divider lines, and progress geometry are CSS state shapes rather than icons.
 - Handwritten template SVG, raw SVG assets, second icon libraries, and icon-only controls without a name are prohibited.
 
@@ -263,6 +266,7 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 - **Primary:** Focused Blue background, on-brand text, 8px by 16px medium padding, and semibold inherited type.
 - **Hover / Focus:** 160ms semantic color transition, a visible 3px focus ring with 2px offset, and a restrained 1px active translation.
 - **Soft / Outline / Ghost:** preserve the same geometry and use tint, border, or transparent surfaces instead of inventing new control shapes.
+- **Icon Only:** the same 32px, 38px, or 46px height becomes the square inline size; the icon is decorative and the native button must retain an accessible name.
 
 ### Cards / Containers
 
@@ -303,8 +307,8 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 - **Dialog:** uses the native `<dialog>` top layer for modal focus, background inertness, Escape ordering, and scroll behavior. Its borderless surface keeps a 12px radius and uses the dedicated dialog shadow.
 - **Confirm Dialog:** composes Dialog and Button. Confirm emits intent without closing; cancel requests a controlled close. Danger tone adds a standard warning icon while keeping the safe cancel action as initial focus.
 - **Form Dialog:** connects an SSR-safe native form to its footer submit button. Native validation runs before the raw `SubmitEvent` is emitted; serialization, error mapping, and persistence stay outside.
-- **Image:** a native image remains non-interactive unless preview is enabled; preview activation is a named button and the modal reuses Dialog rather than creating a second overlay system.
-- **Tabs:** one enabled tab remains in the tab order, selection is tracked by stable values, optional panels are linked with deterministic IDs, and active presentation works without direction-sensitive index transforms.
+- **Image:** a native image remains non-interactive unless preview is enabled. A named button opens the component's own Teleport preview layer, keeping the remote-approved dark, close-button-free presentation without coupling Image to Dialog.
+- **Tabs:** one enabled tab remains in the tab order, selection is tracked by stable values, and optional panels are linked with deterministic IDs. The measured sliding indicator, line treatment, and fill layout are protected component effects.
 - **Upload:** a hidden native input is a sibling of the selection label, preventing recursive picker activation; resetting it permits same-file reselection. Selection, drag feedback, file state presentation, and list actions are UI-only. Requests, validation policy, retries, and persistence remain outside.
 
 ### Code Input and Divider
@@ -322,14 +326,18 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 - **Do** virtualize only fixed-row collections large enough to benefit, and preserve native editing or complete focusable lists elsewhere.
 - **Do** verify keyboard focus, ARIA, contrast, SSR, dark theme, and `prefers-reduced-motion` for every interactive component.
 - **Do** keep control motion at 160ms for direct feedback and 240ms or less for larger state changes.
-- **Do** reuse shared internal interaction foundations before exposing a new public primitive.
+- **Do** treat user-approved motion, layout, and visual identity as tested behavior during reviews and merges.
+- **Do** allow personal, high-frequency, or stylistically specific public components when they are valuable to the owner's projects.
+- **Do** share internal foundations when they reduce real duplication; keep a component self-contained when public composition adds coupling without a user-facing benefit.
 
 ### Don't:
 
 - **Don't** put remote requests, countdowns, permissions, routing, or business-state mapping inside foundational components.
-- **Don't** use complex decoration, exaggerated shadows, bounce motion, or extra states that add visual noise.
+- **Don't** add complex decoration, exaggerated shadows, unrequested motion, or extra states that dilute an approved effect.
 - **Don't** copy the appearance or API of Element Plus, Naive UI, or another framework; only adopt proven architecture, accessibility, and release practices.
 - **Don't** use multiple icon sources, copied SVG assets, or a pass-through `OIcon` layer.
+- **Don't** replace an approved effect with a generic alternative merely to resemble another component library.
+- **Don't** reject a useful personal component because it is not a conventional market primitive.
 - **Don't** override `--vp-c-brand-*` or allow VitePress theme values to become component tokens.
 - **Don't** preserve pre-release compatibility aliases, private branches, CommonJS, or UMD entries.
 - **Don't** add borders to Dialog surfaces, decorative card shadows, controls rounded beyond 12px, or color-only status signals.

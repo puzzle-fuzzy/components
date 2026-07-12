@@ -130,17 +130,20 @@ const fitDemos: FitDemo[] = [
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
 .omg-example-fit-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
 }
+
 .omg-example-fit-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
 }
+
 .omg-example-fit-label {
   font-size: var(--omg-font-size-xs);
   color: var(--omg-color-text-muted);

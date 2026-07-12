@@ -40,7 +40,7 @@ let resizeObserver: ResizeObserver | null = null
 onMounted(() => {
   updateIndicator()
   const list = tabListRef.value
-  if (list) {
+  if (list && typeof ResizeObserver !== 'undefined') {
     resizeObserver = new ResizeObserver(updateIndicator)
     resizeObserver.observe(list)
   }
@@ -133,12 +133,9 @@ watch(selectedValue, (value, previousValue) => {
   }
 })
 
-watch(
-  [selectedValue, () => props.items],
-  () => {
-    void nextTick(updateIndicator)
-  },
-)
+watch([selectedValue, () => props.items], () => {
+  void nextTick(updateIndicator)
+})
 </script>
 
 <template>

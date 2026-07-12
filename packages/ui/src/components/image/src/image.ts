@@ -35,10 +35,6 @@ export const oImageProps = {
     type: String,
     default: 'Preview image',
   },
-  closeAriaLabel: {
-    type: String,
-    default: 'Close image preview',
-  },
   disabled: Boolean,
 } as const
 
