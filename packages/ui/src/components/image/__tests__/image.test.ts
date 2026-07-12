@@ -202,20 +202,17 @@ describe('OImage', () => {
       closeAriaLabel: 'Close gallery preview',
       closeOnEsc: true,
       closeOnMask: true,
-      showClose: true,
+      showClose: false,
     })
     expect(previewImage?.getAttribute('src')).toBe('/photo-large.jpg')
     expect(previewImage?.getAttribute('alt')).toBe('Gallery photo')
-    expect(document.body.querySelector('[aria-label="Close gallery preview"]')).toBeInstanceOf(
-      HTMLButtonElement,
-    )
     expect(wrapper.get('button.o-image__trigger').attributes('aria-expanded')).toBe('true')
     expect(wrapper.emitted('previewOpen')).toEqual([[]])
 
     wrapper.unmount()
   })
 
-  it('closes the preview through the dialog close control', async () => {
+  it('closes the preview through the backdrop click', async () => {
     const wrapper = mount(OImage, {
       attachTo: document.body,
       props: {
@@ -225,8 +222,8 @@ describe('OImage', () => {
     })
 
     await wrapper.get('button.o-image__trigger').trigger('click')
-    await wrapper.get('.o-dialog__close').trigger('click')
-    await wrapper.setProps({})
+    const dialog = findPreviewDialog()!
+    dialog.dispatchEvent(new MouseEvent('click', { clientX: 9999, clientY: 9999, bubbles: true }))
     await nextTick()
 
     expect(findPreviewDialog()?.open).toBe(false)

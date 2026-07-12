@@ -29,6 +29,10 @@ export const oTabsProps = {
     default: 'slider',
     validator: (value: unknown): value is OTabsVariant => isStringMember(oTabsVariants, value),
   },
+  fill: {
+    type: Boolean,
+    default: false,
+  },
   ariaLabel: {
     type: String,
     default: 'Tabs',
