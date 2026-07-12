@@ -1,0 +1,46 @@
+{
+  "name": "@omg/ui",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/omg-ui.umd.cjs",
+  "module": "./dist/omg-ui.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/omg-ui.es.js",
+      "require": "./dist/omg-ui.umd.cjs"
+    },
+    "./style.css": "./dist/omg-ui.css"
+  },
+  "sideEffects": [
+    "*.css",
+    "*.vue"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vueuse/core": "^14.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vue/tsconfig": "^0.9.1",
+    "less": "^4.6.7",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1",
+    "vite-plugin-dts": "^5.0.3",
+    "vue": "^3.5.39",
+    "vue-tsc": "^3.3.5"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  }
+}
