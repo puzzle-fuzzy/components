@@ -25,6 +25,7 @@ const expectedComponents = [
   'tabs',
   'textarea',
   'upload',
+  'widget',
 ]
 
 const toComponentName = (directory) =>
@@ -64,7 +65,12 @@ for (const root of [uiSourceRoot, docsExamplesRoot]) {
     const source = await readFile(file, 'utf8')
     if (file.endsWith('.vue')) {
       const templateSource = source.match(/<template\b[^>]*>([\s\S]*)<\/template>/iu)?.[1] ?? ''
-      if (/<svg\b/iu.test(templateSource)) {
+      const inlineSvgTags = templateSource.match(/<svg\b(?:[^>"']|"[^"]*"|'[^']*')*>/giu) ?? []
+      const hasUnmarkedInlineSvg = inlineSvgTags.some(
+        (tag) => !/\sdata-omg-visualization(?:\s|=|\/?>)/iu.test(tag),
+      )
+
+      if (hasUnmarkedInlineSvg) {
         errors.push('inline SVG is not allowed: ' + relative(repositoryRoot, file))
       }
     }

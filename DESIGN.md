@@ -148,6 +148,14 @@ components:
     typography: '{typography.body}'
     rounded: '{rounded.lg}'
     padding: '20px'
+  widget:
+    backgroundColor: '{colors.light-surface}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '35px'
+    padding: '16px'
+    width: '160px'
+    height: '130px'
 ---
 
 # Design System: OMG UI
@@ -223,7 +231,7 @@ Focused Blue provides one clear accent while slate surfaces and ink roles carry 
 
 ## Elevation
 
-OMG UI is flat by default. Borders and tonal surface changes define structure; a compact one-step shadow is reserved for controls, avatars, and floating menus where separation is functional. Modal Dialog is the deliberate exception: its borderless top-layer surface uses one wider semantic shadow to separate it from the backdrop without adding an outline.
+OMG UI is flat by default. Surface tone, spacing, and one purposeful elevation layer define most structure. Borders are a limited resource for input boundaries, states, focus, true separators, or hierarchy that has no quieter substitute. Modal Dialog is the deliberate exception: its borderless top-layer surface uses one wider semantic shadow to separate it from the backdrop without adding an outline.
 
 ### Shadow Vocabulary
 
@@ -238,6 +246,8 @@ OMG UI is flat by default. Borders and tonal surface changes define structure; a
 
 **The Portal Surface Rule.** Menus and listboxes use fixed positioning through a portal so overflow containers cannot clip them.
 
+**The Border Budget Rule.** Cards, list rows, and floating panels use surface, spacing, or one shadow before a border. A border exists only for an input boundary, state, focus, separator, or irreplaceable layer distinction.
+
 ## Icons
 
 `vue-icons-plus/lu` is the only icon source for component code and documentation examples. Icons remain direct named imports so bundlers can tree-shake them; the library does not expose a pass-through icon wrapper.
@@ -245,7 +255,8 @@ OMG UI is flat by default. Borders and tonal surface changes define structure; a
 - Decorative icons use `aria-hidden="true"`; the native control keeps the accessible name.
 - Checkbox check/mixed marks, Input clear/password controls, Upload actions and states, Select indicators, Dialog close, Button icons, and loading feedback all use Lucide Vue components.
 - Avatar status marks, Avatar Flow connectors, Tabs indicators, Divider lines, and progress geometry are CSS state shapes rather than icons.
-- Handwritten template SVG, raw SVG assets, second icon libraries, and icon-only controls without a name are prohibited.
+- Widget sparklines and activity points are marked data visualizations, not icons; they may use controlled inline SVG with explicit accessibility semantics.
+- Unmarked handwritten template SVG, raw SVG assets, second icon libraries, and icon-only controls without a name are prohibited.
 
 ## Scrolling and Large Collections
 
@@ -273,7 +284,7 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 - **Corner Style:** compact 8px or 12px corners; full pills are limited to circular status and identity shapes.
 - **Background:** semantic surface and muted-surface tokens in both themes.
 - **Shadow Strategy:** flat at rest unless the element floats over another surface.
-- **Border:** 1px semantic border or border-subtle role.
+- **Border:** absent by default when surface, spacing, or elevation already separates the container; otherwise one 1px semantic border.
 - **Internal Padding:** multiples of the 4px spacing base, most often 8px, 12px, or 16px.
 
 ### Inputs / Fields
@@ -291,8 +302,8 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 - **Style:** standard button, menu, combobox, listbox, and option semantics are preserved. Active and selected states use Focused Blue or a quiet neutral tint.
 - **Keyboard:** familiar Arrow, Home, End, Enter, Space, Escape, and Tab behavior is part of the visual component contract.
 - **Responsive treatment:** components use intrinsic sizing, logical properties, and container-aware spacing instead of fluid typography.
-- **Dropdown:** a 38px menu button opens a portal surface with 36px minimum action rows, disabled-item skipping, danger tone, and focus restoration.
-- **Select:** a 180px minimum select-only combobox keeps focus on its trigger, exposes active options through `aria-activedescendant`, places its clear action in a sibling button, and virtualizes fixed-height rows only for large collections.
+- **Dropdown:** a 38px bordered menu button opens a borderless portal surface with one structural shadow, 36px minimum action rows, disabled-item skipping, danger tone, and focus restoration.
+- **Select:** a 180px minimum bordered combobox keeps focus on its trigger; its borderless portal surface uses one structural shadow, exposes active options through `aria-activedescendant`, and virtualizes fixed-height rows only for large collections.
 - **Portal context:** a floating surface mirrors local theme, language, direction, typography, and divergent `--omg-*` overrides while leaving root tokens naturally inherited. Native dialog/top-layer compositions use `teleported="false"` or an in-layer `teleportTo` target.
 
 ### Avatar and Avatar Flow
@@ -302,6 +313,13 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 - **Avatar Flow:** exactly three visual connector states. Loading dots scale in place, connected is a static line, and transferring is a moving dashed line.
 - **Avatar Dropdown:** a thin composition keeps Avatar pure while the Dropdown shell owns the native button, menu semantics, indicator, and focus behavior.
 
+### Widget
+
+- **Identity:** a protected personal component rather than a generic Card. Its fixed 160×130px four-quadrant composition uses a 35px radius, 55% translucent surface, 20px backdrop blur, and diagonal highlight.
+- **Content:** Lucide icon at top left, compact title at top right, 22px value and unit at bottom left, and a brand sparkline or two-row activity visualization at bottom right.
+- **Border treatment:** the glass surface has no outer border. The circular icon container uses a quiet tonal fill without a ring.
+- **Semantics:** title and value remain text; a default chart is decorative unless `chartAriaLabel` supplies its accessible meaning. Data retrieval and business interpretation stay outside.
+
 ### Dialog, Image, Tabs, and Upload
 
 - **Dialog:** uses the native `<dialog>` top layer for modal focus, background inertness, Escape ordering, and scroll behavior. Its borderless surface keeps a 12px radius and uses the dedicated dialog shadow.
@@ -309,7 +327,7 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 - **Form Dialog:** connects an SSR-safe native form to its footer submit button. Native validation runs before the raw `SubmitEvent` is emitted; serialization, error mapping, and persistence stay outside.
 - **Image:** a native image remains non-interactive unless preview is enabled. A named button opens the component's own Teleport preview layer, keeping the remote-approved dark, close-button-free presentation without coupling Image to Dialog.
 - **Tabs:** one enabled tab remains in the tab order, selection is tracked by stable values, and optional panels are linked with deterministic IDs. The measured sliding indicator, line treatment, and fill layout are protected component effects.
-- **Upload:** a hidden native input is a sibling of the selection label, preventing recursive picker activation; resetting it permits same-file reselection. Selection, drag feedback, file state presentation, and list actions are UI-only. Requests, validation policy, retries, and persistence remain outside.
+- **Upload:** a hidden native input is a sibling of the selection label, preventing recursive picker activation; resetting it permits same-file reselection. The dropzone retains its dashed affordance, while muted file rows need no duplicate outline. Requests, validation policy, retries, and persistence remain outside.
 
 ### Code Input and Divider
 
@@ -329,6 +347,7 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 - **Do** treat user-approved motion, layout, and visual identity as tested behavior during reviews and merges.
 - **Do** allow personal, high-frequency, or stylistically specific public components when they are valuable to the owner's projects.
 - **Do** share internal foundations when they reduce real duplication; keep a component self-contained when public composition adds coupling without a user-facing benefit.
+- **Do** spend borders on form boundaries, state, focus, and real separation; prefer surface, spacing, or one shadow for ordinary layers.
 
 ### Don't:
 
@@ -338,6 +357,7 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 - **Don't** use multiple icon sources, copied SVG assets, or a pass-through `OIcon` layer.
 - **Don't** replace an approved effect with a generic alternative merely to resemble another component library.
 - **Don't** reject a useful personal component because it is not a conventional market primitive.
+- **Don't** combine a decorative border with a surface or shadow that already communicates the same boundary.
 - **Don't** override `--vp-c-brand-*` or allow VitePress theme values to become component tokens.
 - **Don't** preserve pre-release compatibility aliases, private branches, CommonJS, or UMD entries.
-- **Don't** add borders to Dialog surfaces, decorative card shadows, controls rounded beyond 12px, or color-only status signals.
+- **Don't** add borders to Dialog surfaces, decorative card shadows, unrequested oversized radii, or color-only status signals; protected personal components such as Widget may keep their deliberate geometry.

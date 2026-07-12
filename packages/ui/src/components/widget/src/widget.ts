@@ -1,4 +1,4 @@
-import type { ExtractPublicPropTypes, PropType } from 'vue'
+import type { ExtractPublicPropTypes, PropType, VNodeChild } from 'vue'
 
 export const oWidgetChartTypes = ['line', 'activity'] as const
 
@@ -26,14 +26,15 @@ export const oWidgetProps = {
       isStringMember(oWidgetChartTypes, value),
   },
   chartData: {
-    type: Array as PropType<number[]>,
-    default: (): number[] => [],
+    type: Array as PropType<readonly number[]>,
+    default: (): readonly number[] => [],
   },
+  chartAriaLabel: String as PropType<string | undefined>,
 } as const
 
 export type OWidgetProps = ExtractPublicPropTypes<typeof oWidgetProps>
 
 export interface OWidgetSlots {
-  icon?: () => unknown
-  chart?: () => unknown
+  icon?: () => VNodeChild
+  chart?: () => VNodeChild
 }

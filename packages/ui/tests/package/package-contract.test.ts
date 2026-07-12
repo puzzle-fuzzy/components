@@ -55,6 +55,7 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       './tabs',
       './textarea',
       './upload',
+      './widget',
     ]
 
     for (const subpath of componentSubpaths) {
@@ -109,6 +110,8 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/components/textarea/index.d.ts',
       'dist/components/upload/index.js',
       'dist/components/upload/index.d.ts',
+      'dist/components/widget/index.js',
+      'dist/components/widget/index.d.ts',
     ]
 
     await expect(

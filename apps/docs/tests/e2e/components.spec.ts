@@ -306,6 +306,7 @@ test('supports dropdown pointer and keyboard interactions', async ({ page }) => 
   const signOutItem = page.getByRole('menuitem', { name: '退出示例' })
   await expect(menu).toBeVisible()
   await expect(menu).toHaveCSS('opacity', '1')
+  await expect(menu).toHaveCSS('border-left-width', '0px')
   await expect(disabledItem).toBeDisabled()
   await expectNoSeriousAccessibilityViolations(page, ['.omg-docs-demo', '.o-dropdown__panel'])
 
@@ -547,6 +548,7 @@ test('supports select active descendants, selection, clearing, and viewport posi
 
   const listbox = page.getByRole('listbox')
   await expect(listbox).toBeVisible()
+  await expect(listbox).toHaveCSS('border-left-width', '0px')
   await expect(trigger).toHaveAttribute('aria-activedescendant', /-option-2$/u)
   const activeOptionId = await trigger.getAttribute('aria-activedescendant')
   expect(activeOptionId).not.toBeNull()
@@ -630,13 +632,13 @@ test('opens and selects from avatar dropdown triggers', async ({ page }) => {
   const lightPanel = page.getByRole('menu', { name: '打开头像菜单' })
   await expect(lightPanel).toBeVisible()
   await expect(lightPanel).toHaveAttribute('data-omg-theme', 'light')
-  await expect(lightPanel).toHaveCSS('border-top-style', 'solid')
-  await expect(lightPanel).toHaveCSS('border-top-width', '1px')
+  await expect(lightPanel).toHaveCSS('border-top-style', 'none')
+  await expect(lightPanel).toHaveCSS('border-top-width', '0px')
+  await expect(lightPanel).not.toHaveCSS('box-shadow', 'none')
   const lightPanelColors = await lightPanel.evaluate((element) => {
     const styles = getComputedStyle(element)
     return {
       background: styles.backgroundColor,
-      border: styles.borderTopColor,
       text: styles.color,
     }
   })
@@ -649,18 +651,17 @@ test('opens and selects from avatar dropdown triggers', async ({ page }) => {
   const darkPanel = page.getByRole('menu', { name: '打开深色头像菜单' })
   await expect(darkPanel).toBeVisible()
   await expect(darkPanel).toHaveAttribute('data-omg-theme', 'dark')
-  await expect(darkPanel).toHaveCSS('border-top-style', 'solid')
-  await expect(darkPanel).toHaveCSS('border-top-width', '1px')
+  await expect(darkPanel).toHaveCSS('border-top-style', 'none')
+  await expect(darkPanel).toHaveCSS('border-top-width', '0px')
+  await expect(darkPanel).not.toHaveCSS('box-shadow', 'none')
   const darkPanelColors = await darkPanel.evaluate((element) => {
     const styles = getComputedStyle(element)
     return {
       background: styles.backgroundColor,
-      border: styles.borderTopColor,
       text: styles.color,
     }
   })
   expect(darkPanelColors.background).not.toBe(lightPanelColors.background)
-  expect(darkPanelColors.border).not.toBe(lightPanelColors.border)
   expect(darkPanelColors.text).not.toBe(lightPanelColors.text)
   await expectNoSeriousAccessibilityViolations(page, ['.omg-docs-demo', '.o-dropdown__panel'])
 })
@@ -1070,6 +1071,39 @@ test('switches tabs with slider and line variants', async ({ page }) => {
   await expectNoSeriousAccessibilityViolations(page)
 })
 
+test('renders compact border-light Widget visualizations', async ({ page }) => {
+  await page.goto('/components/widget')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Widget 小组件' })).toBeVisible()
+  const demo = page.getByRole('region', { name: 'Widget demos' })
+  const widgets = demo.locator('.o-widget')
+  const firstWidget = widgets.first()
+  const firstIcon = firstWidget.locator('.o-widget__icon')
+
+  await expect(widgets).toHaveCount(6)
+  await expect(firstWidget).toContainText('花费')
+  await expect(firstWidget).toContainText('85')
+  await expect(firstWidget).toHaveCSS('border-left-width', '0px')
+  await expect(firstWidget).toHaveCSS('border-radius', '35px')
+  await expect(firstWidget).toHaveCSS('backdrop-filter', 'blur(20px)')
+  await expect(firstIcon).toHaveCSS('border-left-width', '0px')
+
+  const bounds = await firstWidget.boundingBox()
+  expect(bounds).not.toBeNull()
+  expect(bounds?.width).toBe(160)
+  expect(bounds?.height).toBe(130)
+
+  const iconBackground = await firstIcon.evaluate(
+    (element) => getComputedStyle(element).backgroundColor,
+  )
+  expect(iconBackground).not.toBe('transparent')
+  expect(iconBackground).not.toBe('rgba(0, 0, 0, 0)')
+  await expect(demo.getByRole('img', { name: '近 7 天花费趋势' })).toBeVisible()
+  await expect(demo.getByRole('img', { name: '最近两周活跃记录' })).toBeVisible()
+
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
 test('renders upload selection and file list states', async ({ page }) => {
   await page.goto('/components/upload')
 
@@ -1088,9 +1122,9 @@ test('renders upload selection and file list states', async ({ page }) => {
     buffer: Buffer.from('contract'),
   })
 
-  await expect(uploadDemo.locator('[data-upload-file-id*="contract.pdf"]')).toContainText(
-    'contract.pdf',
-  )
+  const uploadedFile = uploadDemo.locator('[data-upload-file-id*="contract.pdf"]')
+  await expect(uploadedFile).toContainText('contract.pdf')
+  await expect(uploadedFile).toHaveCSS('border-left-width', '0px')
   await expect(uploadDemo.getByRole('list', { name: '已选项目附件' })).toBeVisible()
   await expect(uploadDemo.locator('.o-upload__list')).toHaveCSS('list-style-type', 'none')
   await expect(

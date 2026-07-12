@@ -111,6 +111,10 @@
       "types": "./dist/components/upload/index.d.ts",
       "import": "./dist/components/upload/index.js"
     },
+    "./widget": {
+      "types": "./dist/components/widget/index.d.ts",
+      "import": "./dist/components/widget/index.js"
+    },
     "./styles.css": "./dist/styles.css"
   },
   "sideEffects": [

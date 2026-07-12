@@ -11,16 +11,24 @@ defineSlots<OWidgetSlots>()
 
 const instanceId = useId()
 const lineGradId = `o-widget-line-fill-${instanceId}`
+const lineChartData = computed(() => props.chartData.filter(Number.isFinite))
+const resolvedChartAriaLabel = computed(() => props.chartAriaLabel?.trim() || undefined)
 
 const linePath = computed(() => {
-  const data = props.chartData
-  if (!data || data.length < 2) return ''
+  const data = lineChartData.value
+  if (data.length < 2) return ''
 
   const w = 100
   const h = 36
   const pad = 2
-  const min = Math.min(...data)
-  const max = Math.max(...data)
+  let min = data[0] ?? 0
+  let max = min
+
+  for (const value of data) {
+    if (value < min) min = value
+    if (value > max) max = value
+  }
+
   const range = max - min || 1
   const step = (w - pad * 2) / (data.length - 1)
 
@@ -42,20 +50,13 @@ const fillPath = computed(() => {
   return `${linePath.value} L${lastX},${lastY} L${firstX},${firstY} Z`
 })
 
-const chartColumns = computed(() => {
-  const data = props.chartData
-  if (!data) return []
-  // Organize into columns (7 days per row)
-  const cols: { x: number; y: number; active: boolean }[] = []
-  data.forEach((v, i) => {
-    cols.push({
-      x: 10 + (i % 7) * 13,
-      y: i < 7 ? 14 : 28,
-      active: v === 1,
-    })
-  })
-  return cols
-})
+const activityPoints = computed(() =>
+  props.chartData.slice(0, 14).map((value, index) => ({
+    x: 10 + (index % 7) * 13,
+    y: index < 7 ? 14 : 28,
+    active: value === 1,
+  })),
+)
 </script>
 
 <template>
@@ -75,10 +76,13 @@ const chartColumns = computed(() => {
       <slot name="chart">
         <!-- Mini line chart -->
         <svg
-          v-if="chartType === 'line' && chartData.length >= 2"
+          v-if="chartType === 'line' && lineChartData.length >= 2"
           class="o-widget__chart-svg o-widget__chart-svg--line"
           viewBox="0 0 100 36"
-          aria-hidden="true"
+          data-omg-visualization="line"
+          :role="resolvedChartAriaLabel ? 'img' : undefined"
+          :aria-label="resolvedChartAriaLabel"
+          :aria-hidden="resolvedChartAriaLabel ? undefined : true"
         >
           <defs>
             <linearGradient :id="lineGradId" x1="0" y1="0" x2="0" y2="1">
@@ -99,22 +103,22 @@ const chartColumns = computed(() => {
 
         <!-- Activity dot chart -->
         <svg
-          v-if="chartType === 'activity' && chartData.length > 0"
+          v-if="chartType === 'activity' && activityPoints.length > 0"
           class="o-widget__chart-svg o-widget__chart-svg--activity"
           viewBox="0 0 96 40"
-          aria-hidden="true"
+          data-omg-visualization="activity"
+          :role="resolvedChartAriaLabel ? 'img' : undefined"
+          :aria-label="resolvedChartAriaLabel"
+          :aria-hidden="resolvedChartAriaLabel ? undefined : true"
         >
-          <g
-            v-for="(col, i) in chartColumns"
-            :key="i"
-          >
+          <g v-for="(point, index) in activityPoints" :key="index">
             <circle
-              :cx="col.x"
-              :cy="col.y"
+              :cx="point.x"
+              :cy="point.y"
               r="4"
-              :fill="col.active ? 'currentColor' : 'none'"
-              :stroke="col.active ? 'none' : 'currentColor'"
-              :stroke-opacity="col.active ? 0 : 0.25"
+              :fill="point.active ? 'currentColor' : 'none'"
+              :stroke="point.active ? 'none' : 'currentColor'"
+              :stroke-opacity="point.active ? 0 : 0.25"
               stroke-width="1.5"
             />
           </g>

@@ -631,13 +631,28 @@ describe('OSelect styles', () => {
     expect(selectStyles).toContain('--omg-select-height: var(--omg-control-height-sm)')
     expect(selectStyles).toContain('--omg-select-height: var(--omg-control-height-lg)')
     expect(selectStyles).toContain('min-inline-size: 180px')
-    expect(selectStyles).toContain('border: 1px solid var(--omg-color-border)')
     expect(selectStyles).toContain('box-shadow: var(--omg-shadow-sm)')
     expect(selectStyles).toContain('background: var(--omg-color-neutral-soft)')
     expect(selectStyles).toContain('z-index: var(--omg-z-index-dropdown)')
     expect(selectStyles).not.toMatch(/--o-(?!mg-)/u)
     expect(selectStyles).not.toMatch(/--vp-/u)
     expect(selectStyles).not.toMatch(/#[\da-f]{3,8}\b/iu)
+  })
+
+  it('keeps the trigger boundary without outlining the floating panel', () => {
+    const triggerStyles = selectStyles.slice(
+      selectStyles.indexOf('  &__trigger {'),
+      selectStyles.indexOf('  &__control:has(&__clear)'),
+    )
+    const panelStyles = selectStyles.slice(
+      selectStyles.indexOf('.o-select__panel {'),
+      selectStyles.indexOf('.o-select__panel.is-virtualized'),
+    )
+
+    expect(triggerStyles).toContain('border: 1px solid var(--omg-color-border)')
+    expect(panelStyles).not.toMatch(/^\s*border\s*:/mu)
+    expect(panelStyles).toContain('background: var(--omg-color-surface)')
+    expect(panelStyles).toContain('box-shadow: var(--omg-shadow-sm)')
   })
 
   it('has visible focus, panel motion, and a reduced-motion fallback', () => {

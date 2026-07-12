@@ -40,6 +40,7 @@ export default defineConfig({
         'components/tabs/index': fromPackageRoot('src/components/tabs/index.ts'),
         'components/textarea/index': fromPackageRoot('src/components/textarea/index.ts'),
         'components/upload/index': fromPackageRoot('src/components/upload/index.ts'),
+        'components/widget/index': fromPackageRoot('src/components/widget/index.ts'),
       },
       cssFileName: 'styles',
       fileName: (_format, entryName) => entryName + '.js',

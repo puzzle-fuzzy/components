@@ -577,6 +577,22 @@ describe('ODropdown', () => {
     expect(document.activeElement).toBe(trigger(wrapper))
   })
 
+  it('keeps the trigger boundary without outlining the floating panel', () => {
+    const triggerStyles = componentStyles.slice(
+      componentStyles.indexOf('.o-dropdown__trigger {'),
+      componentStyles.indexOf('.o-dropdown__trigger:focus-visible'),
+    )
+    const panelStyles = componentStyles.slice(
+      componentStyles.indexOf('.o-dropdown__panel {'),
+      componentStyles.indexOf(".o-dropdown__panel[data-placement^='top']"),
+    )
+
+    expect(triggerStyles).toContain('border: 1px solid var(--omg-color-border)')
+    expect(panelStyles).not.toMatch(/^\s*border\s*:/mu)
+    expect(panelStyles).toContain('background: var(--omg-color-surface)')
+    expect(panelStyles).toContain('box-shadow: var(--omg-shadow-sm)')
+  })
+
   it('keeps panel and chevron motion restrained and reduced-motion safe', () => {
     expect(componentStyles).toContain('var(--omg-duration-fast)')
     expect(componentStyles).toContain('z-index: var(--omg-z-index-dropdown)')

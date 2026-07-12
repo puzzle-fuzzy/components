@@ -24,6 +24,7 @@ import {
   OTabs,
   OTextarea,
   OUpload,
+  OWidget,
   type OAvatarFlowPeer,
   type OAvatarGroupItem,
   type ODropdownItem,
@@ -614,5 +615,41 @@ describe('server rendering', () => {
     expect(html).toContain('aria-label="Upload files"')
     expect(html).toContain('upload.txt')
     expect(html).toContain('已完成')
+  })
+
+  test('renders named OWidget visualizations with stable unique IDs without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h('div', [
+            h(OWidget, {
+              title: '花费',
+              value: 85,
+              unit: '元',
+              chartData: [42, 58, 45, 72],
+              chartAriaLabel: '近 4 天花费趋势',
+            }),
+            h(OWidget, {
+              title: '收入',
+              value: 60,
+              unit: '元',
+              chartData: [20, 35, 28, 45],
+              chartAriaLabel: '近 4 天收入趋势',
+            }),
+          ]),
+      }),
+    )
+    const gradientIds = [...html.matchAll(/id="(o-widget-line-fill-[^"]+)"/gu)].map(
+      (match) => match[1],
+    )
+
+    expect(html).toContain('class="o-widget')
+    expect(html).toContain('花费')
+    expect(html).toContain('>85<')
+    expect(html).toContain('data-omg-visualization')
+    expect(html).toContain('role="img"')
+    expect(html).toContain('aria-label="近 4 天花费趋势"')
+    expect(gradientIds).toHaveLength(2)
+    expect(new Set(gradientIds).size).toBe(2)
   })
 })

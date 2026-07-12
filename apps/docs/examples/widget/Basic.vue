@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import { OWidget } from '@puzzle-fuzzy/ui'
-import {
-  LuWallet,
-  LuCoins,
-  LuFlame,
-  LuFootprints,
-  LuTarget,
-  LuCheckCheck,
-} from 'vue-icons-plus/lu'
+import { LuWallet, LuCoins, LuFlame, LuFootprints, LuTarget, LuCheckCheck } from 'vue-icons-plus/lu'
 
 const spendingData = [42, 58, 45, 72, 60, 85, 78]
 const incomeData = [20, 35, 28, 45, 52, 38, 60]
@@ -25,6 +18,7 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
       unit="元"
       chart-type="line"
       :chart-data="spendingData"
+      chart-aria-label="近 7 天花费趋势"
     >
       <template #icon><LuWallet aria-hidden="true" :size="18" /></template>
     </OWidget>
@@ -35,6 +29,7 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
       unit="元"
       chart-type="line"
       :chart-data="incomeData"
+      chart-aria-label="近 7 天收入趋势"
     >
       <template #icon><LuCoins aria-hidden="true" :size="18" /></template>
     </OWidget>
@@ -45,6 +40,7 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
       unit="天"
       chart-type="activity"
       :chart-data="activityData"
+      chart-aria-label="最近两周活跃记录"
     >
       <template #icon><LuFlame aria-hidden="true" :size="18" /></template>
     </OWidget>
@@ -55,6 +51,7 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
       unit="k"
       chart-type="line"
       :chart-data="stepsData"
+      chart-aria-label="近 7 天步数趋势"
     >
       <template #icon><LuFootprints aria-hidden="true" :size="18" /></template>
     </OWidget>
@@ -65,6 +62,7 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
       unit="天"
       chart-type="activity"
       :chart-data="focusData"
+      chart-aria-label="最近一周专注记录"
     >
       <template #icon><LuTarget aria-hidden="true" :size="18" /></template>
     </OWidget>
@@ -75,6 +73,7 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
       unit="个"
       chart-type="line"
       :chart-data="tasksData"
+      chart-aria-label="近 7 天任务完成趋势"
     >
       <template #icon><LuCheckCheck aria-hidden="true" :size="18" /></template>
     </OWidget>
