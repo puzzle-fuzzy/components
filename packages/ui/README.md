@@ -12,23 +12,62 @@ pnpm add @puzzle-fuzzy/ui
 
 ```vue
 <script setup lang="ts">
-import { OButton } from '@puzzle-fuzzy/ui'
+import { OButton, OSelect, type OSelectOption } from '@puzzle-fuzzy/ui'
 import '@puzzle-fuzzy/ui/styles.css'
+
+const options: readonly OSelectOption[] = [
+  { value: 'compact', label: '紧凑' },
+  { value: 'comfortable', label: '舒适' },
+]
 </script>
 
 <template>
   <OButton variant="soft">保存</OButton>
+  <OSelect aria-label="选择密度" :options="options" />
 </template>
 ```
 
-也可以使用显式组件子入口：
+也可以只从显式组件子入口导入：
+
+```ts
+import { ODropdown, type ODropdownItem } from '@puzzle-fuzzy/ui/dropdown'
+import { OAvatarDropdown } from '@puzzle-fuzzy/ui/avatar-dropdown'
+
+const items: readonly ODropdownItem[] = [{ value: 'profile', label: '个人资料' }]
+```
+
+当前公开组件与子入口：
 
 - `@puzzle-fuzzy/ui/button`
 - `@puzzle-fuzzy/ui/avatar`
+- `@puzzle-fuzzy/ui/avatar-dropdown`
 - `@puzzle-fuzzy/ui/avatar-group`
 - `@puzzle-fuzzy/ui/avatar-flow`
 - `@puzzle-fuzzy/ui/code-input`
 - `@puzzle-fuzzy/ui/divider`
+- `@puzzle-fuzzy/ui/dropdown`
+- `@puzzle-fuzzy/ui/select`
+
+## 图标
+
+内置图标与文档示例统一使用 `vue-icons-plus/lu`。为 Dropdown 菜单项传入自定义图标时，也只从这个入口导入；不复制 SVG，不混用第二套图标库，不增加仅转发属性的图标包装层。
+
+```ts
+import { LuSettings } from 'vue-icons-plus/lu'
+
+const items: readonly ODropdownItem[] = [{ value: 'settings', label: '设置', icon: LuSettings }]
+```
+
+## 浮层挂载
+
+`ODropdown`、`OSelect` 与 `OAvatarDropdown` 默认使用 `teleported=true` 和 `teleportTo='body'`，避免菜单被普通 overflow 容器裁剪。两项 API 保持一致：
+
+- `teleported?: boolean`，默认 `true`；设为 `false` 时浮层保留在组件 DOM 位置。
+- `teleportTo?: string | HTMLElement`，默认 `'body'`；仅在启用 Teleport 时作为挂载目标。
+
+原生 `<dialog>` 属于浏览器 top layer。dialog 内应使用 `:teleported="false"`，或把 `teleportTo` 指向 dialog 内的目标元素，避免浮层落到 top layer 之外。
+
+默认 Teleport 会把 trigger 的 `--omg-*` tokens、继承排版、最近的 `data-omg-theme`、`lang` 与计算后的 `dir` 同步到面板，局部主题和 RTL 无需额外配置。依赖其他自定义变量或祖先选择器时，可选择对应作用域内的目标或关闭 Teleport。SSR 下不要在 setup 顶层查询 DOM；默认字符串目标和内联模式均可安全渲染，HTMLElement 目标应在客户端挂载后取得。
 
 ## 主题
 
@@ -41,6 +80,7 @@ import '@puzzle-fuzzy/ui/styles.css'
 ```
 
 公开样式变量统一使用 `--omg-*` 前缀。
+Teleported 浮层会同步 trigger 的 OMG tokens 与主题属性，具体规则见上一节。
 
 ## 范围
 

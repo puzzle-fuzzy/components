@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "@puzzle-fuzzy/ui": "workspace:*",
-    "vue": "catalog:"
+    "vue": "catalog:",
+    "vue-icons-plus": "catalog:"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",

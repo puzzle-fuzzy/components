@@ -8,11 +8,13 @@ import AvatarFlowStates from '../../examples/avatar-flow/States.vue'
 
 ## 视觉状态
 
-| 状态           | 表现               |
-| -------------- | ------------------ |
-| `loading`      | 依次浮动的三个圆点 |
-| `connected`    | 静态实线           |
-| `transferring` | 持续向右移动的虚线 |
+| 状态           | 表现                   |
+| -------------- | ---------------------- |
+| `loading`      | 原地依次缩放的三个圆点 |
+| `connected`    | 静态实线               |
+| `transferring` | 持续向右移动的虚线     |
+
+`loading` 圆点只改变缩放与透明度，始终保持在连接器中心，不产生任何垂直位移。
 
 <DemoBlock label="Avatar Flow states">
   <AvatarFlowStates />
@@ -58,5 +60,5 @@ const receivers: readonly OAvatarFlowPeer[] = [
 
 - 根节点使用 `role="img"` 和必填的 `ariaLabel` 描述整个视觉组合。
 - 内部头像与连接器对辅助技术隐藏，避免重复朗读。
-- `prefers-reduced-motion: reduce` 下动画停止，但圆点、实线和虚线三种形态保持可辨识。
+- `prefers-reduced-motion: reduce` 下动画停止，但缩放圆点、实线和虚线三种形态保持可辨识。
 - 窄容器通过容器查询收紧连接间距。

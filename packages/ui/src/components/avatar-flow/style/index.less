@@ -6,7 +6,6 @@
   --omg-avatar-flow-overlap: var(--omg-space-2);
   --omg-avatar-flow-connector-size: calc(var(--omg-space-6) * 2);
   --omg-avatar-flow-dot-size: var(--omg-space-1);
-  --omg-avatar-flow-dot-lift: calc(var(--omg-space-1) * -0.5);
   --omg-avatar-flow-dash-size: 6px;
   --omg-avatar-flow-dash-gap: 4px;
   --omg-avatar-flow-loading-duration: 900ms;
@@ -110,12 +109,12 @@
   60%,
   100% {
     opacity: 0.35;
-    transform: translateY(0);
+    transform: scale(0.7);
   }
 
   30% {
     opacity: 1;
-    transform: translateY(var(--omg-avatar-flow-dot-lift));
+    transform: scale(1);
   }
 }
 

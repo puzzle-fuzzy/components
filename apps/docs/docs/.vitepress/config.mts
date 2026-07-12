@@ -20,6 +20,10 @@ const sourceAliases = useSource
         replacement: fromRepository('packages/ui/src/components/avatar/index.ts'),
       },
       {
+        find: /^@puzzle-fuzzy\/ui\/avatar-dropdown$/,
+        replacement: fromRepository('packages/ui/src/components/avatar-dropdown/index.ts'),
+      },
+      {
         find: /^@puzzle-fuzzy\/ui\/avatar-group$/,
         replacement: fromRepository('packages/ui/src/components/avatar-group/index.ts'),
       },
@@ -34,6 +38,14 @@ const sourceAliases = useSource
       {
         find: /^@puzzle-fuzzy\/ui\/divider$/,
         replacement: fromRepository('packages/ui/src/components/divider/index.ts'),
+      },
+      {
+        find: /^@puzzle-fuzzy\/ui\/dropdown$/,
+        replacement: fromRepository('packages/ui/src/components/dropdown/index.ts'),
+      },
+      {
+        find: /^@puzzle-fuzzy\/ui\/select$/,
+        replacement: fromRepository('packages/ui/src/components/select/index.ts'),
       },
       {
         find: /^@puzzle-fuzzy\/ui\/styles\.css$/,
@@ -64,9 +76,12 @@ export default defineConfig({
           { text: 'Button 按钮', link: '/components/button' },
           { text: 'Avatar 头像', link: '/components/avatar' },
           { text: 'Avatar Group 头像组', link: '/components/avatar-group' },
+          { text: 'Avatar Dropdown 头像下拉', link: '/components/avatar-dropdown' },
           { text: 'Avatar Flow 头像流', link: '/components/avatar-flow' },
           { text: 'Code Input 验证码输入', link: '/components/code-input' },
           { text: 'Divider 分割线', link: '/components/divider' },
+          { text: 'Dropdown 下拉菜单', link: '/components/dropdown' },
+          { text: 'Select 选择器', link: '/components/select' },
         ],
       },
     ],

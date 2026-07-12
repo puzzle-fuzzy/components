@@ -11,6 +11,7 @@ interface PackageManifest {
   license: string
   main?: string
   exports: Record<string, { import?: string; require?: unknown; types?: string }>
+  dependencies: Record<string, string>
   peerDependencies: Record<string, string>
 }
 
@@ -26,15 +27,22 @@ describe('@puzzle-fuzzy/ui package contract', () => {
     expect(manifest.license).toBe('UNLICENSED')
     expect(manifest.main).toBeUndefined()
     expect(manifest.exports['.']?.require).toBeUndefined()
+    expect(manifest.dependencies).toEqual({
+      '@floating-ui/dom': 'catalog:',
+      'vue-icons-plus': 'catalog:',
+    })
     expect(manifest.peerDependencies).toEqual({ vue: '^3.5.0' })
 
     const componentSubpaths = [
       './avatar',
+      './avatar-dropdown',
       './avatar-flow',
       './avatar-group',
       './button',
       './code-input',
       './divider',
+      './dropdown',
+      './select',
     ]
 
     for (const subpath of componentSubpaths) {
@@ -51,6 +59,8 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/styles.css',
       'dist/components/avatar/index.js',
       'dist/components/avatar/index.d.ts',
+      'dist/components/avatar-dropdown/index.js',
+      'dist/components/avatar-dropdown/index.d.ts',
       'dist/components/avatar-group/index.js',
       'dist/components/avatar-group/index.d.ts',
       'dist/components/avatar-flow/index.js',
@@ -61,6 +71,10 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/components/code-input/index.d.ts',
       'dist/components/divider/index.js',
       'dist/components/divider/index.d.ts',
+      'dist/components/dropdown/index.js',
+      'dist/components/dropdown/index.d.ts',
+      'dist/components/select/index.js',
+      'dist/components/select/index.d.ts',
     ]
 
     await expect(

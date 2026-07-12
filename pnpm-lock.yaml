@@ -6,6 +6,9 @@ settings:
 
 catalogs:
   default:
+    '@floating-ui/dom':
+      specifier: ^1.8.0
+      version: 1.8.0
     '@vitejs/plugin-vue':
       specifier: ^6.0.7
       version: 6.0.7
@@ -24,6 +27,9 @@ catalogs:
     vue:
       specifier: ^3.5.39
       version: 3.5.39
+    vue-icons-plus:
+      specifier: ^0.1.8
+      version: 0.1.8
     vue-tsc:
       specifier: ^3.3.5
       version: 3.3.7
@@ -121,6 +127,9 @@ importers:
       vue:
         specifier: 'catalog:'
         version: 3.5.39(typescript@6.0.3)
+      vue-icons-plus:
+        specifier: 'catalog:'
+        version: 0.1.8(vue@3.5.39(typescript@6.0.3))
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.11.0
@@ -142,6 +151,13 @@ importers:
         version: 3.3.7(typescript@6.0.3)
 
   packages/ui:
+    dependencies:
+      '@floating-ui/dom':
+        specifier: 'catalog:'
+        version: 1.8.0
+      vue-icons-plus:
+        specifier: 'catalog:'
+        version: 0.1.8(vue@3.5.39(typescript@6.0.3))
     devDependencies:
       '@vitejs/plugin-vue':
         specifier: 'catalog:'
@@ -842,6 +858,24 @@ packages:
     peerDependenciesMeta:
       '@noble/hashes':
         optional: true
+
+  '@floating-ui/core@1.8.0':
+    resolution:
+      {
+        integrity: sha512-0CIZ5itps/8x7BG8dEIhs53BvCUH2PCoogtakwRTut+Arm58sJooJ0AuZhLw2HJYIR5cMLNPBSS728sPho2khQ==,
+      }
+
+  '@floating-ui/dom@1.8.0':
+    resolution:
+      {
+        integrity: sha512-yXSrzeHZBTZadLOlfyhCkJHNeLJnHRnRInwdZ40L7ZiaAtrBwoYlsDrX3v5zB1Utk7CLfzcOVnVVWoXEky7Ceg==,
+      }
+
+  '@floating-ui/utils@0.2.12':
+    resolution:
+      {
+        integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==,
+      }
 
   '@humanfs/core@0.19.2':
     resolution:
@@ -4695,6 +4729,14 @@ packages:
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
 
+  vue-icons-plus@0.1.8:
+    resolution:
+      {
+        integrity: sha512-Xc4hDsD/oP9waSUf44nSaFBhUPo+QkpKclx0S7//5BRACpXymctbit02epek0VRW6nb81pR486XmxPP/ofm2yQ==,
+      }
+    peerDependencies:
+      vue: '>=2.7.0'
+
   vue-tsc@3.3.7:
     resolution:
       {
@@ -5241,6 +5283,17 @@ snapshots:
       levn: 0.4.1
 
   '@exodus/bytes@1.15.1': {}
+
+  '@floating-ui/core@1.8.0':
+    dependencies:
+      '@floating-ui/utils': 0.2.12
+
+  '@floating-ui/dom@1.8.0':
+    dependencies:
+      '@floating-ui/core': 1.8.0
+      '@floating-ui/utils': 0.2.12
+
+  '@floating-ui/utils@0.2.12': {}
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -7514,6 +7567,10 @@ snapshots:
       semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
+
+  vue-icons-plus@0.1.8(vue@3.5.39(typescript@6.0.3)):
+    dependencies:
+      vue: 3.5.39(typescript@6.0.3)
 
   vue-tsc@3.3.7(typescript@6.0.3):
     dependencies:

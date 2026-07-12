@@ -39,6 +39,10 @@
       "types": "./dist/components/avatar/index.d.ts",
       "import": "./dist/components/avatar/index.js"
     },
+    "./avatar-dropdown": {
+      "types": "./dist/components/avatar-dropdown/index.d.ts",
+      "import": "./dist/components/avatar-dropdown/index.js"
+    },
     "./avatar-group": {
       "types": "./dist/components/avatar-group/index.d.ts",
       "import": "./dist/components/avatar-group/index.js"
@@ -55,6 +59,14 @@
       "types": "./dist/components/divider/index.d.ts",
       "import": "./dist/components/divider/index.js"
     },
+    "./dropdown": {
+      "types": "./dist/components/dropdown/index.d.ts",
+      "import": "./dist/components/dropdown/index.js"
+    },
+    "./select": {
+      "types": "./dist/components/select/index.d.ts",
+      "import": "./dist/components/select/index.js"
+    },
     "./styles.css": "./dist/styles.css"
   },
   "sideEffects": [
@@ -68,6 +80,10 @@
     "build:types": "vue-tsc -p tsconfig.build.json",
     "prepack": "pnpm build",
     "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "catalog:",
+    "vue-icons-plus": "catalog:"
   },
   "peerDependencies": {
     "vue": "^3.5.0"

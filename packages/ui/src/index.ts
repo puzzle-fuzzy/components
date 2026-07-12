@@ -15,6 +15,13 @@ export type {
   OAvatarStatus,
 } from './components/avatar'
 
+export { OAvatarDropdown, oAvatarDropdownProps } from './components/avatar-dropdown'
+export type {
+  OAvatarDropdownEmits,
+  OAvatarDropdownProps,
+  OAvatarDropdownSlots,
+} from './components/avatar-dropdown'
+
 export {
   OAvatarGroup,
   normalizeOAvatarGroupMax,
@@ -73,3 +80,26 @@ export type {
   ODividerProps,
   ODividerSlots,
 } from './components/divider'
+
+export { ODropdown, oDropdownPlacements, oDropdownProps } from './components/dropdown'
+export type {
+  ODropdownEmits,
+  ODropdownItem,
+  ODropdownPlacement,
+  ODropdownProps,
+  ODropdownSlots,
+  ODropdownTone,
+  ODropdownValue,
+} from './components/dropdown'
+
+export { OSelect, oSelectPlacements, oSelectProps, oSelectSizes } from './components/select'
+export type {
+  OSelectEmits,
+  OSelectOption,
+  OSelectOptionSlotProps,
+  OSelectPlacement,
+  OSelectProps,
+  OSelectSize,
+  OSelectSlots,
+  OSelectValue,
+} from './components/select'

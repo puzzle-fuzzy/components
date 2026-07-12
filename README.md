@@ -2,7 +2,7 @@
 
 OMG UI 是一个仅面向 Vue 3 的个人组件库，发布包为 `@puzzle-fuzzy/ui`。
 
-当前包含 Button、Avatar、Avatar Group、Avatar Flow、Code Input 与 Divider。
+当前包含 Button、Avatar、Avatar Group、Avatar Flow、Avatar Dropdown、Code Input、Divider、Dropdown 与 Select。
 
 ## 开发
 

@@ -1,0 +1,28 @@
+.o-avatar-dropdown {
+  .o-dropdown__trigger {
+    min-block-size: auto;
+    padding: var(--omg-space-1);
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .o-dropdown__trigger-content {
+    min-inline-size: 0;
+  }
+
+  &--circle .o-dropdown__trigger {
+    border-radius: var(--omg-radius-full);
+  }
+
+  &--rounded .o-dropdown__trigger {
+    border-radius: var(--omg-radius-lg);
+  }
+
+  &--square .o-dropdown__trigger {
+    border-radius: var(--omg-radius-md);
+  }
+
+  .o-dropdown__trigger:hover:not(:disabled) {
+    background: var(--omg-color-neutral-soft);
+  }
+}

@@ -1,16 +1,21 @@
-import { renderToString } from '@vue/server-renderer'
-import { createSSRApp, h } from 'vue'
-import { describe, expect, test } from 'vitest'
+import { renderToString, type SSRContext } from '@vue/server-renderer'
+import { createSSRApp, h, nextTick, type VNode } from 'vue'
+import { describe, expect, test, vi } from 'vitest'
 
 import {
   OAvatar,
+  OAvatarDropdown,
   OAvatarFlow,
   OAvatarGroup,
   OButton,
   OCodeInput,
   ODivider,
+  ODropdown,
+  OSelect,
   type OAvatarFlowPeer,
   type OAvatarGroupItem,
+  type ODropdownItem,
+  type OSelectOption,
 } from '../../src'
 
 const sender: OAvatarFlowPeer = {
@@ -31,7 +36,92 @@ const groupItems: readonly OAvatarGroupItem[] = [
   { id: 'three', name: 'Three' },
 ]
 
+const dropdownItems: readonly ODropdownItem[] = [{ value: 'profile', label: 'Profile' }]
+
+const selectOptions: readonly OSelectOption[] = [{ value: 1, label: 'One' }]
+
+const openFloatingHydrationCases: readonly {
+  name: string
+  role: 'listbox' | 'menu'
+  render: () => VNode
+}[] = [
+  {
+    name: 'ODropdown',
+    role: 'menu',
+    render: () =>
+      h(
+        ODropdown,
+        { items: dropdownItems, open: true, triggerAriaLabel: 'Hydration menu' },
+        { trigger: () => 'Account' },
+      ),
+  },
+  {
+    name: 'OSelect',
+    role: 'listbox',
+    render: () => h(OSelect, { modelValue: 1, open: true, options: selectOptions }),
+  },
+  {
+    name: 'OAvatarDropdown',
+    role: 'menu',
+    render: () =>
+      h(OAvatarDropdown, {
+        ariaLabel: 'Hydration avatar menu',
+        items: dropdownItems,
+        name: 'OMG UI',
+        open: true,
+      }),
+  },
+]
+
 describe('server rendering', () => {
+  test.each(openFloatingHydrationCases)(
+    'hydrates an initially open $name without duplicate floating content',
+    async ({ render, role }) => {
+      const Root = { render }
+      const serverContext: SSRContext = {}
+      const html = await renderToString(createSSRApp(Root), serverContext)
+      const teleportedHtml = serverContext.teleports?.body ?? ''
+
+      expect(html).toContain(`role="${role}"`)
+      expect(teleportedHtml).not.toContain(`role="${role}"`)
+
+      const container = document.createElement('div')
+      container.innerHTML = html
+      document.body.append(container)
+      if (teleportedHtml) document.body.insertAdjacentHTML('beforeend', teleportedHtml)
+
+      const hydrationMessages: string[] = []
+      const recordHydrationMessage = (...messages: unknown[]): void => {
+        hydrationMessages.push(messages.map(String).join(' '))
+      }
+      const warn = vi.spyOn(console, 'warn').mockImplementation(recordHydrationMessage)
+      const error = vi.spyOn(console, 'error').mockImplementation(recordHydrationMessage)
+      const app = createSSRApp(Root)
+
+      try {
+        app.mount(container)
+        await nextTick()
+        await nextTick()
+
+        const panels = document.body.querySelectorAll<HTMLElement>(`[role="${role}"]`)
+        expect(panels).toHaveLength(1)
+        expect(panels[0]?.parentElement).toBe(document.body)
+
+        const panelId = panels[0]?.id
+        expect(panelId).toBeTruthy()
+        expect(document.querySelectorAll(`[id="${panelId}"]`)).toHaveLength(1)
+        expect(hydrationMessages.filter((message) => /hydration|mismatch/iu.test(message))).toEqual(
+          [],
+        )
+      } finally {
+        app.unmount()
+        warn.mockRestore()
+        error.mockRestore()
+        document.body.replaceChildren()
+      }
+    },
+  )
+
   test('renders OButton without DOM globals', async () => {
     const html = await renderToString(
       createSSRApp({
@@ -52,6 +142,23 @@ describe('server rendering', () => {
 
     expect(html).toContain('class="o-avatar')
     expect(html).toContain('OM')
+  })
+
+  test('renders OAvatarDropdown without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h(OAvatarDropdown, {
+            ariaLabel: 'Avatar menu',
+            items: dropdownItems,
+            name: 'OMG UI',
+          }),
+      }),
+    )
+
+    expect(html).toContain('aria-label="Avatar menu"')
+    expect(html).toContain('aria-haspopup="menu"')
+    expect(html).toContain('class="o-avatar')
   })
 
   test('renders OAvatarGroup without DOM globals', async () => {
@@ -120,5 +227,39 @@ describe('server rendering', () => {
     expect(html).toContain('role="separator"')
     expect(html).toContain('aria-orientation="horizontal"')
     expect(html).toContain('Details')
+  })
+
+  test('renders ODropdown without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h(
+            ODropdown,
+            { items: dropdownItems, triggerAriaLabel: 'Account menu' },
+            { trigger: () => 'Account' },
+          ),
+      }),
+    )
+
+    expect(html).toContain('aria-haspopup="menu"')
+    expect(html).toContain('aria-expanded="false"')
+    expect(html).toContain('Account')
+  })
+
+  test('renders OSelect without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h(OSelect, {
+            ariaLabel: 'Number',
+            modelValue: 1,
+            options: selectOptions,
+          }),
+      }),
+    )
+
+    expect(html).toContain('role="combobox"')
+    expect(html).toContain('aria-label="Number"')
+    expect(html).toContain('One')
   })
 })

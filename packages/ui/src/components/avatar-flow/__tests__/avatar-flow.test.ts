@@ -213,6 +213,10 @@ describe('OAvatarFlow', () => {
     expect(avatarFlowStyles).toContain('animation: o-avatar-flow-loading')
     expect(avatarFlowStyles).toContain('animation: o-avatar-flow-transfer')
     expect(avatarFlowStyles).toContain('repeating-linear-gradient')
+    expect(avatarFlowStyles).not.toContain('--omg-avatar-flow-dot-lift')
+    expect(avatarFlowStyles).not.toContain('translateY')
+    expect(avatarFlowStyles).toContain('transform: scale(0.7)')
+    expect(avatarFlowStyles).toContain('transform: scale(1)')
     expect(avatarFlowStyles).toMatch(
       /\.o-avatar-flow__dot:nth-child\(2\)[\s\S]*animation-delay:\s*-600ms/u,
     )

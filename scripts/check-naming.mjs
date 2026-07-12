@@ -1,16 +1,19 @@
 import { access, readdir, readFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { relative, resolve } from 'node:path'
 
 const repositoryRoot = resolve(import.meta.dirname, '..')
 const componentsRoot = resolve(repositoryRoot, 'packages/ui/src/components')
 const docsThemePath = resolve(repositoryRoot, 'apps/docs/docs/.vitepress/theme/custom.less')
 const expectedComponents = [
   'avatar',
+  'avatar-dropdown',
   'avatar-flow',
   'avatar-group',
   'button',
   'code-input',
   'divider',
+  'dropdown',
+  'select',
 ]
 
 const toComponentName = (directory) =>
@@ -21,6 +24,47 @@ const toComponentName = (directory) =>
     .join('')
 
 const errors = []
+
+const uiSourceRoot = resolve(repositoryRoot, 'packages/ui/src')
+const docsExamplesRoot = resolve(repositoryRoot, 'apps/docs/examples')
+const forbiddenIconPackages = ['lucide-vue-next', '@heroicons', '@fortawesome', '@iconify']
+
+const collectFiles = async (directory) => {
+  const entries = await readdir(directory, { withFileTypes: true })
+  const files = await Promise.all(
+    entries.map((entry) => {
+      const path = resolve(directory, entry.name)
+      return entry.isDirectory() ? collectFiles(path) : [path]
+    }),
+  )
+
+  return files.flat()
+}
+
+for (const root of [uiSourceRoot, docsExamplesRoot]) {
+  for (const file of await collectFiles(root)) {
+    if (file.endsWith('.svg') && file.startsWith(uiSourceRoot)) {
+      errors.push('raw SVG is not allowed: ' + relative(repositoryRoot, file))
+      continue
+    }
+
+    if (!/\.(?:ts|vue)$/u.test(file)) continue
+
+    const source = await readFile(file, 'utf8')
+    for (const match of source.matchAll(/from\s+['"]([^'"]+)['"]/gu)) {
+      const importSource = match[1]
+      if (!importSource) continue
+
+      if (importSource.startsWith('vue-icons-plus') && importSource !== 'vue-icons-plus/lu') {
+        errors.push('unsupported vue-icons-plus entry in ' + relative(repositoryRoot, file))
+      }
+
+      if (forbiddenIconPackages.some((name) => importSource.startsWith(name))) {
+        errors.push('unsupported icon package in ' + relative(repositoryRoot, file))
+      }
+    }
+  }
+}
 
 const docsTheme = await readFile(docsThemePath, 'utf8')
 if (/--vp-c-brand-[\w-]+\s*:/u.test(docsTheme)) {

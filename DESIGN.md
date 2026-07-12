@@ -71,6 +71,26 @@ components:
     rounded: '{rounded.full}'
     width: '40px'
     height: '40px'
+  dropdown-trigger:
+    backgroundColor: '{colors.light-surface}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.md}'
+    padding: '0 12px'
+    height: '38px'
+  floating-panel:
+    backgroundColor: '{colors.light-surface}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.md}'
+    padding: '4px'
+  select-control:
+    backgroundColor: '{colors.light-surface}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.md}'
+    padding: '0 12px'
+    height: '38px'
 ---
 
 # Design System: OMG UI
@@ -184,12 +204,16 @@ OMG UI is flat by default. Borders and tonal surface changes define structure; a
 - **Style:** standard button, menu, combobox, listbox, and option semantics are preserved. Active and selected states use Focused Blue or a quiet neutral tint.
 - **Keyboard:** familiar Arrow, Home, End, Enter, Space, Escape, and Tab behavior is part of the visual component contract.
 - **Responsive treatment:** components use intrinsic sizing, logical properties, and container-aware spacing instead of fluid typography.
+- **Dropdown:** a 38px menu button opens a portal surface with 36px minimum action rows, disabled-item skipping, danger tone, and focus restoration.
+- **Select:** a 180px minimum select-only combobox keeps focus on its trigger, exposes active options through `aria-activedescendant`, and places its clear action in a sibling button.
+- **Portal context:** a floating surface mirrors local theme, language, direction, typography, and divergent `--omg-*` overrides while leaving root tokens naturally inherited. Native dialog/top-layer compositions use `teleported="false"` or an in-layer `teleportTo` target.
 
 ### Avatar and Avatar Flow
 
 - **Avatar:** 24px to 72px sizes, circular by default, with 8px rounded and 6px square alternatives. Status uses both color and a distinct internal symbol.
 - **Avatar Group:** overlap is a scoped CSS variable so composition controls spacing without changing individual avatars.
 - **Avatar Flow:** exactly three visual connector states. Loading dots scale in place, connected is a static line, and transferring is a moving dashed line.
+- **Avatar Dropdown:** a thin composition keeps Avatar pure while the Dropdown shell owns the native button, menu semantics, indicator, and focus behavior.
 
 ### Code Input and Divider
 
