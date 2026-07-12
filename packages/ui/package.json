@@ -39,9 +39,21 @@
       "types": "./dist/components/avatar/index.d.ts",
       "import": "./dist/components/avatar/index.js"
     },
+    "./avatar-group": {
+      "types": "./dist/components/avatar-group/index.d.ts",
+      "import": "./dist/components/avatar-group/index.js"
+    },
     "./avatar-flow": {
       "types": "./dist/components/avatar-flow/index.d.ts",
       "import": "./dist/components/avatar-flow/index.js"
+    },
+    "./code-input": {
+      "types": "./dist/components/code-input/index.d.ts",
+      "import": "./dist/components/code-input/index.js"
+    },
+    "./divider": {
+      "types": "./dist/components/divider/index.d.ts",
+      "import": "./dist/components/divider/index.js"
     },
     "./styles.css": "./dist/styles.css"
   },

@@ -6,7 +6,10 @@ import AvatarFlowPhases from '../../examples/avatar-flow/Phases.vue'
 
 `OAvatarFlow` 表达一个发送者到多个接收者的状态变化，适合传输、邀请、授权等轻量流程。
 
-## 五阶段
+## 简化状态
+
+只有 `transferring` 使用三个圆点表示活跃传输，其他阶段统一使用静态短线。
+视觉保持简单，完整状态始终由 `accessibleLabel` 提供。
 
 <DemoBlock label="Avatar Flow phases">
   <AvatarFlowPhases />
@@ -48,9 +51,9 @@ const receivers: readonly OAvatarFlowPeer[] = [
 | size                | `OAvatarSize`                                                       | `'md'`     | 所有头像尺寸                 |
 | shape               | `OAvatarShape`                                                      | `'circle'` | 所有头像形状                 |
 
-## 可访问性与动效
+## 可访问性与布局
 
 - 状态文本位于 `role="status"` 内并使用 `aria-live="polite"`。
-- complete 与 error 具有非颜色图形。
-- reduced-motion 环境保留方向与状态，但停止循环动画。
+- 视觉连接器位于 `aria-hidden` 区域，不替代完整状态文本。
+- 组件不使用循环动画。
 - 窄容器通过容器查询收紧连接间距。

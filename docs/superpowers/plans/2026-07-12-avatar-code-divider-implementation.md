@@ -117,9 +117,7 @@ test('marks an avatar as stackable without changing the default avatar', () => {
   expect(mount(OAvatar, { props: { name: 'One', stacked: true } }).classes()).toContain(
     'o-avatar--stacked',
   )
-  expect(mount(OAvatar, { props: { name: 'One' } }).classes()).not.toContain(
-    'o-avatar--stacked',
-  )
+  expect(mount(OAvatar, { props: { name: 'One' } }).classes()).not.toContain('o-avatar--stacked')
 })
 ```
 
@@ -206,12 +204,7 @@ Create `avatar-group.ts`:
 
 ```ts
 import type { ExtractPublicPropTypes, PropType } from 'vue'
-import {
-  oAvatarShapes,
-  oAvatarSizes,
-  type OAvatarShape,
-  type OAvatarSize,
-} from '../../avatar'
+import { oAvatarShapes, oAvatarSizes, type OAvatarShape, type OAvatarSize } from '../../avatar'
 
 export interface OAvatarGroupItem {
   readonly id: string | number
@@ -222,10 +215,7 @@ export interface OAvatarGroupItem {
   readonly textColor?: string
 }
 
-export const normalizeOAvatarGroupMax = (
-  value: number | undefined,
-  itemCount: number,
-): number => {
+export const normalizeOAvatarGroupMax = (value: number | undefined, itemCount: number): number => {
   if (value === undefined || !Number.isFinite(value)) return itemCount
   return Math.max(1, Math.floor(value))
 }
@@ -667,10 +657,7 @@ const handlePaste = (event: ClipboardEvent, index: number): void => {
 
   const current = normalizedValue.value
   const targetIndex = Math.min(index, current.length)
-  const next =
-    current.slice(0, targetIndex) +
-    pasted +
-    current.slice(targetIndex + pasted.length)
+  const next = current.slice(0, targetIndex) + pasted + current.slice(targetIndex + pasted.length)
   const normalizedNext = sanitizeOCodeInputValue(next, normalizedLength.value)
   commit(normalizedNext)
   queueMicrotask(() => focus(Math.min(normalizedNext.length, normalizedLength.value - 1)))
@@ -903,9 +890,7 @@ const props = defineProps(oDividerProps)
 const slots = useSlots()
 defineSlots<ODividerSlots>()
 
-const hasContent = computed(
-  () => props.direction === 'horizontal' && Boolean(slots.default),
-)
+const hasContent = computed(() => props.direction === 'horizontal' && Boolean(slots.default))
 </script>
 
 <template>

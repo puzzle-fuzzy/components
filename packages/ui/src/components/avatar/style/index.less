@@ -170,3 +170,7 @@
 .o-avatar__status-label {
   .visually-hidden();
 }
+
+.o-avatar--stacked + .o-avatar--stacked {
+  margin-inline-start: calc(var(--omg-avatar-overlap, var(--omg-space-2)) * -1);
+}

@@ -33,6 +33,9 @@ export const oAvatarProps = {
     validator: (value: unknown): value is OAvatarStatus => isStringMember(oAvatarStatuses, value),
   },
   statusLabel: String as PropType<string | undefined>,
+  stacked: Boolean,
+  backgroundColor: String as PropType<string | undefined>,
+  textColor: String as PropType<string | undefined>,
 } as const
 
 export type OAvatarProps = ExtractPublicPropTypes<typeof oAvatarProps>

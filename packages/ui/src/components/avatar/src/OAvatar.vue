@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, type CSSProperties } from 'vue'
 import { getOAvatarInitials, oAvatarProps, type OAvatarEmits, type OAvatarSlots } from './avatar'
 
 defineOptions({ name: 'OAvatar' })
@@ -28,6 +28,10 @@ const accessibleLabel = computed(() => {
   return normalizedName || fallbackInitials.value
 })
 const hasSemanticFallback = computed(() => !shouldShowImage.value && Boolean(accessibleLabel.value))
+const avatarStyle = computed<CSSProperties>(() => ({
+  '--omg-avatar-background': props.backgroundColor,
+  '--omg-avatar-color': props.textColor,
+}))
 
 watch(
   () => props.src,
@@ -59,8 +63,10 @@ const handleError = (event: Event): void => {
       {
         'is-loading': isLoading,
         'is-error': hasError,
+        'o-avatar--stacked': props.stacked,
       },
     ]"
+    :style="avatarStyle"
     :data-size="props.size"
     :data-shape="props.shape"
     :data-state="hasError ? 'error' : isLoading ? 'loading' : 'ready'"

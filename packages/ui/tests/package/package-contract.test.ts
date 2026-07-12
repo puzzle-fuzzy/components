@@ -10,7 +10,7 @@ interface PackageManifest {
   private: boolean
   license: string
   main?: string
-  exports: Record<string, { require?: unknown }>
+  exports: Record<string, { import?: string; require?: unknown; types?: string }>
   peerDependencies: Record<string, string>
 }
 
@@ -27,6 +27,21 @@ describe('@puzzle-fuzzy/ui package contract', () => {
     expect(manifest.main).toBeUndefined()
     expect(manifest.exports['.']?.require).toBeUndefined()
     expect(manifest.peerDependencies).toEqual({ vue: '^3.5.0' })
+
+    const componentSubpaths = [
+      './avatar',
+      './avatar-flow',
+      './avatar-group',
+      './button',
+      './code-input',
+      './divider',
+    ]
+
+    for (const subpath of componentSubpaths) {
+      expect(manifest.exports[subpath]?.types).toMatch(/^\.\/dist\/.+\.d\.ts$/u)
+      expect(manifest.exports[subpath]?.import).toMatch(/^\.\/dist\/.+\.js$/u)
+      expect(manifest.exports[subpath]?.require).toBeUndefined()
+    }
   })
 
   test('emits every declared public entry', async () => {
@@ -36,10 +51,16 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/styles.css',
       'dist/components/avatar/index.js',
       'dist/components/avatar/index.d.ts',
+      'dist/components/avatar-group/index.js',
+      'dist/components/avatar-group/index.d.ts',
       'dist/components/avatar-flow/index.js',
       'dist/components/avatar-flow/index.d.ts',
       'dist/components/button/index.js',
       'dist/components/button/index.d.ts',
+      'dist/components/code-input/index.js',
+      'dist/components/code-input/index.d.ts',
+      'dist/components/divider/index.js',
+      'dist/components/divider/index.d.ts',
     ]
 
     await expect(

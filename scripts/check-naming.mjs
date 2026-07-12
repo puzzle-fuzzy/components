@@ -3,7 +3,15 @@ import { resolve } from 'node:path'
 
 const repositoryRoot = resolve(import.meta.dirname, '..')
 const componentsRoot = resolve(repositoryRoot, 'packages/ui/src/components')
-const expectedComponents = ['avatar', 'avatar-flow', 'button']
+const docsThemePath = resolve(repositoryRoot, 'apps/docs/docs/.vitepress/theme/custom.less')
+const expectedComponents = [
+  'avatar',
+  'avatar-flow',
+  'avatar-group',
+  'button',
+  'code-input',
+  'divider',
+]
 
 const toComponentName = (directory) =>
   'O' +
@@ -13,6 +21,11 @@ const toComponentName = (directory) =>
     .join('')
 
 const errors = []
+
+const docsTheme = await readFile(docsThemePath, 'utf8')
+if (/--vp-c-brand-[\w-]+\s*:/u.test(docsTheme)) {
+  errors.push('docs theme must not override VitePress brand variables')
+}
 
 for (const directory of expectedComponents) {
   const componentName = toComponentName(directory)

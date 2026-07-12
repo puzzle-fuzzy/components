@@ -1,5 +1,6 @@
 <script setup>
 import AvatarBasics from '../../examples/avatar/Basics.vue'
+import AvatarStacking from '../../examples/avatar/Stacking.vue'
 import AvatarStatuses from '../../examples/avatar/Statuses.vue'
 </script>
 
@@ -21,6 +22,15 @@ import AvatarStatuses from '../../examples/avatar/Statuses.vue'
   <AvatarStatuses />
 </DemoBlock>
 
+## 自定义颜色与堆叠
+
+`backgroundColor` 与 `textColor` 只覆盖当前头像。少量头像可以直接使用 `stacked`，
+数据列表则使用 `OAvatarGroup` 统一处理重叠与溢出。
+
+<DemoBlock label="Avatar colors and stacking">
+  <AvatarStacking />
+</DemoBlock>
+
 ## 使用
 
 ```vue
@@ -37,16 +47,19 @@ import '@puzzle-fuzzy/ui/styles.css'
 
 ## Props
 
-| 名称        | 类型                                        | 默认值     | 说明                               |
-| ----------- | ------------------------------------------- | ---------- | ---------------------------------- |
-| src         | `string`                                    | —          | 图片地址                           |
-| alt         | `string`                                    | —          | 图片替代文字；空字符串表示装饰图片 |
-| name        | `string`                                    | —          | 名称与 initials 来源               |
-| initials    | `string`                                    | —          | 显式回退文字                       |
-| size        | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'`      | `'md'`     | 尺寸                               |
-| shape       | `'circle' \| 'rounded' \| 'square'`         | `'circle'` | 形状                               |
-| status      | `'online' \| 'away' \| 'busy' \| 'offline'` | —          | 状态                               |
-| statusLabel | `string`                                    | —          | 本地化状态描述                     |
+| 名称            | 类型                                        | 默认值     | 说明                               |
+| --------------- | ------------------------------------------- | ---------- | ---------------------------------- |
+| src             | `string`                                    | —          | 图片地址                           |
+| alt             | `string`                                    | —          | 图片替代文字；空字符串表示装饰图片 |
+| name            | `string`                                    | —          | 名称与 initials 来源               |
+| initials        | `string`                                    | —          | 显式回退文字                       |
+| size            | `'xs' \| 'sm' \| 'md' \| 'lg' \| 'xl'`      | `'md'`     | 尺寸                               |
+| shape           | `'circle' \| 'rounded' \| 'square'`         | `'circle'` | 形状                               |
+| status          | `'online' \| 'away' \| 'busy' \| 'offline'` | —          | 状态                               |
+| statusLabel     | `string`                                    | —          | 本地化状态描述                     |
+| stacked         | `boolean`                                   | `false`    | 与相邻 stacked 头像重叠            |
+| backgroundColor | `string`                                    | —          | 当前头像的回退背景色               |
+| textColor       | `string`                                    | —          | 当前头像的回退文字色               |
 
 ## Events 与 Slots
 

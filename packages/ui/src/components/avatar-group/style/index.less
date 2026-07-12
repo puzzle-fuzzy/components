@@ -1,0 +1,19 @@
+.o-avatar-group {
+  --omg-avatar-overlap: var(--omg-avatar-group-overlap, var(--omg-space-2));
+
+  display: inline-flex;
+  align-items: center;
+  isolation: isolate;
+}
+
+.o-avatar-group > .o-avatar {
+  position: relative;
+}
+
+.o-avatar-group--reverse {
+  flex-direction: row-reverse;
+}
+
+.o-avatar-group--reverse > .o-avatar--stacked + .o-avatar--stacked {
+  margin-inline: 0 calc(var(--omg-avatar-overlap) * -1);
+}

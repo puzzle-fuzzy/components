@@ -20,8 +20,20 @@ const sourceAliases = useSource
         replacement: fromRepository('packages/ui/src/components/avatar/index.ts'),
       },
       {
+        find: /^@puzzle-fuzzy\/ui\/avatar-group$/,
+        replacement: fromRepository('packages/ui/src/components/avatar-group/index.ts'),
+      },
+      {
         find: /^@puzzle-fuzzy\/ui\/avatar-flow$/,
         replacement: fromRepository('packages/ui/src/components/avatar-flow/index.ts'),
+      },
+      {
+        find: /^@puzzle-fuzzy\/ui\/code-input$/,
+        replacement: fromRepository('packages/ui/src/components/code-input/index.ts'),
+      },
+      {
+        find: /^@puzzle-fuzzy\/ui\/divider$/,
+        replacement: fromRepository('packages/ui/src/components/divider/index.ts'),
       },
       {
         find: /^@puzzle-fuzzy\/ui\/styles\.css$/,
@@ -51,7 +63,10 @@ export default defineConfig({
         items: [
           { text: 'Button 按钮', link: '/components/button' },
           { text: 'Avatar 头像', link: '/components/avatar' },
+          { text: 'Avatar Group 头像组', link: '/components/avatar-group' },
           { text: 'Avatar Flow 头像流', link: '/components/avatar-flow' },
+          { text: 'Code Input 验证码输入', link: '/components/code-input' },
+          { text: 'Divider 分割线', link: '/components/divider' },
         ],
       },
     ],

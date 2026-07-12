@@ -21,8 +21,14 @@ import '@puzzle-fuzzy/ui/styles.css'
 </template>
 ```
 
-也可以从 `@puzzle-fuzzy/ui/button`、`@puzzle-fuzzy/ui/avatar` 和
-`@puzzle-fuzzy/ui/avatar-flow` 使用显式组件子入口。
+也可以使用显式组件子入口：
+
+- `@puzzle-fuzzy/ui/button`
+- `@puzzle-fuzzy/ui/avatar`
+- `@puzzle-fuzzy/ui/avatar-group`
+- `@puzzle-fuzzy/ui/avatar-flow`
+- `@puzzle-fuzzy/ui/code-input`
+- `@puzzle-fuzzy/ui/divider`
 
 ## 主题
 

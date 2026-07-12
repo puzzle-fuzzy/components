@@ -220,6 +220,26 @@ describe('OAvatar', () => {
     expect(wrapper.get('.o-avatar__status').attributes('data-status')).toBe('online')
   })
 
+  it('applies local fallback colors through OMG CSS variables', () => {
+    const wrapper = mount(OAvatar, {
+      props: {
+        backgroundColor: '#123456',
+        name: 'OMG UI',
+        textColor: '#ffffff',
+      },
+    })
+
+    expect(wrapper.attributes('style')).toContain('--omg-avatar-background: #123456')
+    expect(wrapper.attributes('style')).toContain('--omg-avatar-color: #ffffff')
+  })
+
+  it('marks an avatar as stackable without changing the default avatar', () => {
+    expect(mount(OAvatar, { props: { name: 'One', stacked: true } }).classes()).toContain(
+      'o-avatar--stacked',
+    )
+    expect(mount(OAvatar, { props: { name: 'One' } }).classes()).not.toContain('o-avatar--stacked')
+  })
+
   it('reuses the public enum sources for runtime prop validation', () => {
     expect(oAvatarProps.size.validator('md')).toBe(true)
     expect(oAvatarProps.size.validator('huge')).toBe(false)

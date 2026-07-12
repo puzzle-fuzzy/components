@@ -7,7 +7,6 @@ import OAvatarFlow from '../src/OAvatarFlow.vue'
 import {
   normalizeOAvatarFlowMaxVisibleReceivers,
   type OAvatarFlowPeer,
-  type OAvatarFlowPhase,
   type OAvatarFlowProps,
 } from '../src/avatar-flow'
 
@@ -21,11 +20,14 @@ const OAvatarStub = defineComponent({
   inheritAttrs: false,
   props: {
     alt: String,
+    backgroundColor: String,
     initials: String,
     name: String,
     shape: String,
     size: String,
     src: String,
+    stacked: Boolean,
+    textColor: String,
   },
   setup(props, { slots }) {
     const attrs = useAttrs()
@@ -88,20 +90,20 @@ describe('normalizeOAvatarFlowMaxVisibleReceivers', () => {
 })
 
 describe('OAvatarFlow', () => {
-  it('renders readonly receivers without mutating the input and exposes overflow', () => {
+  it('renders readonly receivers through OAvatarGroup without mutating input', () => {
     const before = receivers.map((receiver) => ({ ...receiver }))
     const wrapper = mountFlow({ maxVisibleReceivers: 2.9 })
 
     expect(receivers).toEqual(before)
-    expect(wrapper.findAll('[data-avatar-flow-role="receiver"]')).toHaveLength(2)
-    expect(wrapper.get('[data-avatar-flow-role="overflow"]').text()).toBe('+2')
+    expect(wrapper.findAll('[data-avatar-group-role="item"]')).toHaveLength(2)
+    expect(wrapper.get('[data-avatar-group-role="overflow"]').text()).toBe('+2')
   })
 
   it('clamps the visible receiver count to at least one', () => {
     const wrapper = mountFlow({ maxVisibleReceivers: 0 })
 
-    expect(wrapper.findAll('[data-avatar-flow-role="receiver"]')).toHaveLength(1)
-    expect(wrapper.get('[data-avatar-flow-role="overflow"]').text()).toBe('+3')
+    expect(wrapper.findAll('[data-avatar-group-role="item"]')).toHaveLength(1)
+    expect(wrapper.get('[data-avatar-group-role="overflow"]').text()).toBe('+3')
   })
 
   it('renders only the sender when receivers are empty', () => {
@@ -128,29 +130,27 @@ describe('OAvatarFlow', () => {
     }
   })
 
-  const phaseCases = [
-    ['idle', '—', 'Transfer is ready'],
-    ['requesting', '…', 'Waiting for receiver approval'],
-    ['transferring', '→', 'Transfer is in progress'],
-    ['complete', '✓', 'Transfer completed'],
-    ['error', '!', 'Transfer failed'],
-  ] as const satisfies readonly (readonly [OAvatarFlowPhase, string, string])[]
-
-  it.each(phaseCases)(
-    'renders distinct %s phase semantics',
-    (phase, markerText, accessibleLabel) => {
-      const wrapper = mountFlow({ accessibleLabel, phase })
+  it.each(['idle', 'requesting', 'complete', 'error'] as const)(
+    'renders a static line for %s',
+    (phase) => {
+      const wrapper = mountFlow({ phase })
       const root = wrapper.get('.o-avatar-flow')
       const connector = wrapper.get('.o-avatar-flow__connector')
-      const marker = wrapper.get(`[data-marker="${phase}"]`)
 
       expect(root.attributes('data-phase')).toBe(phase)
-      expect(connector.attributes('data-phase')).toBe(phase)
-      expect(marker.classes()).toContain(`o-avatar-flow__phase-marker--${phase}`)
-      expect(marker.text()).toBe(markerText)
-      expect(wrapper.get('.o-avatar-flow__live-status').text()).toBe(accessibleLabel)
+      expect(connector.attributes('data-active')).toBe('false')
+      expect(wrapper.find('.o-avatar-flow__line').exists()).toBe(true)
+      expect(wrapper.find('.o-avatar-flow__dots').exists()).toBe(false)
     },
   )
+
+  it('renders exactly three dots while transferring', () => {
+    const wrapper = mountFlow({ phase: 'transferring' })
+
+    expect(wrapper.get('.o-avatar-flow__connector').attributes('data-active')).toBe('true')
+    expect(wrapper.find('.o-avatar-flow__line').exists()).toBe(false)
+    expect(wrapper.findAll('.o-avatar-flow__dot')).toHaveLength(3)
+  })
 
   it('renders a real visually hidden polite live status', () => {
     const wrapper = mountFlow({ accessibleLabel: 'Transfer completed for four receivers' })
@@ -165,7 +165,7 @@ describe('OAvatarFlow', () => {
   })
 
   it('reacts to phase, label, receivers, and max-visible updates', async () => {
-    const wrapper = mountFlow({ maxVisibleReceivers: 3 })
+    const wrapper = mountFlow({ maxVisibleReceivers: 3, phase: 'transferring' })
 
     await wrapper.setProps({
       accessibleLabel: 'Transfer failed for one receiver',
@@ -175,18 +175,25 @@ describe('OAvatarFlow', () => {
     })
 
     expect(wrapper.get('.o-avatar-flow').attributes('data-phase')).toBe('error')
-    expect(wrapper.get('[data-marker="error"]').text()).toBe('!')
+    expect(wrapper.find('.o-avatar-flow__line').exists()).toBe(true)
+    expect(wrapper.find('.o-avatar-flow__dots').exists()).toBe(false)
     expect(wrapper.get('.o-avatar-flow__live-status').text()).toBe(
       'Transfer failed for one receiver',
     )
-    expect(wrapper.findAll('[data-avatar-flow-role="receiver"]')).toHaveLength(1)
-    expect(wrapper.find('[data-avatar-flow-role="overflow"]').exists()).toBe(false)
+    expect(wrapper.findAll('[data-avatar-group-role="item"]')).toHaveLength(1)
+    expect(wrapper.find('[data-avatar-group-role="overflow"]').exists()).toBe(false)
   })
 
-  it('uses component tokens, container queries, and a static reduced-motion fallback', () => {
+  it('uses component tokens and container queries without legacy animation styles', () => {
+    const legacyMarkerClass = ['o-avatar-flow', '__phase-marker'].join('')
+    const legacyParticleClass = ['o-avatar-flow', '__particle'].join('')
+
     expect(avatarFlowStyles).toContain('@container o-avatar-flow')
-    expect(avatarFlowStyles).toContain('@media (prefers-reduced-motion: reduce)')
     expect(avatarFlowStyles).not.toMatch(/@media\s*\([^)]*(?:max|min)-width/)
+    expect(avatarFlowStyles).not.toContain(legacyMarkerClass)
+    expect(avatarFlowStyles).not.toContain(legacyParticleClass)
+    expect(avatarFlowStyles).not.toContain('animation:')
+    expect(avatarFlowStyles).not.toContain('@keyframes')
     expect(avatarFlowStyles).not.toMatch(/--o-(?!mg-)/)
     expect(avatarFlowStyles).not.toMatch(/#[\da-f]{3,8}\b/iu)
   })
