@@ -3,6 +3,7 @@ export {
   defaultOUploadLabels,
   formatOUploadFileSize,
   getOUploadStateLabel,
+  normalizeOUploadListMaxHeight,
   normalizeOUploadMaxCount,
   normalizeOUploadProgress,
   oUploadFileStates,

@@ -1,3 +1,5 @@
+@import '../../../styles/mixins.less';
+
 .o-textarea {
   display: block;
   inline-size: 100%;
@@ -11,10 +13,11 @@
 }
 
 .o-textarea__field {
+  .omg-scrollbar();
+
   display: block;
   inline-size: 100%;
   max-inline-size: 100%;
-  min-block-size: 96px;
   box-sizing: border-box;
   padding: var(--omg-space-3);
   border: 1px solid var(--omg-color-border);
@@ -25,6 +28,7 @@
   font-size: var(--omg-font-size-sm);
   line-height: 1.6;
   outline: none;
+  resize: none;
   transition:
     border-color var(--omg-duration-fast) var(--omg-easing-standard),
     background-color var(--omg-duration-fast) var(--omg-easing-standard),
@@ -35,25 +39,30 @@
   color: var(--omg-color-text-muted);
 }
 
-.o-textarea--none .o-textarea__field {
-  resize: none;
-}
-
-.o-textarea--vertical .o-textarea__field {
-  resize: vertical;
-}
-
-.o-textarea--horizontal .o-textarea__field {
-  resize: horizontal;
-}
-
-.o-textarea--both .o-textarea__field {
-  resize: both;
-}
-
 .o-textarea__field:focus-visible {
   border-color: var(--omg-color-focus-ring);
   box-shadow: 0 0 0 2px var(--omg-color-focus-ring);
+}
+
+.o-textarea--fixed .o-textarea__field {
+  overflow-y: auto;
+}
+
+.o-textarea--autosize .o-textarea__field {
+  min-block-size: calc((1lh * var(--omg-textarea-min-rows)) + (var(--omg-space-3) * 2) + 2px);
+  overflow-y: auto;
+  field-sizing: content;
+}
+
+.o-textarea--autosize.is-autosize-bounded .o-textarea__field {
+  max-block-size: calc((1lh * var(--omg-textarea-max-rows)) + (var(--omg-space-3) * 2) + 2px);
+  overflow-y: auto;
+}
+
+@supports (field-sizing: content) {
+  .o-textarea--autosize:not(.is-autosize-bounded) .o-textarea__field {
+    overflow-y: hidden;
+  }
 }
 
 .o-textarea.is-disabled .o-textarea__field {

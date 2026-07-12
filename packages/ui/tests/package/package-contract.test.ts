@@ -30,6 +30,7 @@ describe('@puzzle-fuzzy/ui package contract', () => {
     expect(manifest.dependencies).toEqual({
       '@floating-ui/dom': 'catalog:',
       'vue-icons-plus': 'catalog:',
+      'vue-virtual-scroller': 'catalog:',
     })
     expect(manifest.peerDependencies).toEqual({ vue: '^3.5.0' })
 
@@ -39,11 +40,16 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       './avatar-flow',
       './avatar-group',
       './button',
+      './checkbox',
       './code-input',
+      './confirm-dialog',
       './dialog',
       './divider',
       './dropdown',
+      './form-dialog',
       './image',
+      './input',
+      './radio',
       './reference-textarea',
       './select',
       './tabs',
@@ -73,16 +79,26 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/components/avatar-flow/index.d.ts',
       'dist/components/button/index.js',
       'dist/components/button/index.d.ts',
+      'dist/components/checkbox/index.js',
+      'dist/components/checkbox/index.d.ts',
       'dist/components/code-input/index.js',
       'dist/components/code-input/index.d.ts',
+      'dist/components/confirm-dialog/index.js',
+      'dist/components/confirm-dialog/index.d.ts',
       'dist/components/dialog/index.js',
       'dist/components/dialog/index.d.ts',
       'dist/components/divider/index.js',
       'dist/components/divider/index.d.ts',
       'dist/components/dropdown/index.js',
       'dist/components/dropdown/index.d.ts',
+      'dist/components/form-dialog/index.js',
+      'dist/components/form-dialog/index.d.ts',
       'dist/components/image/index.js',
       'dist/components/image/index.d.ts',
+      'dist/components/input/index.js',
+      'dist/components/input/index.d.ts',
+      'dist/components/radio/index.js',
+      'dist/components/radio/index.d.ts',
       'dist/components/reference-textarea/index.js',
       'dist/components/reference-textarea/index.d.ts',
       'dist/components/select/index.js',
@@ -98,5 +114,12 @@ describe('@puzzle-fuzzy/ui package contract', () => {
     await expect(
       Promise.all(expectedFiles.map((path) => access(resolve(packageRoot, path)))),
     ).resolves.toBeDefined()
+  })
+
+  test('ships virtual-scroller layout through the single public stylesheet', async () => {
+    const publicStyles = await readFile(resolve(packageRoot, 'dist/styles.css'), 'utf8')
+
+    expect(publicStyles).toContain('.vue-recycle-scroller')
+    await expect(access(resolve(packageRoot, 'dist/select.css'))).rejects.toThrow()
   })
 })

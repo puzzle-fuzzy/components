@@ -12,6 +12,16 @@ export type OSelectValue = string | number
 export type OSelectSize = (typeof oSelectSizes)[number]
 export type OSelectPlacement = (typeof oSelectPlacements)[number]
 
+export const normalizeOSelectVirtualThreshold = (threshold: number | undefined): number => {
+  if (!Number.isFinite(threshold)) return 100
+  return Math.max(1, Math.floor(threshold ?? 100))
+}
+
+export const normalizeOSelectVirtualListHeight = (height: number | undefined): number => {
+  if (!Number.isFinite(height) || (height ?? 0) <= 0) return 288
+  return Math.floor(height ?? 288)
+}
+
 export interface OSelectOption {
   readonly value: OSelectValue
   readonly label: string
@@ -29,6 +39,9 @@ export const oSelectProps = {
     type: Array as PropType<readonly OSelectOption[]>,
     required: true,
   },
+  virtual: { type: Boolean, default: true },
+  virtualThreshold: { type: Number, default: 100 },
+  virtualListHeight: { type: Number, default: 288 },
   open: {
     type: Boolean as PropType<boolean | undefined>,
     default: undefined,

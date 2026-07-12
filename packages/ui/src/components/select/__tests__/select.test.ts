@@ -1,8 +1,9 @@
+/* eslint-disable vue/one-component-per-file -- Local component stubs keep module mocks deterministic. */
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import { DOMWrapper, mount } from '@vue/test-utils'
-import { defineComponent, h, nextTick, useAttrs } from 'vue'
+import { defineComponent, h, nextTick, ref, useAttrs } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('vue-icons-plus/lu', () => {
@@ -24,8 +25,42 @@ vi.mock('vue-icons-plus/lu', () => {
   }
 })
 
+vi.mock('vue-virtual-scroller', () => ({
+  RecycleScroller: defineComponent({
+    name: 'RecycleScroller',
+    inheritAttrs: false,
+    props: {
+      items: { type: Array, default: () => [] },
+      itemSize: Number,
+      keyField: [String, Function],
+      prerender: Number,
+      buffer: Number,
+    },
+    setup(props, { attrs, expose, slots }) {
+      const start = ref(0)
+      const scrollToItem = vi.fn((index: number) => {
+        start.value = Math.max(0, Math.min(index, props.items.length - 1))
+      })
+      expose({ scrollToItem })
+
+      return () =>
+        h(
+          'div',
+          { ...attrs, 'data-recycle-scroller': '', 'data-virtual-start': start.value },
+          props.items
+            .slice(start.value, start.value + 8)
+            .map((item, offset) =>
+              slots.default?.({ active: true, index: start.value + offset, item }),
+            ),
+        )
+    },
+  }),
+}))
+
 import {
   OSelect,
+  normalizeOSelectVirtualListHeight,
+  normalizeOSelectVirtualThreshold,
   oSelectPlacements,
   oSelectProps,
   oSelectSizes,
@@ -84,6 +119,9 @@ describe('OSelect public model', () => {
       size: 'lg',
       teleported: false,
       teleportTo: 'body',
+      virtual: true,
+      virtualListHeight: 288,
+      virtualThreshold: 100,
     }
     const publicEmits: OSelectEmits = {
       change: [3, options[2]!],
@@ -105,6 +143,13 @@ describe('OSelect public model', () => {
     expect(oSelectProps.placement.default).toBe('bottom-start')
     expect(oSelectProps.teleported.default).toBe(true)
     expect(oSelectProps.teleportTo.default).toBe('body')
+    expect(oSelectProps.virtual.default).toBe(true)
+    expect(oSelectProps.virtualThreshold.default).toBe(100)
+    expect(oSelectProps.virtualListHeight.default).toBe(288)
+    expect(normalizeOSelectVirtualThreshold(10.9)).toBe(10)
+    expect(normalizeOSelectVirtualThreshold(0)).toBe(1)
+    expect(normalizeOSelectVirtualListHeight(360.8)).toBe(360)
+    expect(normalizeOSelectVirtualListHeight(Number.NaN)).toBe(288)
     expect(oSelectProps.size.validator(publicProps.size)).toBe(true)
     expect(oSelectProps.size.validator('xl')).toBe(false)
     expect(oSelectProps.placement.validator(publicProps.placement)).toBe(true)
@@ -117,6 +162,49 @@ describe('OSelect public model', () => {
 })
 
 describe('OSelect behavior', () => {
+  it('virtualizes only long option collections and keeps complete-set ARIA metadata', async () => {
+    const longOptions = Array.from({ length: 101 }, (_, index) => ({
+      value: `option-${String(index)}`,
+      label: `Option ${String(index)}`,
+    }))
+    const wrapper = mountSelect({ open: true, options: longOptions, teleported: false })
+    await nextTick()
+
+    expect(wrapper.find('[data-recycle-scroller]').exists()).toBe(true)
+    expect(wrapper.findAll('[role="option"]')).toHaveLength(8)
+    expect(wrapper.get('[role="option"]').attributes()).toMatchObject({
+      'aria-posinset': '1',
+      'aria-setsize': '101',
+    })
+
+    await wrapper.findAll('[role="option"]')[4]!.trigger('pointerenter')
+    expect(wrapper.get('[role="combobox"]').attributes('aria-activedescendant')).toContain(
+      'option-4',
+    )
+
+    await wrapper.get('[role="combobox"]').trigger('keydown', { key: 'End' })
+    await nextTick()
+    await nextTick()
+
+    expect(wrapper.get('[data-recycle-scroller]').attributes('data-virtual-start')).toBe('100')
+    expect(wrapper.get('[role="option"]').attributes('aria-posinset')).toBe('101')
+    expect(wrapper.get('[role="combobox"]').attributes('aria-activedescendant')).toContain(
+      'option-100',
+    )
+
+    wrapper.unmount()
+
+    const nativeWrapper = mountSelect({
+      open: true,
+      options: longOptions,
+      teleported: false,
+      virtual: false,
+    })
+    await nextTick()
+    expect(nativeWrapper.find('[data-recycle-scroller]').exists()).toBe(false)
+    expect(nativeWrapper.findAll('[role="option"]')).toHaveLength(101)
+  })
+
   it('renders a closed select-only combobox with safe defaults', () => {
     const wrapper = mountSelect()
     const trigger = wrapper.get('[role="combobox"]')

@@ -58,6 +58,13 @@ afterEach(() => {
 })
 
 describe('ODialog', () => {
+  it('uses a borderless elevated surface with a component-local width contract', () => {
+    expect(dialogStyles).toMatch(/\.o-dialog\s*\{[^}]*--omg-dialog-max-inline-size:\s*520px/su)
+    expect(dialogStyles).toMatch(/\.o-dialog\s*\{[^}]*border:\s*0/su)
+    expect(dialogStyles).toMatch(/\.o-dialog\s*\{[^}]*box-shadow:\s*var\(--omg-shadow-dialog\)/su)
+    expect(dialogStyles).toMatch(/width:\s*min\([^;]*var\(--omg-dialog-max-inline-size\)[^;]*\)/su)
+  })
+
   it('locks document scrolling while any native dialog is open', () => {
     expect(dialogStyles).toContain('html:has(.o-dialog[open])')
     expect(dialogStyles).toMatch(/html:has\(\.o-dialog\[open\]\)\s*\{[^}]*overflow:\s*hidden/su)
@@ -261,6 +268,10 @@ describe('ODialog', () => {
 
     expect(titleId).toBeTruthy()
     expect(descriptionId).toBeTruthy()
+    expect(defaultWrapper.get('.o-dialog__title').attributes()).toMatchObject({
+      role: 'heading',
+      'aria-level': '2',
+    })
     expect(defaultWrapper.get(`#${titleId}`).text()).toBe('默认标题')
     expect(defaultWrapper.get(`#${descriptionId}`).text()).toBe('默认描述')
 

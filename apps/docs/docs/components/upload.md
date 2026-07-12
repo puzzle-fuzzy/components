@@ -64,15 +64,16 @@ const labels = {
 
 ## Props
 
-| 名称      | 类型                     | 默认值  | 说明                                      |
-| --------- | ------------------------ | ------- | ----------------------------------------- |
-| files     | `readonly OUploadFile[]` | `[]`    | 受控展示元数据列表，不包含原生 `File`     |
-| labels    | `Partial<OUploadLabels>` | `{}`    | 覆盖可见文案、状态格式与可访问名称        |
-| accept    | `string`                 | —       | 原生 file input accept，仅作为选择提示    |
-| multiple  | `boolean`                | `false` | 每次选择或拖放是否允许多个文件            |
-| disabled  | `boolean`                | `false` | 禁用选择、拖拽和列表操作                  |
-| maxCount  | `number`                 | —       | 非负整数上限，小数向下取整，Infinity 不限 |
-| clearable | `boolean`                | `false` | 显示清空按钮                              |
+| 名称          | 类型                     | 默认值  | 说明                                      |
+| ------------- | ------------------------ | ------- | ----------------------------------------- |
+| files         | `readonly OUploadFile[]` | `[]`    | 受控展示元数据列表，不包含原生 `File`     |
+| labels        | `Partial<OUploadLabels>` | `{}`    | 覆盖可见文案、状态格式与可访问名称        |
+| accept        | `string`                 | —       | 原生 file input accept，仅作为选择提示    |
+| multiple      | `boolean`                | `false` | 每次选择或拖放是否允许多个文件            |
+| disabled      | `boolean`                | `false` | 禁用选择、拖拽和列表操作                  |
+| maxCount      | `number`                 | —       | 非负整数上限，小数向下取整，Infinity 不限 |
+| listMaxHeight | `number \| string`       | `320`   | 文件列表最大高度，数字按像素处理          |
+| clearable     | `boolean`                | `false` | 显示清空按钮                              |
 
 ## 类型
 
@@ -106,4 +107,4 @@ interface OUploadFile {
 
 ## 可访问性
 
-空状态选择区域使用 `role="button"`，支持 Enter 与 Space 触发文件选择；出现文件后改由“添加更多文件”按钮继续选择，避免产生仅指针可操作的背景区域。文件列表仅包含原生 list/listitem 文件项，操作按钮位于列表之外。文件进度使用 `progressbar` 语义，确定进度提供百分比，不确定进度省略 `aria-valuenow`。所有动画在 `prefers-reduced-motion` 下关闭，粗指针设备的列表操作按钮至少为 44px。
+空状态选择区域使用与原生 file input 关联的 label，并支持 Enter 与 Space；input 位于点击区域之外，避免程序点击冒泡后递归打开选择器。出现文件后改由“添加更多文件”按钮继续选择。文件列表保留完整的原生 list/listitem 结构，并在超过 `listMaxHeight` 后使用统一的原生滚动条，因此所有移除按钮仍在键盘和读屏顺序中。文件进度使用 `progressbar` 语义，确定进度提供百分比，不确定进度省略 `aria-valuenow`。所有动画在 `prefers-reduced-motion` 下关闭，粗指针设备的列表操作按钮至少为 44px。

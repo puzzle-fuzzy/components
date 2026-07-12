@@ -8,3 +8,31 @@
   border: 0;
   clip-path: inset(50%);
 }
+
+.omg-scrollbar() {
+  scrollbar-color: var(--omg-color-scrollbar-thumb) transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+
+  &::-webkit-scrollbar {
+    width: var(--omg-scrollbar-size);
+    height: var(--omg-scrollbar-size);
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: var(--omg-radius-full);
+    background: var(--omg-color-scrollbar-thumb);
+    background-clip: padding-box;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--omg-color-scrollbar-thumb-hover);
+    background-clip: padding-box;
+  }
+}

@@ -21,7 +21,6 @@
   --omg-button-focus-ring-offset: 2px;
   --omg-button-active-offset: 1px;
   --omg-button-spinner-size: 1em;
-  --omg-button-spinner-border-width: 2px;
   --omg-button-spinner-duration: calc(var(--omg-duration-fast) * 4);
 
   position: relative;
@@ -175,12 +174,8 @@
   }
 
   &__spinner {
-    box-sizing: border-box;
     inline-size: var(--omg-button-spinner-size);
     block-size: var(--omg-button-spinner-size);
-    border: var(--omg-button-spinner-border-width) solid currentcolor;
-    border-inline-end-color: transparent;
-    border-radius: var(--omg-radius-full);
     opacity: var(--omg-button-disabled-opacity);
     animation: o-button-spin var(--omg-button-spinner-duration) linear infinite;
   }

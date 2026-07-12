@@ -556,6 +556,37 @@ test('supports select active descendants, selection, clearing, and viewport posi
   await expect(trigger).toBeFocused()
 })
 
+test('virtualizes long select collections without breaking active descendants', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 800, height: 320 })
+  await page.goto('/components/select')
+
+  const trigger = page.getByRole('combobox', { name: '选择大型数据项' })
+  await trigger.press('ArrowDown')
+  await trigger.press('End')
+
+  await expect(trigger).toHaveAttribute('aria-activedescendant', /-option-499$/u)
+  const activeOptionId = await trigger.getAttribute('aria-activedescendant')
+  expect(activeOptionId).not.toBeNull()
+  const activeOption = page.locator(`[id="${activeOptionId}"]`)
+  await expect(activeOption).toHaveText('大型选项 500')
+  await expect(activeOption).toHaveAttribute('aria-setsize', '500')
+  await expect(activeOption).toHaveAttribute('aria-posinset', '500')
+
+  const renderedOptions = await page.getByRole('listbox').getByRole('option').count()
+  expect(renderedOptions).toBeLessThan(100)
+
+  const panelBox = await page.getByRole('listbox').boundingBox()
+  const virtualListBox = await page.locator('.o-select__virtual-list').boundingBox()
+  expect(panelBox).not.toBeNull()
+  expect(virtualListBox).not.toBeNull()
+  expect(virtualListBox!.height).toBeLessThanOrEqual(panelBox!.height)
+
+  await trigger.press('Enter')
+  await expect(trigger).toContainText('大型选项 500')
+})
+
 test('opens and selects from avatar dropdown triggers', async ({ page }) => {
   await page.goto('/components/avatar-dropdown')
 
@@ -631,7 +662,7 @@ test('stops flow, panel, and chevron motion when reduced motion is requested', a
 
   await page.goto('/components/select')
   const selectIndicators = page.locator('.o-select__indicator')
-  await expect(selectIndicators).toHaveCount(2)
+  await expect(selectIndicators).toHaveCount(3)
   for (const indicator of await selectIndicators.all()) {
     await expect(indicator).toHaveCSS('transition-duration', '0s')
   }
@@ -737,17 +768,202 @@ test('opens and closes the image fullscreen preview', async ({ page }) => {
   await expectNoSeriousAccessibilityViolations(page)
 })
 
-test('edits textarea and updates the character count', async ({ page }) => {
+test('keeps fixed textareas scrollable and grows autosize textareas within their bounds', async ({
+  page,
+}) => {
   await page.goto('/components/textarea')
 
   await expect(page.getByRole('heading', { level: 1, name: 'Textarea 多行输入' })).toBeVisible()
-  const textarea = page.getByRole('textbox', { name: '消息正文' })
-  await textarea.fill('新的消息')
+  const fixedTextarea = page.getByRole('textbox', { name: '固定三行' })
+  const growingTextarea = page.getByRole('textbox', { name: '按内容增长' })
+  const fixedHeight = await fixedTextarea.evaluate(
+    (element) => element.getBoundingClientRect().height,
+  )
+  const growingHeight = await growingTextarea.evaluate(
+    (element) => element.getBoundingClientRect().height,
+  )
 
-  await expect(textarea).toHaveValue('新的消息')
-  await expect(page.locator('.o-textarea__count')).toContainText('4/120')
+  await fixedTextarea.fill(
+    Array.from({ length: 12 }, (_, index) => `固定行 ${index + 1}`).join('\n'),
+  )
+
+  await expect(fixedTextarea).toHaveCSS('resize', 'none')
+  await expect
+    .poll(() => fixedTextarea.evaluate((element) => element.getBoundingClientRect().height))
+    .toBeCloseTo(fixedHeight, 0)
+  expect(
+    await fixedTextarea.evaluate((element) => element.scrollHeight > element.clientHeight),
+  ).toBe(true)
+
+  await growingTextarea.fill(
+    Array.from({ length: 5 }, (_, index) => `自动增长行 ${index + 1}`).join('\n'),
+  )
+  await expect
+    .poll(() => growingTextarea.evaluate((element) => element.getBoundingClientRect().height))
+    .toBeGreaterThan(growingHeight)
+
+  await growingTextarea.fill(
+    Array.from({ length: 12 }, (_, index) => `达到上限后的行 ${index + 1}`).join('\n'),
+  )
+
+  await expect(growingTextarea).toHaveCSS('resize', 'none')
+  expect(
+    await growingTextarea.evaluate((element) => element.scrollHeight > element.clientHeight),
+  ).toBe(true)
+  await expect(fixedTextarea.locator('xpath=..').getByText('/120', { exact: false })).toBeVisible()
 
   await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('clears text and toggles password visibility in native inputs', async ({ page }) => {
+  await page.goto('/components/input')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Input 单行输入' })).toBeVisible()
+  const searchInput = page.getByRole('searchbox', { name: '搜索组件' })
+  await searchInput.fill('dialog')
+
+  const clearButton = page.getByRole('button', { name: '清除搜索词' })
+  await expect(clearButton).toBeVisible()
+  await clearButton.click()
+  await expect(searchInput).toHaveValue('')
+  await expect(searchInput).toBeFocused()
+
+  const passwordInput = page.getByLabel('密码', { exact: true })
+  await expect(passwordInput).toHaveAttribute('type', 'password')
+  const showPassword = page.getByRole('button', { name: '显示密码' })
+  await showPassword.click()
+  await expect(passwordInput).toHaveAttribute('type', 'text')
+  await expect(page.getByRole('button', { name: '隐藏密码' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await page.getByRole('button', { name: '隐藏密码' }).click()
+  await expect(passwordInput).toHaveAttribute('type', 'password')
+
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('updates native checkbox mixed and checked states from the keyboard', async ({ page }) => {
+  await page.goto('/components/checkbox')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Checkbox 复选框' })).toBeVisible()
+  const selectAll = page.getByRole('checkbox', { name: '选择全部能力' })
+  const design = page.getByRole('checkbox', { name: '组件设计' })
+  const testing = page.getByRole('checkbox', { name: '自动化测试' })
+
+  await expect(selectAll).toHaveAttribute('aria-checked', 'mixed')
+  expect(await selectAll.evaluate((element: HTMLInputElement) => element.indeterminate)).toBe(true)
+  await expect(design).toBeChecked()
+  await expect(testing).not.toBeChecked()
+
+  await testing.focus()
+  await testing.press('Space')
+  await expect(testing).toBeChecked()
+  await expect(selectAll).toBeChecked()
+  await expect(page.getByText('当前选择：design、testing', { exact: true })).toBeVisible()
+
+  await selectAll.focus()
+  await selectAll.press('Space')
+  await expect(selectAll).not.toBeChecked()
+  await expect(design).not.toBeChecked()
+  await expect(testing).not.toBeChecked()
+  await expect(page.getByText('当前选择：无', { exact: true })).toBeVisible()
+
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('keeps radio groups native, named, and keyboard-operable', async ({ page }) => {
+  await page.goto('/components/radio')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Radio 单选框' })).toBeVisible()
+  const channelGroup = page.getByRole('radiogroup', { name: '通知方式' })
+  const email = channelGroup.getByRole('radio', { name: '邮件' })
+  const message = channelGroup.getByRole('radio', { name: '短信' })
+  const disabled = channelGroup.getByRole('radio', { name: '电话（不可用）' })
+
+  await expect(email).toBeChecked()
+  await expect(message).not.toBeChecked()
+  await expect(disabled).toBeDisabled()
+  expect(await email.getAttribute('name')).toBe(await message.getAttribute('name'))
+
+  await email.focus()
+  await email.press('ArrowRight')
+  await expect(message).toBeChecked()
+  await expect(message).toBeFocused()
+  await expect(page.getByText('当前通知方式：sms', { exact: true })).toBeVisible()
+
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('handles safe cancel and consumer-controlled confirmation in confirm dialogs', async ({
+  page,
+}) => {
+  await page.goto('/components/confirm-dialog')
+
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'ConfirmDialog 确认弹窗' }),
+  ).toBeVisible()
+  const neutralTrigger = page.getByRole('button', { name: '打开确认弹窗' })
+  await neutralTrigger.click()
+
+  const neutralDialog = page.getByRole('dialog', { name: '发布当前更改？' })
+  await expect(neutralDialog).toBeVisible()
+  await expect(neutralDialog.getByRole('button', { name: '返回' })).toBeFocused()
+  await expect(neutralDialog).toHaveCSS('border-top-width', '0px')
+  await expectNoSeriousAccessibilityViolations(page, ['.o-confirm-dialog'])
+
+  await neutralDialog.getByRole('button', { name: '返回' }).click()
+  await expect(neutralDialog).toBeHidden()
+  await expect(neutralTrigger).toBeFocused()
+
+  await neutralTrigger.click()
+  await neutralDialog.getByRole('button', { name: '继续' }).click()
+  await expect(neutralDialog).toBeHidden()
+
+  const dangerTrigger = page.getByRole('button', { name: '打开危险确认' })
+  await dangerTrigger.click()
+  const dangerDialog = page.getByRole('dialog', { name: '删除这个项目？' })
+  await expect(dangerDialog.locator('.o-confirm-dialog__signal svg')).toBeVisible()
+  await expect(dangerDialog.getByRole('button', { name: '取消' })).toBeFocused()
+  await dangerDialog.getByRole('button', { name: '确认删除' }).click()
+  await expect(dangerDialog).toBeHidden()
+})
+
+test('preserves native validation and form state in form dialogs', async ({ page }) => {
+  await page.goto('/components/form-dialog')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'FormDialog 表单弹窗' })).toBeVisible()
+  const trigger = page.getByRole('button', { name: '编辑资料' })
+  await trigger.click()
+
+  const dialog = page.getByRole('dialog', { name: '编辑资料' })
+  const displayName = dialog.getByRole('textbox', { name: '显示名称' })
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole('button', { name: '取消' })).toBeFocused()
+  await expectNoSeriousAccessibilityViolations(page, ['.o-form-dialog'])
+
+  await displayName.fill('')
+  await dialog.getByRole('button', { name: '保存' }).click()
+  await expect(dialog).toBeVisible()
+  expect(
+    await displayName.evaluate((element: HTMLInputElement) => element.validity.valueMissing),
+  ).toBe(true)
+  await expect(displayName).toBeFocused()
+
+  await displayName.fill('Codex')
+  await dialog.getByText('站内消息', { exact: true }).click()
+  await dialog.getByText('接收产品更新', { exact: true }).click()
+  await expect(dialog.getByRole('radio', { name: '站内消息' })).toBeChecked()
+  await expect(dialog.getByRole('checkbox', { name: '接收产品更新' })).not.toBeChecked()
+  await dialog.getByRole('button', { name: '保存' }).click()
+  await expect(dialog).toBeHidden()
+
+  await trigger.click()
+  await expect(dialog.getByRole('textbox', { name: '显示名称' })).toHaveValue('Codex')
+  await expect(dialog.getByRole('radio', { name: '站内消息' })).toBeChecked()
+  await expect(dialog.getByRole('checkbox', { name: '接收产品更新' })).not.toBeChecked()
+  await dialog.getByRole('button', { name: '取消' }).click()
+  await expect(trigger).toBeFocused()
 })
 
 test('renders consumer-controlled textarea references', async ({ page }) => {
@@ -807,7 +1023,10 @@ test('renders upload selection and file list states', async ({ page }) => {
   await expect(uploadZone).toBeVisible()
   await expect(uploadZone).toHaveAttribute('tabindex', '0')
 
-  await uploadDemo.locator('input[type="file"]').setInputFiles({
+  const fileChooserPromise = page.waitForEvent('filechooser')
+  await uploadZone.click()
+  const fileChooser = await fileChooserPromise
+  await fileChooser.setFiles({
     name: 'contract.pdf',
     mimeType: 'application/pdf',
     buffer: Buffer.from('contract'),

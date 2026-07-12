@@ -1,5 +1,11 @@
 export { default as OSelect } from './src/OSelect.vue'
-export { oSelectPlacements, oSelectProps, oSelectSizes } from './src/select'
+export {
+  normalizeOSelectVirtualListHeight,
+  normalizeOSelectVirtualThreshold,
+  oSelectPlacements,
+  oSelectProps,
+  oSelectSizes,
+} from './src/select'
 export type {
   OSelectEmits,
   OSelectOption,

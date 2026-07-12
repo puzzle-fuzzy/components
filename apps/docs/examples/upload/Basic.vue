@@ -44,7 +44,6 @@ const labels = {
       v-bind="{ files }"
       :labels="labels"
       multiple
-      accept="image/*,.pdf,.zip"
       clearable
       @select="addFiles"
       @remove="removeFile"

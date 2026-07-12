@@ -1,3 +1,8 @@
 export { default as OTextarea } from './src/OTextarea.vue'
-export { oTextareaProps, oTextareaResizeModes } from './src/textarea'
-export type { OTextareaEmits, OTextareaProps, OTextareaResizeMode } from './src/textarea'
+export { normalizeOTextareaRows, oTextareaProps, resolveOTextareaAutosize } from './src/textarea'
+export type {
+  OTextareaAutosizeOptions,
+  OTextareaAutosizeState,
+  OTextareaEmits,
+  OTextareaProps,
+} from './src/textarea'

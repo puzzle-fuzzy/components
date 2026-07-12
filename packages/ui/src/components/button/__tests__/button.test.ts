@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
@@ -12,6 +15,11 @@ import {
   type OButtonProps,
   type OButtonSlots,
 } from '../index'
+
+const buttonSource = readFileSync(
+  resolve('packages/ui/src/components/button/src/OButton.vue'),
+  'utf8',
+)
 
 describe('OButton', () => {
   it('keeps its public vocabularies and types aligned with runtime validation', () => {
@@ -106,7 +114,7 @@ describe('OButton', () => {
     expect(wrapper.find('[data-test="icon"]').exists()).toBe(true)
   })
 
-  it('replaces the icon with an inaccessible loading indicator', () => {
+  it('replaces the icon with a standardized inaccessible loading icon', () => {
     const wrapper = mount(OButton, {
       props: { loading: true },
       slots: {
@@ -120,8 +128,15 @@ describe('OButton', () => {
     expect(button.attributes('aria-busy')).toBe('true')
     expect(button.classes()).toEqual(expect.arrayContaining(['is-loading', 'is-disabled']))
     expect(wrapper.get('.o-button__spinner').attributes('aria-hidden')).toBe('true')
+    expect(wrapper.get('.o-button__spinner').element.tagName.toLowerCase()).toBe('svg')
     expect(wrapper.find('[data-test="icon"]').exists()).toBe(false)
     expect(button.text()).toBe('Saving')
+  })
+
+  it('uses the standard Lucide loader instead of handwritten geometry', () => {
+    expect(buttonSource).toContain("import { LuLoader2 } from 'vue-icons-plus/lu'")
+    expect(buttonSource).toContain('<LuLoader2')
+    expect(buttonSource).not.toContain('<svg')
   })
 
   it('emits the original MouseEvent for an enabled click', async () => {

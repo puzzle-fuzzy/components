@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { LuLoader2 } from 'vue-icons-plus/lu'
 
 import { oButtonProps, type OButtonEmits, type OButtonSlots } from './button'
 
@@ -44,7 +45,7 @@ const handleClick = (event: MouseEvent): void => {
     :aria-busy="props.loading || undefined"
     @click="handleClick"
   >
-    <span v-if="props.loading" class="o-button__spinner" aria-hidden="true" />
+    <LuLoader2 v-if="props.loading" class="o-button__spinner" aria-hidden="true" />
     <span v-else-if="$slots.icon" class="o-button__icon" aria-hidden="true">
       <slot name="icon" />
     </span>

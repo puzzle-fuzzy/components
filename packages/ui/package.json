@@ -31,10 +31,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./button": {
-      "types": "./dist/components/button/index.d.ts",
-      "import": "./dist/components/button/index.js"
-    },
     "./avatar": {
       "types": "./dist/components/avatar/index.d.ts",
       "import": "./dist/components/avatar/index.js"
@@ -43,17 +39,29 @@
       "types": "./dist/components/avatar-dropdown/index.d.ts",
       "import": "./dist/components/avatar-dropdown/index.js"
     },
-    "./avatar-group": {
-      "types": "./dist/components/avatar-group/index.d.ts",
-      "import": "./dist/components/avatar-group/index.js"
-    },
     "./avatar-flow": {
       "types": "./dist/components/avatar-flow/index.d.ts",
       "import": "./dist/components/avatar-flow/index.js"
     },
+    "./avatar-group": {
+      "types": "./dist/components/avatar-group/index.d.ts",
+      "import": "./dist/components/avatar-group/index.js"
+    },
+    "./button": {
+      "types": "./dist/components/button/index.d.ts",
+      "import": "./dist/components/button/index.js"
+    },
+    "./checkbox": {
+      "types": "./dist/components/checkbox/index.d.ts",
+      "import": "./dist/components/checkbox/index.js"
+    },
     "./code-input": {
       "types": "./dist/components/code-input/index.d.ts",
       "import": "./dist/components/code-input/index.js"
+    },
+    "./confirm-dialog": {
+      "types": "./dist/components/confirm-dialog/index.d.ts",
+      "import": "./dist/components/confirm-dialog/index.js"
     },
     "./dialog": {
       "types": "./dist/components/dialog/index.d.ts",
@@ -67,9 +75,21 @@
       "types": "./dist/components/dropdown/index.d.ts",
       "import": "./dist/components/dropdown/index.js"
     },
+    "./form-dialog": {
+      "types": "./dist/components/form-dialog/index.d.ts",
+      "import": "./dist/components/form-dialog/index.js"
+    },
     "./image": {
       "types": "./dist/components/image/index.d.ts",
       "import": "./dist/components/image/index.js"
+    },
+    "./input": {
+      "types": "./dist/components/input/index.d.ts",
+      "import": "./dist/components/input/index.js"
+    },
+    "./radio": {
+      "types": "./dist/components/radio/index.d.ts",
+      "import": "./dist/components/radio/index.js"
     },
     "./reference-textarea": {
       "types": "./dist/components/reference-textarea/index.d.ts",
@@ -107,7 +127,8 @@
   },
   "dependencies": {
     "@floating-ui/dom": "catalog:",
-    "vue-icons-plus": "catalog:"
+    "vue-icons-plus": "catalog:",
+    "vue-virtual-scroller": "catalog:"
   },
   "peerDependencies": {
     "vue": "^3.5.0"

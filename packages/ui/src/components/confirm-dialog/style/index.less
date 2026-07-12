@@ -1,0 +1,43 @@
+.o-dialog.o-confirm-dialog {
+  --omg-dialog-max-inline-size: 420px;
+}
+
+.o-confirm-dialog > .o-dialog__body:empty {
+  display: none;
+}
+
+.o-confirm-dialog__content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--omg-space-3);
+}
+
+.o-confirm-dialog__signal {
+  display: inline-grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--omg-radius-full);
+  background: var(--omg-color-danger-soft);
+  color: var(--omg-color-danger);
+}
+
+.o-confirm-dialog__signal > svg {
+  width: 18px;
+  height: 18px;
+}
+
+.o-confirm-dialog__message {
+  min-width: 0;
+  flex: 1;
+}
+
+.o-confirm-dialog__details {
+  margin-block-start: var(--omg-space-3);
+  padding: var(--omg-space-3);
+  border-radius: var(--omg-radius-md);
+  background: var(--omg-color-surface-muted);
+  color: var(--omg-color-text-muted);
+  overflow-wrap: anywhere;
+}

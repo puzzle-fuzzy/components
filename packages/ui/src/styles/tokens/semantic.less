@@ -30,6 +30,7 @@
   --omg-font-weight-semibold: 650;
   --omg-font-weight-bold: 750;
   --omg-z-index-dropdown: 1000;
+  --omg-scrollbar-size: 10px;
   --omg-color-overlay: rgb(0 0 0 / 62%);
   --omg-color-overlay-strong: rgb(0 0 0 / 88%);
 }
@@ -64,7 +65,10 @@
   --omg-color-status-busy: @red-500;
   --omg-color-status-offline: @slate-400;
   --omg-color-status-symbol: @slate-950;
+  --omg-color-scrollbar-thumb: fade(@slate-600, 36%);
+  --omg-color-scrollbar-thumb-hover: fade(@slate-700, 58%);
   --omg-shadow-sm: 0 1px 2px fade(#0f172a, 10%);
+  --omg-shadow-dialog: 0 24px 64px fade(#0f172a, 24%), 0 8px 24px fade(#0f172a, 14%);
 }
 
 .omg-theme-dark() {
@@ -97,5 +101,8 @@
   --omg-color-status-busy: @red-300;
   --omg-color-status-offline: @slate-400;
   --omg-color-status-symbol: @slate-950;
+  --omg-color-scrollbar-thumb: fade(@slate-200, 34%);
+  --omg-color-scrollbar-thumb-hover: fade(@slate-100, 54%);
   --omg-shadow-sm: 0 1px 2px fade(#000, 26%);
+  --omg-shadow-dialog: 0 24px 64px fade(#000, 52%), 0 8px 24px fade(#000, 32%);
 }

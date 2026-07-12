@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { createSSRApp, h, nextTick } from 'vue'
 import { renderToString } from '@vue/server-renderer'
 import { mount } from '@vue/test-utils'
@@ -12,6 +15,8 @@ import {
   type OImageFit,
   type OImageProps,
 } from '../index'
+
+const imageSource = readFileSync(resolve('packages/ui/src/components/image/src/OImage.vue'), 'utf8')
 
 const showModal = vi.fn(function (this: HTMLDialogElement): void {
   this.setAttribute('open', '')
@@ -110,7 +115,15 @@ describe('OImage', () => {
     expect(image.attributes('src')).toBe('/photo.jpg')
     expect(image.attributes('alt')).toBe('Gallery photo')
     expect(image.attributes('draggable')).toBe('false')
+    expect(wrapper.get('.o-image__preview-icon').attributes('aria-hidden')).toBe('true')
+    expect(wrapper.get('.o-image__preview-icon').element.tagName.toLowerCase()).toBe('svg')
     expect(wrapper.get('dialog').attributes('open')).toBeUndefined()
+  })
+
+  it('uses the standard Lucide preview affordance', () => {
+    expect(imageSource).toContain("import { LuZoomIn } from 'vue-icons-plus/lu'")
+    expect(imageSource).toContain('<LuZoomIn')
+    expect(imageSource).not.toContain('<svg')
   })
 
   it('forwards native image attributes and uses numeric dimensions as native attributes', () => {

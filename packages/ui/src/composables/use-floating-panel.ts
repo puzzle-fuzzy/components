@@ -162,6 +162,7 @@ const syncFloatingContext = (
 export const useFloatingPanel = (options: UseFloatingPanelOptions) => {
   const referenceElement = shallowRef<HTMLElement | null>(null)
   const floatingElement = shallowRef<HTMLElement | null>(null)
+  const availableHeight = shallowRef<number>()
   const x = shallowRef(0)
   const y = shallowRef(0)
   const ready = shallowRef(false)
@@ -181,8 +182,10 @@ export const useFloatingPanel = (options: UseFloatingPanelOptions) => {
         shift({ padding: 8 }),
         size({
           padding: 8,
-          apply({ availableHeight, elements, rects }) {
-            elements.floating.style.maxHeight = `${Math.max(0, availableHeight)}px`
+          apply({ availableHeight: nextAvailableHeight, elements, rects }) {
+            const normalizedAvailableHeight = Math.max(0, nextAvailableHeight)
+            availableHeight.value = normalizedAvailableHeight
+            elements.floating.style.maxHeight = `${normalizedAvailableHeight}px`
             elements.floating.style.minWidth = options.matchReferenceWidth
               ? `${rects.reference.width}px`
               : ''
@@ -209,6 +212,7 @@ export const useFloatingPanel = (options: UseFloatingPanelOptions) => {
     [options.isOpen, referenceElement, floatingElement, options.placement],
     ([open, reference, floating], _previous, onCleanup) => {
       ready.value = false
+      availableHeight.value = undefined
       if (!open || !reference || !floating || typeof document === 'undefined') return
 
       const contextSync = syncFloatingContext(reference, floating, () => void update())
@@ -247,6 +251,7 @@ export const useFloatingPanel = (options: UseFloatingPanelOptions) => {
   }
 
   return {
+    availableHeight,
     referenceElement,
     floatingElement,
     floatingStyle,

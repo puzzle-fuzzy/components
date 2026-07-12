@@ -91,7 +91,40 @@ components:
     rounded: '{rounded.md}'
     padding: '0 12px'
     height: '38px'
+  input-field:
+    backgroundColor: '{colors.light-surface}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.md}'
+    padding: '0 12px'
+    height: '38px'
+  checkbox-control:
+    backgroundColor: '{colors.light-surface}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.sm}'
+    width: '20px'
+    height: '20px'
+  radio-control:
+    backgroundColor: '{colors.light-surface}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.full}'
+    width: '20px'
+    height: '20px'
   dialog-surface:
+    backgroundColor: '{colors.light-surface}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.lg}'
+    padding: '20px'
+  confirm-dialog-surface:
+    backgroundColor: '{colors.light-surface}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.lg}'
+    padding: '20px'
+  form-dialog-surface:
     backgroundColor: '{colors.light-surface}'
     textColor: '{colors.light-ink}'
     typography: '{typography.body}'
@@ -187,18 +220,40 @@ Focused Blue provides one clear accent while slate surfaces and ink roles carry 
 
 ## Elevation
 
-OMG UI is flat by default. Borders and tonal surface changes define structure; a compact one-step shadow is reserved for solid controls, avatars, and floating surfaces where separation from surrounding content is functional.
+OMG UI is flat by default. Borders and tonal surface changes define structure; a compact one-step shadow is reserved for controls, avatars, and floating menus where separation is functional. Modal Dialog is the deliberate exception: its borderless top-layer surface uses one wider semantic shadow to separate it from the backdrop without adding an outline.
 
 ### Shadow Vocabulary
 
 - **Light Structural** (`0 1px 2px rgb(15 23 42 / 10%)`): subtle separation on light surfaces.
 - **Dark Structural** (`0 1px 2px rgb(0 0 0 / 26%)`): equivalent separation on dark surfaces.
+- **Light Dialog** (`0 24px 64px rgb(15 23 42 / 24%), 0 8px 24px rgb(15 23 42 / 14%)`): modal-only top-layer separation.
+- **Dark Dialog** (`0 24px 64px rgb(0 0 0 / 52%), 0 8px 24px rgb(0 0 0 / 32%)`): modal-only dark-theme separation.
 
 ### Named Rules
 
-**The Eight-Pixel Ceiling Rule.** Component shadows never exceed an 8px blur; wide ambient ghost-card shadows are prohibited.
+**The Purposeful Elevation Rule.** Controls and ordinary floating panels use the compact structural shadow. Only native modal Dialog may use the wider `--omg-shadow-dialog`; decorative card shadows remain prohibited.
 
 **The Portal Surface Rule.** Menus and listboxes use fixed positioning through a portal so overflow containers cannot clip them.
+
+## Icons
+
+`vue-icons-plus/lu` is the only icon source for component code and documentation examples. Icons remain direct named imports so bundlers can tree-shake them; the library does not expose a pass-through icon wrapper.
+
+- Decorative icons use `aria-hidden="true"`; the native control keeps the accessible name.
+- Checkbox check/mixed marks, Input clear/password controls, Upload actions and states, Image preview, Select indicators, Dialog close, and loading feedback all use Lucide Vue components.
+- Avatar status marks, Avatar Flow connectors, Tabs indicators, Divider lines, and progress geometry are CSS state shapes rather than icons.
+- Handwritten template SVG, raw SVG assets, second icon libraries, and icon-only controls without a name are prohibited.
+
+## Scrolling and Large Collections
+
+Scrolling follows semantics instead of applying virtualization to every overflow container.
+
+- **Select:** fixed-height option collections use `vue-virtual-scroller` only after the normalized threshold is reached. Smaller collections keep direct DOM rendering.
+- **Textarea:** the real textarea remains the editor and scroll container. Fixed mode scrolls internally; autosize grows with content and resumes scrolling only at `maxRows`.
+- **Upload:** the file list is height-bounded but remains complete in the accessibility tree because every row can own a focusable remove action.
+- **Dialog, Dropdown, Tabs, and references:** arbitrary slot content and short focus-owned collections remain complete DOM.
+
+All native and virtual viewports share a quiet tokenized scrollbar treatment. Virtualization must never break focus ownership, IME, text selection, native validation, or screen-reader access.
 
 ## Components
 
@@ -222,7 +277,9 @@ OMG UI is flat by default. Borders and tonal surface changes define structure; a
 - **Style:** 1px semantic border, 8px radius, inherited type, and a surface background.
 - **Focus:** border changes are immediate and legible; Code Input uses a 2px Focused Blue border without glow or box shadow.
 - **Error / Disabled:** danger border for invalid input; disabled opacity is 0.56 with a non-interactive cursor.
-- **Textarea:** native form attributes and events belong to the real textarea; visible counts and errors are connected through deterministic ARIA descriptions.
+- **Input:** single-line controls retain the real input, controlled-value rejection, IME commitment, autocomplete, prefix/suffix composition, clear action, and optional password visibility.
+- **Checkbox / Radio:** selection mirrors a real native input. Checkbox mixed state and Radio Group naming remain SSR-safe; CSS or Lucide marks never replace native semantics.
+- **Textarea:** native form attributes and events belong to the real textarea; native resize is always disabled. Fixed rows scroll internally, while `autosize` can grow freely or clamp between `minRows` and `maxRows`.
 - **Reference Textarea:** references are controlled visual items supplied by consumers. The component never parses member syntax, image syntax, URLs, or other domain protocols.
 
 ### Navigation
@@ -231,7 +288,7 @@ OMG UI is flat by default. Borders and tonal surface changes define structure; a
 - **Keyboard:** familiar Arrow, Home, End, Enter, Space, Escape, and Tab behavior is part of the visual component contract.
 - **Responsive treatment:** components use intrinsic sizing, logical properties, and container-aware spacing instead of fluid typography.
 - **Dropdown:** a 38px menu button opens a portal surface with 36px minimum action rows, disabled-item skipping, danger tone, and focus restoration.
-- **Select:** a 180px minimum select-only combobox keeps focus on its trigger, exposes active options through `aria-activedescendant`, and places its clear action in a sibling button.
+- **Select:** a 180px minimum select-only combobox keeps focus on its trigger, exposes active options through `aria-activedescendant`, places its clear action in a sibling button, and virtualizes fixed-height rows only for large collections.
 - **Portal context:** a floating surface mirrors local theme, language, direction, typography, and divergent `--omg-*` overrides while leaving root tokens naturally inherited. Native dialog/top-layer compositions use `teleported="false"` or an in-layer `teleportTo` target.
 
 ### Avatar and Avatar Flow
@@ -243,10 +300,12 @@ OMG UI is flat by default. Borders and tonal surface changes define structure; a
 
 ### Dialog, Image, Tabs, and Upload
 
-- **Dialog:** uses the native `<dialog>` top layer for modal focus, background inertness, Escape ordering, and scroll behavior. Its surface keeps a 12px radius and the structural shadow ceiling.
+- **Dialog:** uses the native `<dialog>` top layer for modal focus, background inertness, Escape ordering, and scroll behavior. Its borderless surface keeps a 12px radius and uses the dedicated dialog shadow.
+- **Confirm Dialog:** composes Dialog and Button. Confirm emits intent without closing; cancel requests a controlled close. Danger tone adds a standard warning icon while keeping the safe cancel action as initial focus.
+- **Form Dialog:** connects an SSR-safe native form to its footer submit button. Native validation runs before the raw `SubmitEvent` is emitted; serialization, error mapping, and persistence stay outside.
 - **Image:** a native image remains non-interactive unless preview is enabled; preview activation is a named button and the modal reuses Dialog rather than creating a second overlay system.
 - **Tabs:** one enabled tab remains in the tab order, selection is tracked by stable values, optional panels are linked with deterministic IDs, and active presentation works without direction-sensitive index transforms.
-- **Upload:** selection, drag feedback, file state presentation, and list actions are UI-only. Requests, validation policy, retries, and persistence remain outside the component.
+- **Upload:** a hidden native input is a sibling of the selection label, preventing recursive picker activation; resetting it permits same-file reselection. Selection, drag feedback, file state presentation, and list actions are UI-only. Requests, validation policy, retries, and persistence remain outside.
 
 ### Code Input and Divider
 
@@ -260,6 +319,7 @@ OMG UI is flat by default. Borders and tonal surface changes define structure; a
 - **Do** express reusable visual and interaction behavior while leaving requests, routing, permissions, countdowns, and state mapping to consumers.
 - **Do** use one `O*` name, one `.o-*` class vocabulary, and one `--omg-*` token source for each concept.
 - **Do** use `vue-icons-plus/lu` for every built-in and documentation icon.
+- **Do** virtualize only fixed-row collections large enough to benefit, and preserve native editing or complete focusable lists elsewhere.
 - **Do** verify keyboard focus, ARIA, contrast, SSR, dark theme, and `prefers-reduced-motion` for every interactive component.
 - **Do** keep control motion at 160ms for direct feedback and 240ms or less for larger state changes.
 - **Do** reuse shared internal interaction foundations before exposing a new public primitive.
@@ -272,4 +332,4 @@ OMG UI is flat by default. Borders and tonal surface changes define structure; a
 - **Don't** use multiple icon sources, copied SVG assets, or a pass-through `OIcon` layer.
 - **Don't** override `--vp-c-brand-*` or allow VitePress theme values to become component tokens.
 - **Don't** preserve pre-release compatibility aliases, private branches, CommonJS, or UMD entries.
-- **Don't** pair a one-pixel border with a decorative shadow wider than 8px, over-round controls beyond 12px, or use color as the only status signal.
+- **Don't** add borders to Dialog surfaces, decorative card shadows, controls rounded beyond 12px, or color-only status signals.

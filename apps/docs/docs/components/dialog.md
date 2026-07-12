@@ -4,7 +4,7 @@ import DialogBasic from '../../examples/dialog/Basic.vue'
 
 # Dialog 对话框
 
-`ODialog` 基于原生 `<dialog>`，由浏览器提供 top layer、背景隔离与焦点约束，适合确认、阅读和短流程操作。点击遮罩、默认关闭按钮或按 Esc 会请求关闭；`open` 仍由使用方通过 `v-model:open` 控制。
+`ODialog` 基于原生 `<dialog>`，由浏览器提供 top layer、背景隔离与焦点约束，适合阅读和自定义短流程。表面不使用边框，通过遮罩、圆角和语义阴影建立层级。点击遮罩、默认关闭按钮或按 Esc 会请求关闭；`open` 仍由使用方通过 `v-model:open` 控制。标准确认与表单场景可分别使用 `OConfirmDialog` 和 `OFormDialog`。
 
 ## 基础用法
 

@@ -132,9 +132,15 @@ watch(
     >
       <div :id="slots.header ? titleId : undefined" class="o-dialog__header-content">
         <slot name="header">
-          <h2 v-if="props.title" :id="titleId" class="o-dialog__title">
+          <div
+            v-if="props.title"
+            :id="titleId"
+            class="o-dialog__title"
+            role="heading"
+            aria-level="2"
+          >
             {{ props.title }}
-          </h2>
+          </div>
           <p v-if="props.description" :id="descriptionId" class="o-dialog__description">
             {{ props.description }}
           </p>

@@ -8,11 +8,17 @@ import {
   OAvatarFlow,
   OAvatarGroup,
   OButton,
+  OCheckbox,
   OCodeInput,
+  OConfirmDialog,
   ODialog,
   ODivider,
   ODropdown,
+  OFormDialog,
   OImage,
+  OInput,
+  ORadio,
+  ORadioGroup,
   OReferenceTextarea,
   OSelect,
   OTabs,
@@ -47,6 +53,11 @@ const groupItems: readonly OAvatarGroupItem[] = [
 const dropdownItems: readonly ODropdownItem[] = [{ value: 'profile', label: 'Profile' }]
 
 const selectOptions: readonly OSelectOption[] = [{ value: 1, label: 'One' }]
+
+const virtualSelectOptions: readonly OSelectOption[] = Array.from({ length: 120 }, (_, index) => ({
+  value: index,
+  label: `Virtual option ${String(index + 1)}`,
+}))
 
 const openFloatingHydrationCases: readonly {
   name: string
@@ -216,6 +227,130 @@ describe('server rendering', () => {
     expect(html).toContain('type="button"')
   })
 
+  test('renders OInput controls and standard icons without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h(OInput, {
+            modelValue: 'secret',
+            type: 'password',
+            clearable: true,
+            showPassword: true,
+            ariaLabel: 'Password',
+          }),
+      }),
+    )
+
+    expect(html).toContain('class="o-input')
+    expect(html).toContain('type="password"')
+    expect(html).toContain('aria-label="Password"')
+    expect(html).toContain('o-input__clear')
+    expect(html).toContain('o-input__password-toggle')
+  })
+
+  test('renders OCheckbox with stable native label association without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () => h(OCheckbox, { modelValue: true, label: 'Accept terms' }),
+      }),
+    )
+    const container = document.createElement('div')
+    container.innerHTML = html
+    const input = container.querySelector<HTMLInputElement>('input[type="checkbox"]')
+    const label = container.querySelector<HTMLLabelElement>('label')
+
+    expect(input?.id).toBeTruthy()
+    expect(input?.checked).toBe(true)
+    expect(input?.getAttribute('aria-checked')).toBe('true')
+    expect(label?.htmlFor).toBe(input?.id)
+    expect(label?.textContent).toContain('Accept terms')
+  })
+
+  test('renders ORadioGroup with shared native names and numeric values without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h(
+            ORadioGroup,
+            { modelValue: 2, ariaLabel: 'Density', orientation: 'horizontal' },
+            {
+              default: () => [
+                h(ORadio, { value: 1, label: 'Compact' }),
+                h(ORadio, { value: 2, label: 'Comfortable' }),
+              ],
+            },
+          ),
+      }),
+    )
+    const container = document.createElement('div')
+    container.innerHTML = html
+    const group = container.querySelector('[role="radiogroup"]')
+    const radios = [...container.querySelectorAll<HTMLInputElement>('input[type="radio"]')]
+
+    expect(group?.getAttribute('aria-label')).toBe('Density')
+    expect(group?.getAttribute('aria-orientation')).toBe('horizontal')
+    expect(radios).toHaveLength(2)
+    expect(new Set(radios.map((radio) => radio.name)).size).toBe(1)
+    expect(radios[0]?.checked).toBe(false)
+    expect(radios[1]?.checked).toBe(true)
+    expect(radios[1]?.value).toBe('2')
+  })
+
+  test('renders OConfirmDialog composition without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h(
+            OConfirmDialog,
+            {
+              open: false,
+              title: 'Delete record',
+              tone: 'danger',
+              confirmLabel: 'Delete',
+              cancelLabel: 'Keep',
+            },
+            { default: () => 'This action cannot be undone.' },
+          ),
+      }),
+    )
+
+    expect(html).toContain('o-confirm-dialog--danger')
+    expect(html).toContain('o-dialog')
+    expect(html).toContain('Delete record')
+    expect(html).toContain('This action cannot be undone.')
+    expect(html).toContain('>Keep<')
+    expect(html).toContain('>Delete<')
+  })
+
+  test('renders OFormDialog with a stable external submit association without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h(
+            OFormDialog,
+            { open: false, title: 'Edit profile', submitLabel: 'Save' },
+            {
+              default: () =>
+                h(OInput, {
+                  modelValue: 'OMG UI',
+                  name: 'displayName',
+                  ariaLabel: 'Display name',
+                }),
+            },
+          ),
+      }),
+    )
+    const container = document.createElement('div')
+    container.innerHTML = html
+    const form = container.querySelector<HTMLFormElement>('form.o-form-dialog__form')
+    const submit = container.querySelector<HTMLButtonElement>('button[type="submit"]')
+
+    expect(form?.id).toBeTruthy()
+    expect(form?.querySelector('input[name="displayName"]')).not.toBeNull()
+    expect(submit?.getAttribute('form')).toBe(form?.id)
+    expect(submit?.textContent).toContain('Save')
+  })
+
   test('renders OAvatar without DOM globals', async () => {
     const html = await renderToString(
       createSSRApp({
@@ -356,6 +491,33 @@ describe('server rendering', () => {
     expect(html).toContain('role="combobox"')
     expect(html).toContain('aria-label="Number"')
     expect(html).toContain('One')
+  })
+
+  test('prerenders a bounded virtual OSelect window without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h(OSelect, {
+            modelValue: 0,
+            open: true,
+            options: virtualSelectOptions,
+            teleported: false,
+            virtual: true,
+            virtualThreshold: 20,
+            virtualListHeight: 144,
+            ariaLabel: 'Virtual number',
+          }),
+      }),
+    )
+    const container = document.createElement('div')
+    container.innerHTML = html
+    const options = container.querySelectorAll('[role="option"]')
+
+    expect(container.querySelector('.o-select__virtual-list')).not.toBeNull()
+    expect(options.length).toBeGreaterThan(0)
+    expect(options.length).toBeLessThan(virtualSelectOptions.length)
+    expect(options[0]?.getAttribute('aria-setsize')).toBe('120')
+    expect(options[0]?.textContent).toContain('Virtual option 1')
   })
 
   test('renders OImage without DOM globals', async () => {

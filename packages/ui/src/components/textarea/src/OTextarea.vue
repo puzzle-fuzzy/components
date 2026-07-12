@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, mergeProps, nextTick, ref, useAttrs, useId } from 'vue'
+import { computed, mergeProps, nextTick, ref, useAttrs, useId, type CSSProperties } from 'vue'
 
-import { oTextareaProps, type OTextareaEmits } from './textarea'
+import { oTextareaProps, resolveOTextareaAutosize, type OTextareaEmits } from './textarea'
 
 defineOptions({
   name: 'OTextarea',
@@ -14,6 +14,15 @@ const attrs = useAttrs()
 const textareaElement = ref<HTMLTextAreaElement>()
 const isComposing = ref(false)
 const countId = useId()
+
+const autosizeState = computed(() => resolveOTextareaAutosize(props.autosize, props.rows))
+const fieldRows = computed(() => autosizeState.value.minRows)
+const fieldStyle = computed<CSSProperties>(() => ({
+  '--omg-textarea-min-rows': String(autosizeState.value.minRows),
+  ...(autosizeState.value.maxRows === undefined
+    ? {}
+    : { '--omg-textarea-max-rows': String(autosizeState.value.maxRows) }),
+}))
 
 const countText = computed(() =>
   props.maxlength === undefined
@@ -100,8 +109,9 @@ const getFieldAttrs = () =>
   <div
     class="o-textarea"
     :class="[
-      `o-textarea--${props.resize}`,
+      autosizeState.enabled ? 'o-textarea--autosize' : 'o-textarea--fixed',
       {
+        'is-autosize-bounded': autosizeState.enabled && autosizeState.maxRows !== undefined,
         'is-count-visible': props.showCount,
         'is-disabled': props.disabled,
         'is-readonly': props.readonly,
@@ -115,7 +125,8 @@ const getFieldAttrs = () =>
         ref="textareaElement"
         :value="props.modelValue"
         :placeholder="props.placeholder"
-        :rows="props.rows"
+        :rows="fieldRows"
+        :style="fieldStyle"
         :maxlength="props.maxlength"
         :disabled="props.disabled"
         :readonly="props.readonly"

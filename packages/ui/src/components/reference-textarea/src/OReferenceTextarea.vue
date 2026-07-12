@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, mergeProps, useAttrs } from 'vue'
+import { LuFileText, LuImage } from 'vue-icons-plus/lu'
 
 import { OTextarea } from '../../textarea'
 import {
@@ -24,7 +25,7 @@ defineSlots<OReferenceTextareaSlots>()
 const textareaBindings = computed(() => ({
   modelValue: props.modelValue,
   rows: props.rows,
-  resize: props.resize,
+  autosize: props.autosize,
   showCount: props.showCount,
   disabled: props.disabled,
   readonly: props.readonly,
@@ -79,6 +80,12 @@ const getReferenceKey = (reference: OReferenceTextareaReference, index: number):
               loading="lazy"
               decoding="async"
             />
+            <LuImage
+              v-else-if="normalizeReferenceKind(reference) === 'image'"
+              class="o-reference-textarea__reference-icon"
+              aria-hidden="true"
+            />
+            <LuFileText v-else class="o-reference-textarea__reference-icon" aria-hidden="true" />
             <span class="o-reference-textarea__reference-label">{{ reference.label }}</span>
           </span>
         </slot>

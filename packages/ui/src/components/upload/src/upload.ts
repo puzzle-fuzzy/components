@@ -96,6 +96,17 @@ export const normalizeOUploadMaxCount = (maxCount: number | undefined): number |
   return Math.max(0, Math.floor(maxCount))
 }
 
+export const normalizeOUploadListMaxHeight = (
+  height: number | string | undefined,
+): string | undefined => {
+  if (typeof height === 'number') {
+    return Number.isFinite(height) && height > 0 ? `${String(Math.floor(height))}px` : undefined
+  }
+
+  const value = height?.trim()
+  return value ? value : undefined
+}
+
 export const formatOUploadFileSize = (bytes: number): string => {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B'
 
@@ -119,6 +130,10 @@ export const oUploadProps = {
   multiple: Boolean,
   disabled: Boolean,
   maxCount: Number as PropType<number | undefined>,
+  listMaxHeight: {
+    type: [Number, String] as PropType<number | string>,
+    default: 320,
+  },
   clearable: Boolean,
 } as const
 

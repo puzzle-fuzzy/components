@@ -10,6 +10,7 @@ import {
   getOUploadStateLabel,
   normalizeOUploadMaxCount,
   normalizeOUploadProgress,
+  normalizeOUploadListMaxHeight,
   oUploadFileStates,
   oUploadProps,
   resolveOUploadProgress,
@@ -70,6 +71,7 @@ describe('OUpload helpers', () => {
       multiple: true,
       disabled: false,
       maxCount: 4,
+      listMaxHeight: '20rem',
       clearable: true,
     }
     const publicSlots: OUploadSlots = {
@@ -93,6 +95,7 @@ describe('OUpload helpers', () => {
     expect(publicEmits.dragChange).toEqual([true])
     expect(publicProps.files).toHaveLength(1)
     expectTypeOf(publicProps.maxCount).toEqualTypeOf<number | undefined>()
+    expectTypeOf(publicProps.listMaxHeight).toEqualTypeOf<string | number | undefined>()
     expectTypeOf(uploadFile.name).toEqualTypeOf<string>()
   })
 
@@ -105,6 +108,10 @@ describe('OUpload helpers', () => {
     expect(normalizeOUploadProgress(Number.NaN)).toBe(0)
     expect(normalizeOUploadProgress(-1)).toBe(0)
     expect(normalizeOUploadProgress(2)).toBe(1)
+    expect(normalizeOUploadListMaxHeight(320)).toBe('320px')
+    expect(normalizeOUploadListMaxHeight('20rem')).toBe('20rem')
+    expect(normalizeOUploadListMaxHeight(0)).toBeUndefined()
+    expect(normalizeOUploadListMaxHeight('  ')).toBeUndefined()
 
     expect(resolveOUploadProgress(createUploadFile('queued', 'queued.txt', 1, 'queued', 0.8))).toBe(
       0,
@@ -131,7 +138,7 @@ describe('OUpload helpers', () => {
 })
 
 describe('OUpload', () => {
-  it('renders keyboard and drag selection semantics with configurable labels', () => {
+  it('renders a recursion-safe native file chooser with configurable labels', () => {
     const wrapper = mount(OUpload, {
       props: {
         accept: '.png,.jpg',
@@ -152,7 +159,24 @@ describe('OUpload', () => {
     expect(input.attributes()).toMatchObject({ accept: '.png,.jpg', 'aria-hidden': 'true' })
     expect(input.attributes('aria-label')).toBeUndefined()
     expect(input.attributes('multiple')).toBeDefined()
+    expect(input.element.parentElement).not.toBe(dropzone.element)
+    expect(dropzone.element.tagName).toBe('LABEL')
+    expect(dropzone.attributes('for')).toBe(input.attributes('id'))
     expect(wrapper.find('.o-upload__list').exists()).toBe(false)
+  })
+
+  it('stops generated input clicks from re-entering the selection surface', () => {
+    const wrapper = mount(OUpload)
+    const input = wrapper.get<HTMLInputElement>('input[type="file"]')
+    const dropzone = wrapper.get('.o-upload__dropzone')
+    let generatedClicks = 0
+
+    dropzone.element.addEventListener('click', (event) => {
+      if (event.target === input.element) generatedClicks += 1
+    })
+    input.element.click()
+
+    expect(generatedClicks).toBe(0)
   })
 
   it('emits every selected input file only when multiple is enabled and resets the input', async () => {
@@ -239,6 +263,9 @@ describe('OUpload', () => {
       true,
     )
     expect(wrapper.get('.o-upload__actions').element.tagName).toBe('DIV')
+    expect(wrapper.get('.o-upload__selection').attributes('style')).toContain(
+      '--omg-upload-list-max-height: 320px',
+    )
 
     await wrapper.get('.o-upload__dropzone').trigger('click')
     expect(inputClick).not.toHaveBeenCalled()
@@ -246,6 +273,7 @@ describe('OUpload', () => {
     expect(inputClick).toHaveBeenCalledOnce()
 
     expect(wrapper.get('[data-upload-file-id="uploading"]').text()).toContain('上传中')
+    expect(wrapper.findAll('.o-upload__state-icon')).toHaveLength(5)
     expect(wrapper.get('[data-upload-file-id="progress"]').text()).toContain('42%')
     expect(wrapper.get('[data-upload-file-id="success"]').text()).toContain('已完成')
     expect(wrapper.get('[data-upload-file-id="error"]').text()).toContain('上传失败')
@@ -336,8 +364,8 @@ describe('OUpload', () => {
     await dropzone.trigger('dragenter', { dataTransfer: { files: [nativeFile] } })
     await dropzone.trigger('drop', { dataTransfer: { files: [nativeFile] } })
 
-    expect(dropzone.attributes('aria-disabled')).toBe('true')
-    expect(dropzone.attributes('tabindex')).toBe('-1')
+    expect(dropzone.attributes('role')).toBeUndefined()
+    expect(dropzone.attributes('tabindex')).toBeUndefined()
     expect(input.attributes('disabled')).toBeDefined()
     expect(wrapper.find('[aria-label="移除 disabled.txt"]').exists()).toBe(false)
     expect(wrapper.find('.o-upload__clear').exists()).toBe(false)
@@ -357,7 +385,7 @@ describe('OUpload', () => {
     )
 
     expect(html).toContain('class="o-upload')
-    expect(html).toContain('aria-label="上传附件"')
+    expect(html).toContain('aria-label="已选附件"')
     expect(html).toContain('ssr.txt')
     expect(html).toContain('已完成')
     expect(html).toContain('aria-valuenow="100"')

@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { createSSRApp, defineComponent, h, nextTick, ref } from 'vue'
 import { renderToString } from '@vue/server-renderer'
 import { mount } from '@vue/test-utils'
@@ -12,6 +15,11 @@ import {
   type OReferenceTextareaReferenceSlotProps,
   type OReferenceTextareaSlots,
 } from '../index'
+
+const referenceTextareaSource = readFileSync(
+  resolve('packages/ui/src/components/reference-textarea/src/OReferenceTextarea.vue'),
+  'utf8',
+)
 
 const references: readonly OReferenceTextareaReference[] = [
   { id: 'brief', label: '需求说明' },
@@ -31,7 +39,7 @@ describe('OReferenceTextarea', () => {
       placeholder: '输入内容',
       rows: 5,
       maxlength: 120,
-      resize: 'vertical',
+      autosize: { minRows: 3, maxRows: 8 },
       showCount: true,
       disabled: false,
       readonly: false,
@@ -54,9 +62,36 @@ describe('OReferenceTextarea', () => {
 
     expect(oReferenceTextareaProps.references.default()).toEqual([])
     expect(publicProps.references).toBe(references)
-    expect(publicProps.resize).toBe('vertical')
+    expect(publicProps.autosize).toEqual({ minRows: 3, maxRows: 8 })
     expect(publicEmits['update:modelValue']).toEqual(['next'])
     expect(publicSlots.reference?.(slotProps)).toBe('需求说明')
+  })
+
+  it('uses standardized fallback icons without replacing image thumbnails', () => {
+    const wrapper = mount(OReferenceTextarea, {
+      props: {
+        modelValue: '',
+        references: [
+          { id: 'brief', label: '需求说明' },
+          { id: 'image', label: '待补充图片', kind: 'image' },
+          {
+            id: 'preview',
+            label: '界面预览',
+            kind: 'image',
+            thumbnailSrc: 'https://example.com/preview.png',
+          },
+        ],
+      },
+    })
+    const icons = wrapper.findAll('.o-reference-textarea__reference-icon')
+
+    expect(referenceTextareaSource).toContain(
+      "import { LuFileText, LuImage } from 'vue-icons-plus/lu'",
+    )
+    expect(referenceTextareaSource).not.toContain('<svg')
+    expect(icons).toHaveLength(2)
+    expect(icons.every((icon) => icon.attributes('aria-hidden') === 'true')).toBe(true)
+    expect(wrapper.findAll('.o-reference-textarea__thumbnail')).toHaveLength(1)
   })
 
   it('renders generic text and image references without parsing modelValue', async () => {
@@ -153,6 +188,24 @@ describe('OReferenceTextarea', () => {
     expect(onChange).toHaveBeenCalledOnce()
     expect(changeTarget).toBe(textarea.element)
     expect(onInvalid).toHaveBeenCalledOnce()
+  })
+
+  it('forwards fixed and bounded autosize modes to the native textarea', async () => {
+    const wrapper = mount(OReferenceTextarea, {
+      props: { modelValue: '', references, rows: 3 },
+    })
+    const textarea = wrapper.get('textarea')
+
+    expect(wrapper.get('.o-textarea').classes()).toContain('o-textarea--fixed')
+    expect(textarea.attributes('rows')).toBe('3')
+
+    await wrapper.setProps({ autosize: { minRows: 2, maxRows: 6 } })
+
+    expect(wrapper.get('.o-textarea').classes()).toEqual(
+      expect.arrayContaining(['o-textarea--autosize', 'is-autosize-bounded']),
+    )
+    expect(textarea.attributes('rows')).toBe('2')
+    expect(textarea.attributes('style')).toContain('--omg-textarea-max-rows: 6')
   })
 
   it('restores rejected values and renders parent-normalized values', async () => {

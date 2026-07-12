@@ -33,6 +33,7 @@ const references: readonly OReferenceTextareaReference[] = [
       :references="references"
       aria-describedby="reference-message-help"
       placeholder="输入消息正文"
+      :autosize="{ minRows: 3, maxRows: 8 }"
       :maxlength="240"
       show-count
     />

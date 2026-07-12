@@ -22,6 +22,9 @@ export type {
   OAvatarDropdownSlots,
 } from './components/avatar-dropdown'
 
+export { OAvatarFlow, oAvatarFlowProps, oAvatarFlowStates } from './components/avatar-flow'
+export type { OAvatarFlowPeer, OAvatarFlowProps, OAvatarFlowState } from './components/avatar-flow'
+
 export {
   OAvatarGroup,
   normalizeOAvatarGroupMax,
@@ -33,9 +36,6 @@ export type {
   OAvatarGroupOverlap,
   OAvatarGroupProps,
 } from './components/avatar-group'
-
-export { OAvatarFlow, oAvatarFlowProps, oAvatarFlowStates } from './components/avatar-flow'
-export type { OAvatarFlowPeer, OAvatarFlowProps, OAvatarFlowState } from './components/avatar-flow'
 
 export {
   OButton,
@@ -55,6 +55,9 @@ export type {
   OButtonVariant,
 } from './components/button'
 
+export { OCheckbox, oCheckboxProps } from './components/checkbox'
+export type { OCheckboxEmits, OCheckboxProps, OCheckboxSlots } from './components/checkbox'
+
 export {
   OCodeInput,
   oCodeInputProps,
@@ -67,6 +70,18 @@ export type {
   OCodeInputProps,
   OCodeInputSize,
 } from './components/code-input'
+
+export {
+  OConfirmDialog,
+  oConfirmDialogProps,
+  oConfirmDialogTones,
+} from './components/confirm-dialog'
+export type {
+  OConfirmDialogEmits,
+  OConfirmDialogProps,
+  OConfirmDialogSlots,
+  OConfirmDialogTone,
+} from './components/confirm-dialog'
 
 export { ODialog, oDialogProps } from './components/dialog'
 export type { ODialogEmits, ODialogProps, ODialogSlots } from './components/dialog'
@@ -95,8 +110,38 @@ export type {
   ODropdownValue,
 } from './components/dropdown'
 
+export { OFormDialog, oFormDialogProps } from './components/form-dialog'
+export type { OFormDialogEmits, OFormDialogProps, OFormDialogSlots } from './components/form-dialog'
+
 export { OImage, oImageFits, oImageProps } from './components/image'
 export type { OImageEmits, OImageFit, OImageProps } from './components/image'
+
+export { OInput, oInputProps, oInputSizes, oInputTypes } from './components/input'
+export type {
+  OInputEmits,
+  OInputProps,
+  OInputSize,
+  OInputSlots,
+  OInputType,
+} from './components/input'
+
+export {
+  ORadio,
+  ORadioGroup,
+  oRadioGroupOrientations,
+  oRadioGroupProps,
+  oRadioProps,
+} from './components/radio'
+export type {
+  ORadioEmits,
+  ORadioGroupEmits,
+  ORadioGroupOrientation,
+  ORadioGroupProps,
+  ORadioGroupSlots,
+  ORadioProps,
+  ORadioSlots,
+  ORadioValue,
+} from './components/radio'
 
 export { OReferenceTextarea, oReferenceTextareaProps } from './components/reference-textarea'
 export type {
@@ -108,7 +153,14 @@ export type {
   OReferenceTextareaSlots,
 } from './components/reference-textarea'
 
-export { OSelect, oSelectPlacements, oSelectProps, oSelectSizes } from './components/select'
+export {
+  OSelect,
+  normalizeOSelectVirtualListHeight,
+  normalizeOSelectVirtualThreshold,
+  oSelectPlacements,
+  oSelectProps,
+  oSelectSizes,
+} from './components/select'
 export type {
   OSelectEmits,
   OSelectOption,
@@ -130,14 +182,25 @@ export type {
   OTabsVariant,
 } from './components/tabs'
 
-export { OTextarea, oTextareaProps, oTextareaResizeModes } from './components/textarea'
-export type { OTextareaEmits, OTextareaProps, OTextareaResizeMode } from './components/textarea'
+export {
+  OTextarea,
+  normalizeOTextareaRows,
+  oTextareaProps,
+  resolveOTextareaAutosize,
+} from './components/textarea'
+export type {
+  OTextareaAutosizeOptions,
+  OTextareaAutosizeState,
+  OTextareaEmits,
+  OTextareaProps,
+} from './components/textarea'
 
 export {
   OUpload,
   defaultOUploadLabels,
   formatOUploadFileSize,
   getOUploadStateLabel,
+  normalizeOUploadListMaxHeight,
   normalizeOUploadMaxCount,
   normalizeOUploadProgress,
   oUploadFileStates,

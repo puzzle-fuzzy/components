@@ -16,6 +16,10 @@ const sourceAliases = useSource
         replacement: fromRepository('packages/ui/src/components/button/index.ts'),
       },
       {
+        find: /^@puzzle-fuzzy\/ui\/checkbox$/,
+        replacement: fromRepository('packages/ui/src/components/checkbox/index.ts'),
+      },
+      {
         find: /^@puzzle-fuzzy\/ui\/avatar$/,
         replacement: fromRepository('packages/ui/src/components/avatar/index.ts'),
       },
@@ -36,6 +40,10 @@ const sourceAliases = useSource
         replacement: fromRepository('packages/ui/src/components/code-input/index.ts'),
       },
       {
+        find: /^@puzzle-fuzzy\/ui\/confirm-dialog$/,
+        replacement: fromRepository('packages/ui/src/components/confirm-dialog/index.ts'),
+      },
+      {
         find: /^@puzzle-fuzzy\/ui\/dialog$/,
         replacement: fromRepository('packages/ui/src/components/dialog/index.ts'),
       },
@@ -48,8 +56,20 @@ const sourceAliases = useSource
         replacement: fromRepository('packages/ui/src/components/dropdown/index.ts'),
       },
       {
+        find: /^@puzzle-fuzzy\/ui\/form-dialog$/,
+        replacement: fromRepository('packages/ui/src/components/form-dialog/index.ts'),
+      },
+      {
         find: /^@puzzle-fuzzy\/ui\/image$/,
         replacement: fromRepository('packages/ui/src/components/image/index.ts'),
+      },
+      {
+        find: /^@puzzle-fuzzy\/ui\/input$/,
+        replacement: fromRepository('packages/ui/src/components/input/index.ts'),
+      },
+      {
+        find: /^@puzzle-fuzzy\/ui\/radio$/,
+        replacement: fromRepository('packages/ui/src/components/radio/index.ts'),
       },
       {
         find: /^@puzzle-fuzzy\/ui\/reference-textarea$/,
@@ -91,27 +111,46 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: '首页', link: '/' },
-      { text: '组件', link: '/components/button' },
+      { text: '组件', link: '/components/' },
     ],
     sidebar: [
       {
-        text: '组件',
+        text: '开始',
+        items: [{ text: '组件总览', link: '/components/' }],
+      },
+      {
+        text: '基础与展示',
         items: [
           { text: 'Button 按钮', link: '/components/button' },
+          { text: 'Divider 分割线', link: '/components/divider' },
+          { text: 'Image 图片', link: '/components/image' },
           { text: 'Avatar 头像', link: '/components/avatar' },
           { text: 'Avatar Group 头像组', link: '/components/avatar-group' },
-          { text: 'Avatar Dropdown 头像下拉', link: '/components/avatar-dropdown' },
           { text: 'Avatar Flow 头像流', link: '/components/avatar-flow' },
-          { text: 'Code Input 验证码输入', link: '/components/code-input' },
-          { text: 'Dialog 对话框', link: '/components/dialog' },
-          { text: 'Divider 分割线', link: '/components/divider' },
-          { text: 'Dropdown 下拉菜单', link: '/components/dropdown' },
-          { text: 'Image 图片', link: '/components/image' },
-          { text: 'Reference Textarea 引用输入', link: '/components/reference-textarea' },
-          { text: 'Select 选择器', link: '/components/select' },
-          { text: 'Tabs 标签页', link: '/components/tabs' },
+        ],
+      },
+      {
+        text: '数据输入',
+        items: [
+          { text: 'Input 输入框', link: '/components/input' },
           { text: 'Textarea 多行输入', link: '/components/textarea' },
+          { text: 'Reference Textarea 引用输入', link: '/components/reference-textarea' },
+          { text: 'Checkbox 复选框', link: '/components/checkbox' },
+          { text: 'Radio 单选框', link: '/components/radio' },
+          { text: 'Code Input 验证码输入', link: '/components/code-input' },
+          { text: 'Select 选择器', link: '/components/select' },
           { text: 'Upload 文件上传', link: '/components/upload' },
+        ],
+      },
+      {
+        text: '浮层、导航与流程',
+        items: [
+          { text: 'Dropdown 下拉菜单', link: '/components/dropdown' },
+          { text: 'Avatar Dropdown 头像下拉', link: '/components/avatar-dropdown' },
+          { text: 'Tabs 标签页', link: '/components/tabs' },
+          { text: 'Dialog 对话框', link: '/components/dialog' },
+          { text: 'Confirm Dialog 确认弹窗', link: '/components/confirm-dialog' },
+          { text: 'Form Dialog 表单弹窗', link: '/components/form-dialog' },
         ],
       },
     ],

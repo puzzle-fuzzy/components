@@ -1,9 +1,13 @@
+@import '../../../styles/mixins.less';
+
 html:has(.o-dialog[open]) {
   overflow: hidden;
 }
 
 .o-dialog {
-  width: min(calc(100% - (var(--omg-space-4) * 2)), 520px);
+  --omg-dialog-max-inline-size: 520px;
+
+  width: min(calc(100% - (var(--omg-space-4) * 2)), var(--omg-dialog-max-inline-size));
   max-height: calc(100vh - (var(--omg-space-4) * 2));
   max-height: calc(100dvh - (var(--omg-space-4) * 2));
   flex-direction: column;
@@ -11,10 +15,10 @@ html:has(.o-dialog[open]) {
   margin: auto;
   padding: 0;
   overflow: hidden;
-  border: 1px solid var(--omg-color-border);
+  border: 0;
   border-radius: var(--omg-radius-lg);
   background: var(--omg-color-surface);
-  box-shadow: var(--omg-shadow-sm);
+  box-shadow: var(--omg-shadow-dialog);
   color: var(--omg-color-text);
   font: inherit;
 }
@@ -100,6 +104,8 @@ html:has(.o-dialog[open]) {
 }
 
 .o-dialog__body {
+  .omg-scrollbar();
+
   min-height: 0;
   overflow: auto;
   padding: var(--omg-space-5);

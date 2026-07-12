@@ -1,0 +1,110 @@
+.o-checkbox {
+  position: relative;
+  display: inline-flex;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  box-sizing: border-box;
+  color: var(--omg-color-text);
+  font: inherit;
+  vertical-align: middle;
+
+  &__input {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  &__label {
+    display: inline-flex;
+    min-inline-size: 0;
+    align-items: flex-start;
+    gap: var(--omg-space-2);
+    cursor: pointer;
+    line-height: 1.5;
+    touch-action: manipulation;
+    user-select: none;
+  }
+
+  &__indicator {
+    display: inline-grid;
+    inline-size: 18px;
+    block-size: 18px;
+    flex: none;
+    place-items: center;
+    box-sizing: border-box;
+    margin-block-start: 1px;
+    border: 1px solid var(--omg-color-border);
+    border-radius: var(--omg-radius-sm);
+    background: var(--omg-color-surface);
+    color: var(--omg-color-on-brand);
+    transition:
+      border-color var(--omg-duration-fast) var(--omg-easing-standard),
+      background-color var(--omg-duration-fast) var(--omg-easing-standard),
+      box-shadow var(--omg-duration-fast) var(--omg-easing-standard);
+
+    > svg {
+      inline-size: 14px;
+      block-size: 14px;
+      stroke-width: 2.5;
+    }
+  }
+
+  &__text {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  &.is-checked &__indicator,
+  &.is-indeterminate &__indicator {
+    border-color: var(--omg-color-brand);
+    background: var(--omg-color-brand);
+  }
+
+  &.is-invalid &__indicator {
+    border-color: var(--omg-color-danger);
+  }
+
+  &__input:focus-visible + &__label &__indicator {
+    outline: 3px solid var(--omg-color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  &:not(.is-disabled, .is-invalid) &__label:hover &__indicator {
+    border-color: var(--omg-color-brand-border);
+  }
+
+  &.is-disabled {
+    opacity: 0.56;
+  }
+
+  &.is-disabled &__label {
+    cursor: not-allowed;
+  }
+
+  &.is-readonly &__label {
+    cursor: default;
+  }
+}
+
+@media (pointer: coarse) {
+  .o-checkbox__label {
+    min-block-size: 44px;
+    align-items: center;
+  }
+
+  .o-checkbox__indicator {
+    margin-block-start: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .o-checkbox__indicator {
+    transition: none;
+  }
+}

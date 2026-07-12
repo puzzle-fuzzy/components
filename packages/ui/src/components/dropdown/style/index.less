@@ -1,3 +1,5 @@
+@import '../../../styles/mixins.less';
+
 .o-dropdown {
   display: inline-flex;
 }
@@ -63,6 +65,8 @@
 }
 
 .o-dropdown__panel {
+  .omg-scrollbar();
+
   z-index: var(--omg-z-index-dropdown);
   box-sizing: border-box;
   min-inline-size: 160px;

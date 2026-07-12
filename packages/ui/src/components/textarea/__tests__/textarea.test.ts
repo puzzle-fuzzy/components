@@ -1,4 +1,7 @@
 /* eslint-disable vue/one-component-per-file -- Colocated harnesses exercise shared-app IDs and controlled normalization. */
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { createSSRApp, defineComponent, h, nextTick, ref } from 'vue'
 import { renderToString } from '@vue/server-renderer'
 import { mount } from '@vue/test-utils'
@@ -6,21 +9,28 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   OTextarea,
-  oTextareaResizeModes,
+  normalizeOTextareaRows,
   oTextareaProps,
+  resolveOTextareaAutosize,
+  type OTextareaAutosizeOptions,
   type OTextareaEmits,
   type OTextareaProps,
-  type OTextareaResizeMode,
 } from '../index'
 
+const textareaStyles = readFileSync(
+  resolve('packages/ui/src/components/textarea/style/index.less'),
+  'utf8',
+)
+
 describe('OTextarea', () => {
-  it('keeps public vocabularies and types stable', () => {
+  it('keeps the fixed and autosize public contracts stable', () => {
+    const autosize: OTextareaAutosizeOptions = { minRows: 2, maxRows: 8 }
     const publicProps: OTextareaProps = {
       modelValue: 'hello',
       placeholder: '输入内容',
       rows: 5,
       maxlength: 100,
-      resize: 'vertical',
+      autosize,
       showCount: true,
       disabled: false,
       readonly: false,
@@ -34,13 +44,27 @@ describe('OTextarea', () => {
       blur: [event],
     }
 
-    expect(oTextareaResizeModes).toEqual(['none', 'vertical', 'horizontal', 'both'])
-    expect(oTextareaProps.resize.validator(publicProps.resize)).toBe(true)
-    expect(oTextareaProps.resize.validator('diagonal')).toBe(false)
     expect(oTextareaProps.rows.default).toBe(4)
+    expect(oTextareaProps.autosize.default).toBe(false)
+    expect(normalizeOTextareaRows(3.8)).toBe(3)
+    expect(normalizeOTextareaRows(0)).toBe(4)
+    expect(resolveOTextareaAutosize(false, 5)).toEqual({
+      enabled: false,
+      minRows: 5,
+      maxRows: undefined,
+    })
+    expect(resolveOTextareaAutosize(autosize, 5)).toEqual({
+      enabled: true,
+      minRows: 2,
+      maxRows: 8,
+    })
+    expect(resolveOTextareaAutosize({ minRows: -2, maxRows: 1 }, 6)).toEqual({
+      enabled: true,
+      minRows: 6,
+      maxRows: 6,
+    })
+    expect(publicProps.autosize).toBe(autosize)
     expect(publicEmits['update:modelValue']).toEqual(['next'])
-    const resize: OTextareaResizeMode | undefined = publicProps.resize
-    expect(resize).toBe('vertical')
   })
 
   it('renders textarea semantics and character count', async () => {
@@ -55,9 +79,7 @@ describe('OTextarea', () => {
     })
     const textarea = wrapper.get('textarea')
 
-    expect(wrapper.classes()).toEqual(
-      expect.arrayContaining(['o-textarea', 'o-textarea--vertical']),
-    )
+    expect(wrapper.classes()).toEqual(expect.arrayContaining(['o-textarea', 'o-textarea--fixed']))
     expect(textarea.attributes('aria-label')).toBe('消息')
     expect(textarea.attributes('placeholder')).toBe('输入内容')
     expect(textarea.attributes('maxlength')).toBe('10')
@@ -66,6 +88,41 @@ describe('OTextarea', () => {
     await textarea.setValue('新的内容')
 
     expect(wrapper.emitted('update:modelValue')).toEqual([['新的内容']])
+  })
+
+  it('normalizes fixed rows and opts into content sizing with optional bounds', async () => {
+    const wrapper = mount(OTextarea, {
+      props: { modelValue: 'first\nsecond', rows: 0 },
+    })
+    const textarea = wrapper.get('textarea')
+
+    expect(textarea.attributes('rows')).toBe('4')
+    expect(textarea.attributes('style')).toContain('--omg-textarea-min-rows: 4')
+    expect(wrapper.classes()).toContain('o-textarea--fixed')
+
+    await wrapper.setProps({ rows: 3, autosize: true })
+
+    expect(wrapper.classes()).toContain('o-textarea--autosize')
+    expect(textarea.attributes('rows')).toBe('3')
+    expect(textarea.attributes('style')).toContain('--omg-textarea-min-rows: 3')
+    expect(textarea.attributes('style')).not.toContain('--omg-textarea-max-rows')
+
+    await wrapper.setProps({ autosize: { minRows: 2, maxRows: 7 } })
+
+    expect(textarea.attributes('rows')).toBe('2')
+    expect(textarea.attributes('style')).toContain('--omg-textarea-min-rows: 2')
+    expect(textarea.attributes('style')).toContain('--omg-textarea-max-rows: 7')
+    expect(wrapper.classes()).toContain('is-autosize-bounded')
+  })
+
+  it('always hides native resize affordances and styles the native scroll surface', () => {
+    expect(textareaStyles).toContain("@import '../../../styles/mixins.less'")
+    expect(textareaStyles).toContain('field-sizing: content')
+    expect(textareaStyles).toContain('resize: none')
+    expect(textareaStyles).toContain('.omg-scrollbar()')
+    expect(textareaStyles).not.toContain('resize: vertical')
+    expect(textareaStyles).not.toContain('resize: horizontal')
+    expect(textareaStyles).not.toContain('resize: both')
   })
 
   it('forwards native textarea attributes and listeners to the field', async () => {

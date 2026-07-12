@@ -1,3 +1,5 @@
+@import '../../../styles/mixins.less';
+
 .o-upload {
   --omg-upload-border-color: var(--omg-color-border);
   --omg-upload-background: var(--omg-color-surface);
@@ -62,7 +64,7 @@
 }
 
 .o-upload__input {
-  display: none;
+  .visually-hidden();
 }
 
 .o-upload__empty {
@@ -125,12 +127,16 @@
 }
 
 .o-upload .o-upload__list {
+  .omg-scrollbar();
+
   display: flex;
+  max-block-size: var(--omg-upload-list-max-height, 320px);
   min-width: 0;
   flex: 1 1 auto;
   flex-direction: column;
   gap: var(--omg-space-2);
   margin: 0;
+  overflow-y: auto;
   padding: 0;
   list-style: none;
 }
@@ -224,7 +230,21 @@
 }
 
 .o-upload__file-state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--omg-space-1);
   text-align: end;
+}
+
+.o-upload__state-icon {
+  display: block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+}
+
+.o-upload__state-icon.is-spinning {
+  animation: o-upload-spin 1s linear infinite;
 }
 
 .o-upload__file--success .o-upload__file-state {
@@ -262,8 +282,16 @@
 .o-upload__add,
 .o-upload__clear {
   min-height: var(--omg-control-height-sm);
+  gap: var(--omg-space-1);
   padding: 0 var(--omg-space-3);
   font-size: var(--omg-font-size-sm);
+}
+
+.o-upload__add > svg,
+.o-upload__clear > svg {
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
 }
 
 .o-upload__remove:hover,
@@ -325,5 +353,15 @@
   .o-upload__add,
   .o-upload__clear {
     transition: none;
+  }
+
+  .o-upload__state-icon.is-spinning {
+    animation: none;
+  }
+}
+
+@keyframes o-upload-spin {
+  to {
+    transform: rotate(1turn);
   }
 }

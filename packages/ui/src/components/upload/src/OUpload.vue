@@ -1,10 +1,21 @@
 <script setup lang="ts">
-import { computed, ref, watch, type CSSProperties } from 'vue'
-import { LuFile, LuUpload, LuX } from 'vue-icons-plus/lu'
+import { computed, ref, useId, watch, type Component, type CSSProperties } from 'vue'
+import {
+  LuAlertCircle,
+  LuCheckCircle2,
+  LuClock3,
+  LuFile,
+  LuLoader2,
+  LuPlus,
+  LuTrash2,
+  LuUpload,
+  LuX,
+} from 'vue-icons-plus/lu'
 
 import {
   formatOUploadFileSize,
   getOUploadStateLabel,
+  normalizeOUploadListMaxHeight,
   normalizeOUploadMaxCount,
   oUploadProps,
   resolveOUploadLabels,
@@ -23,6 +34,14 @@ defineSlots<OUploadSlots>()
 
 const inputElement = ref<HTMLInputElement>()
 const isDragging = ref(false)
+const inputId = `o-upload-${useId()}-input`
+
+const stateIcons: Readonly<Record<NonNullable<OUploadFile['state']>, Component>> = {
+  queued: LuClock3,
+  uploading: LuLoader2,
+  success: LuCheckCircle2,
+  error: LuAlertCircle,
+}
 
 const labels = computed(() => resolveOUploadLabels(props.labels))
 const visibleFiles = computed(() => props.files)
@@ -36,6 +55,9 @@ const canSelectMore = computed(() => !props.disabled && remainingCount.value > 0
 const currentTitle = computed(() =>
   isDragging.value ? labels.value.dragActive : labels.value.select,
 )
+const selectionStyle = computed<CSSProperties>(() => ({
+  '--omg-upload-list-max-height': normalizeOUploadListMaxHeight(props.listMaxHeight) ?? 'none',
+}))
 
 const setDragging = (active: boolean): void => {
   if (active && !canSelectMore.value) return
@@ -52,10 +74,6 @@ watch(canSelectMore, (available) => {
 const chooseFiles = (): void => {
   if (!canSelectMore.value) return
   inputElement.value?.click()
-}
-
-const handleDropzoneClick = (): void => {
-  if (!hasFiles.value) chooseFiles()
 }
 
 const emitSelectedFiles = (files: FileList | readonly File[] | null): void => {
@@ -127,6 +145,7 @@ const getProgressStyle = (file: OUploadFile): CSSProperties => ({
 })
 
 const getStateLabel = (file: OUploadFile): string => getOUploadStateLabel(file, labels.value)
+const getStateIcon = (file: OUploadFile): Component => stateIcons[file.state ?? 'queued']
 </script>
 
 <template>
@@ -139,32 +158,35 @@ const getStateLabel = (file: OUploadFile): string => getOUploadStateLabel(file, 
       'has-files': hasFiles,
     }"
   >
-    <div
+    <input
+      :id="inputId"
+      ref="inputElement"
+      class="o-upload__input"
+      type="file"
+      :accept="props.accept"
+      :multiple="props.multiple"
+      :disabled="!canSelectMore"
+      aria-hidden="true"
+      tabindex="-1"
+      @click.stop
+      @change="handleInputChange"
+    />
+
+    <label
+      v-if="!hasFiles"
       class="o-upload__dropzone"
-      :role="hasFiles ? undefined : 'button'"
-      :tabindex="!hasFiles && canSelectMore ? 0 : -1"
+      :for="inputId"
+      role="button"
+      :tabindex="canSelectMore ? 0 : -1"
       :aria-label="labels.select"
       :aria-disabled="!canSelectMore || undefined"
-      @click="handleDropzoneClick"
       @keydown="handleDropzoneKeydown"
       @dragenter="handleDragEnter"
       @dragover="handleDragOver"
       @dragleave="handleDragLeave"
       @drop="handleDrop"
     >
-      <input
-        ref="inputElement"
-        class="o-upload__input"
-        type="file"
-        :accept="props.accept"
-        :multiple="props.multiple"
-        :disabled="!canSelectMore"
-        aria-hidden="true"
-        tabindex="-1"
-        @change="handleInputChange"
-      />
-
-      <div v-if="!hasFiles" class="o-upload__empty">
+      <div class="o-upload__empty">
         <span class="o-upload__icon" aria-hidden="true">
           <slot name="icon">
             <LuUpload class="o-upload__icon-svg" aria-hidden="true" />
@@ -175,8 +197,17 @@ const getStateLabel = (file: OUploadFile): string => getOUploadStateLabel(file, 
           <slot name="empty">{{ labels.description }}</slot>
         </span>
       </div>
+    </label>
 
-      <div v-if="hasFiles" class="o-upload__selection" @click.stop>
+    <div
+      v-else
+      class="o-upload__dropzone"
+      @dragenter="handleDragEnter"
+      @dragover="handleDragOver"
+      @dragleave="handleDragLeave"
+      @drop="handleDrop"
+    >
+      <div class="o-upload__selection" :style="selectionStyle">
         <ul class="o-upload__list" :aria-label="labels.list">
           <li
             v-for="file in visibleFiles"
@@ -207,7 +238,15 @@ const getStateLabel = (file: OUploadFile): string => getOUploadStateLabel(file, 
                 <span v-if="file.size !== undefined" class="o-upload__file-size">
                   {{ formatOUploadFileSize(file.size) }}
                 </span>
-                <span class="o-upload__file-state">{{ getStateLabel(file) }}</span>
+                <span class="o-upload__file-state">
+                  <component
+                    :is="getStateIcon(file)"
+                    class="o-upload__state-icon"
+                    :class="{ 'is-spinning': file.state === 'uploading' }"
+                    aria-hidden="true"
+                  />
+                  {{ getStateLabel(file) }}
+                </span>
               </slot>
               <button
                 v-if="!props.disabled"
@@ -229,6 +268,7 @@ const getStateLabel = (file: OUploadFile): string => getOUploadStateLabel(file, 
             type="button"
             @click.stop="chooseFiles"
           >
+            <LuPlus aria-hidden="true" />
             {{ labels.add }}
           </button>
           <button
@@ -237,6 +277,7 @@ const getStateLabel = (file: OUploadFile): string => getOUploadStateLabel(file, 
             type="button"
             @click.stop="clearFiles"
           >
+            <LuTrash2 aria-hidden="true" />
             {{ labels.clear }}
           </button>
         </div>

@@ -93,6 +93,22 @@ describe('useFloatingPanel', () => {
     expect(mocks.flip).toHaveBeenCalledWith({ padding: 8 })
     expect(mocks.shift).toHaveBeenCalledWith({ padding: 8 })
     expect(mocks.size).toHaveBeenCalledWith(expect.objectContaining({ padding: 8 }))
+    const sizeOptions = mocks.size.mock.calls[0]?.[0] as {
+      apply: (state: {
+        availableHeight: number
+        elements: { floating: HTMLElement }
+        rects: { reference: { width: number } }
+      }) => void
+    }
+    const floatingElement = wrapper.get<HTMLElement>('[data-floating]').element
+    sizeOptions.apply({
+      availableHeight: 144,
+      elements: { floating: floatingElement },
+      rects: { reference: { width: 180 } },
+    })
+    expect(floatingElement.style.maxHeight).toBe('144px')
+    expect(floatingElement.style.minWidth).toBe('180px')
+    expect(wrapper.vm.floating.availableHeight.value).toBe(144)
     await vi.waitFor(() => {
       expect(wrapper.vm.floating.resolvedPlacement.value).toBe('bottom-end')
     })

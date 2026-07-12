@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch, type CSSProperties } from 'vue'
+import { LuZoomIn } from 'vue-icons-plus/lu'
 
 import { ODialog } from '../../dialog'
 import { oImageProps, type OImageEmits } from './image'
@@ -86,6 +87,7 @@ const handleError = (event: Event): void => {
         @load="handleLoad"
         @error="handleError"
       />
+      <LuZoomIn class="o-image__preview-icon" aria-hidden="true" />
     </button>
 
     <img

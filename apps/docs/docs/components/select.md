@@ -4,7 +4,7 @@ import SelectBasic from '../../examples/select/Basic.vue'
 
 # Select 选择器
 
-`OSelect` 是一个非可编辑的单选控件，提供清晰的选中状态、可选清除、浮层定位和完整键盘导航。
+`OSelect` 是一个非可编辑的单选控件，提供清晰的选中状态、可选清除、浮层定位和完整键盘导航。大型选项集合会按阈值使用 `vue-virtual-scroller`，小型集合仍保留直接渲染路径。
 
 ## 基础用法
 
@@ -44,20 +44,23 @@ interface OSelectOption {
 
 ## Props
 
-| 名称           | 类型                             | 默认值              | 说明                                  |
-| -------------- | -------------------------------- | ------------------- | ------------------------------------- |
-| modelValue     | `string \| number \| undefined`  | `undefined`         | 当前单选值                            |
-| options        | `readonly OSelectOption[]`       | 必填                | 可选项                                |
-| open           | `boolean`                        | `undefined`         | 传入后进入受控开关模式                |
-| placeholder    | `string`                         | `'Select'`          | 未选择时显示的文字                    |
-| size           | `'sm' \| 'md' \| 'lg'`           | `'md'`              | 控件尺寸                              |
-| disabled       | `boolean`                        | `false`             | 禁用整个控件                          |
-| clearable      | `boolean`                        | `false`             | 有选中值时显示独立清除按钮            |
-| clearAriaLabel | `string`                         | `'Clear selection'` | 清除按钮的可访问名称                  |
-| placement      | `'bottom-start' \| 'bottom-end'` | `'bottom-start'`    | 首选浮层位置，空间不足时会自动翻转    |
-| ariaLabel      | `string`                         | —                   | combobox trigger 的可访问名称         |
-| teleported     | `boolean`                        | `true`              | 是否把 listbox Teleport 到指定目标    |
-| teleportTo     | `string \| HTMLElement`          | `'body'`            | Teleport 目标；仅在 teleported 时生效 |
+| 名称              | 类型                             | 默认值              | 说明                                  |
+| ----------------- | -------------------------------- | ------------------- | ------------------------------------- |
+| modelValue        | `string \| number \| undefined`  | `undefined`         | 当前单选值                            |
+| options           | `readonly OSelectOption[]`       | 必填                | 可选项                                |
+| open              | `boolean`                        | `undefined`         | 传入后进入受控开关模式                |
+| placeholder       | `string`                         | `'Select'`          | 未选择时显示的文字                    |
+| size              | `'sm' \| 'md' \| 'lg'`           | `'md'`              | 控件尺寸                              |
+| disabled          | `boolean`                        | `false`             | 禁用整个控件                          |
+| clearable         | `boolean`                        | `false`             | 有选中值时显示独立清除按钮            |
+| clearAriaLabel    | `string`                         | `'Clear selection'` | 清除按钮的可访问名称                  |
+| placement         | `'bottom-start' \| 'bottom-end'` | `'bottom-start'`    | 首选浮层位置，空间不足时会自动翻转    |
+| ariaLabel         | `string`                         | —                   | combobox trigger 的可访问名称         |
+| teleported        | `boolean`                        | `true`              | 是否把 listbox Teleport 到指定目标    |
+| teleportTo        | `string \| HTMLElement`          | `'body'`            | Teleport 目标；仅在 teleported 时生效 |
+| virtual           | `boolean`                        | `true`              | 大型集合达到阈值后启用虚拟滚动        |
+| virtualThreshold  | `number`                         | `100`               | 启用虚拟滚动的最小选项数量            |
+| virtualListHeight | `number`                         | `288`               | 虚拟列表视口高度，单位为像素          |
 
 为没有可见 label 的 Select 提供本地化 `ariaLabel`。清除按钮是 trigger 的相邻按钮，不会产生嵌套 button。
 
@@ -155,6 +158,7 @@ SSR setup 不需要 `window`、`document` 或 HTMLElement 构造函数。默认 
 
 - trigger 是原生 button，并使用 `role="combobox"`、`aria-haspopup="listbox"`、`aria-expanded` 和打开时的 `aria-controls`。
 - 浮层使用 `role="listbox"`，每项使用 `role="option"`、`aria-selected`，禁用项还提供 `aria-disabled`。
+- 虚拟列表只挂载可见窗口；每个已渲染 option 通过 `aria-setsize` 与 `aria-posinset` 描述完整集合。
 - DOM 焦点始终留在 combobox trigger；`aria-activedescendant` 指向当前 active option。
 - Select 浮层匹配 trigger 宽度，并通过 flip、shift 和可用高度限制保持在视口内。
 - `prefers-reduced-motion: reduce` 下移除浮层和指示图标过渡。
@@ -165,6 +169,6 @@ SSR setup 不需要 `window`、`document` 或 HTMLElement 构造函数。默认 
 
 ## 非目标
 
-- v1 不提供可编辑输入、搜索过滤、多选、分组或虚拟列表。
+- v1 不提供可编辑输入、搜索过滤、多选或分组。
 - 不加载远程 options，不处理分页、缓存、校验或表单提交。
 - 不根据业务状态重写 option；禁用与可见性由使用方在传入前决定。
