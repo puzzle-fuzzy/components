@@ -10,7 +10,12 @@ const expectedComponents = [
   'avatar-group',
   'button',
   'code-input',
+  'dialog',
   'divider',
+  'image',
+  'reference-textarea',
+  'tabs',
+  'textarea',
   'upload',
 ]
 

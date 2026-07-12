@@ -51,9 +51,29 @@
       "types": "./dist/components/code-input/index.d.ts",
       "import": "./dist/components/code-input/index.js"
     },
+    "./dialog": {
+      "types": "./dist/components/dialog/index.d.ts",
+      "import": "./dist/components/dialog/index.js"
+    },
     "./divider": {
       "types": "./dist/components/divider/index.d.ts",
       "import": "./dist/components/divider/index.js"
+    },
+    "./image": {
+      "types": "./dist/components/image/index.d.ts",
+      "import": "./dist/components/image/index.js"
+    },
+    "./reference-textarea": {
+      "types": "./dist/components/reference-textarea/index.d.ts",
+      "import": "./dist/components/reference-textarea/index.js"
+    },
+    "./tabs": {
+      "types": "./dist/components/tabs/index.d.ts",
+      "import": "./dist/components/tabs/index.js"
+    },
+    "./textarea": {
+      "types": "./dist/components/textarea/index.d.ts",
+      "import": "./dist/components/textarea/index.js"
     },
     "./upload": {
       "types": "./dist/components/upload/index.d.ts",
