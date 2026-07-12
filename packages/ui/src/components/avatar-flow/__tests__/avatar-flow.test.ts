@@ -6,6 +6,8 @@ import { describe, expect, it } from 'vitest'
 import OAvatarFlow from '../src/OAvatarFlow.vue'
 import {
   normalizeOAvatarFlowMaxVisibleReceivers,
+  oAvatarFlowProps,
+  oAvatarFlowStates,
   type OAvatarFlowPeer,
   type OAvatarFlowProps,
 } from '../src/avatar-flow'
@@ -62,7 +64,7 @@ const receivers = Object.freeze<readonly OAvatarFlowPeer[]>([
 function mountFlow(overrides: Partial<OAvatarFlowProps> = {}) {
   return mount(OAvatarFlow, {
     props: {
-      accessibleLabel: 'Sender is ready to transfer',
+      ariaLabel: 'Sender and receivers',
       receivers,
       sender,
       ...overrides,
@@ -90,6 +92,16 @@ describe('normalizeOAvatarFlowMaxVisibleReceivers', () => {
 })
 
 describe('OAvatarFlow', () => {
+  it('publishes exactly three visual states', () => {
+    expect(oAvatarFlowStates).toEqual(['loading', 'connected', 'transferring'])
+    expect(oAvatarFlowProps.state.default).toBe('connected')
+    expect(oAvatarFlowProps.state.validator('loading')).toBe(true)
+    expect(oAvatarFlowProps.state.validator('idle')).toBe(false)
+    expect(oAvatarFlowProps.ariaLabel.required).toBe(true)
+    expect(oAvatarFlowProps).not.toHaveProperty('phase')
+    expect(oAvatarFlowProps).not.toHaveProperty('accessibleLabel')
+  })
+
   it('renders readonly receivers through OAvatarGroup without mutating input', () => {
     const before = receivers.map((receiver) => ({ ...receiver }))
     const wrapper = mountFlow({ maxVisibleReceivers: 2.9 })
@@ -130,61 +142,65 @@ describe('OAvatarFlow', () => {
     }
   })
 
-  it.each(['idle', 'requesting', 'complete', 'error'] as const)(
-    'renders a static line for %s',
-    (phase) => {
-      const wrapper = mountFlow({ phase })
-      const root = wrapper.get('.o-avatar-flow')
-      const connector = wrapper.get('.o-avatar-flow__connector')
+  it('renders animated dots for loading', () => {
+    const wrapper = mountFlow({ state: 'loading' })
 
-      expect(root.attributes('data-phase')).toBe(phase)
-      expect(connector.attributes('data-active')).toBe('false')
-      expect(wrapper.find('.o-avatar-flow__line').exists()).toBe(true)
-      expect(wrapper.find('.o-avatar-flow__dots').exists()).toBe(false)
-    },
-  )
-
-  it('renders exactly three dots while transferring', () => {
-    const wrapper = mountFlow({ phase: 'transferring' })
-
-    expect(wrapper.get('.o-avatar-flow__connector').attributes('data-active')).toBe('true')
-    expect(wrapper.find('.o-avatar-flow__line').exists()).toBe(false)
+    expect(wrapper.get('.o-avatar-flow').attributes('data-state')).toBe('loading')
+    expect(wrapper.get('.o-avatar-flow__connector').attributes('data-state')).toBe('loading')
     expect(wrapper.findAll('.o-avatar-flow__dot')).toHaveLength(3)
+    expect(wrapper.find('.o-avatar-flow__line').exists()).toBe(false)
+    expect(wrapper.find('.o-avatar-flow__dash-line').exists()).toBe(false)
   })
 
-  it('renders a real visually hidden polite live status', () => {
-    const wrapper = mountFlow({ accessibleLabel: 'Transfer completed for four receivers' })
+  it('renders a static solid line for connected', () => {
+    const wrapper = mountFlow({ state: 'connected' })
+
+    expect(wrapper.get('.o-avatar-flow').attributes('data-state')).toBe('connected')
+    expect(wrapper.find('.o-avatar-flow__line').exists()).toBe(true)
+    expect(wrapper.find('.o-avatar-flow__dots').exists()).toBe(false)
+    expect(wrapper.find('.o-avatar-flow__dash-line').exists()).toBe(false)
+  })
+
+  it('renders a moving dashed line for transferring', () => {
+    const wrapper = mountFlow({ state: 'transferring' })
+
+    expect(wrapper.get('.o-avatar-flow').attributes('data-state')).toBe('transferring')
+    expect(wrapper.find('.o-avatar-flow__dash-line').exists()).toBe(true)
+    expect(wrapper.find('.o-avatar-flow__line').exists()).toBe(false)
+    expect(wrapper.find('.o-avatar-flow__dots').exists()).toBe(false)
+  })
+
+  it('uses image semantics without a live region', () => {
+    const wrapper = mountFlow({ ariaLabel: 'Loading avatar connection' })
     const root = wrapper.get('.o-avatar-flow')
-    const liveStatus = wrapper.get('.o-avatar-flow__live-status')
 
-    expect(root.attributes('role')).toBe('status')
-    expect(root.attributes('aria-live')).toBe('polite')
-    expect(root.attributes('aria-atomic')).toBe('true')
-    expect(root.attributes('aria-label')).toBeUndefined()
-    expect(liveStatus.text()).toBe('Transfer completed for four receivers')
+    expect(root.attributes('role')).toBe('img')
+    expect(root.attributes('aria-label')).toBe('Loading avatar connection')
+    expect(root.attributes('aria-live')).toBeUndefined()
+    expect(root.attributes('aria-atomic')).toBeUndefined()
+    expect(wrapper.find('.o-avatar-flow__live-status').exists()).toBe(false)
   })
 
-  it('reacts to phase, label, receivers, and max-visible updates', async () => {
-    const wrapper = mountFlow({ maxVisibleReceivers: 3, phase: 'transferring' })
+  it('reacts to state, label, receivers, and max-visible updates', async () => {
+    const wrapper = mountFlow({ maxVisibleReceivers: 3, state: 'transferring' })
 
     await wrapper.setProps({
-      accessibleLabel: 'Transfer failed for one receiver',
+      ariaLabel: 'One connected receiver',
       maxVisibleReceivers: 1,
-      phase: 'error',
+      state: 'connected',
       receivers: Object.freeze([receivers[0]!]),
     })
 
-    expect(wrapper.get('.o-avatar-flow').attributes('data-phase')).toBe('error')
+    expect(wrapper.get('.o-avatar-flow').attributes('data-state')).toBe('connected')
+    expect(wrapper.get('.o-avatar-flow').attributes('aria-label')).toBe('One connected receiver')
     expect(wrapper.find('.o-avatar-flow__line').exists()).toBe(true)
     expect(wrapper.find('.o-avatar-flow__dots').exists()).toBe(false)
-    expect(wrapper.get('.o-avatar-flow__live-status').text()).toBe(
-      'Transfer failed for one receiver',
-    )
+    expect(wrapper.find('.o-avatar-flow__dash-line').exists()).toBe(false)
     expect(wrapper.findAll('[data-avatar-group-role="item"]')).toHaveLength(1)
     expect(wrapper.find('[data-avatar-group-role="overflow"]').exists()).toBe(false)
   })
 
-  it('uses component tokens and container queries without legacy animation styles', () => {
+  it('uses component tokens, state animations, and reduced-motion fallbacks', () => {
     const legacyMarkerClass = ['o-avatar-flow', '__phase-marker'].join('')
     const legacyParticleClass = ['o-avatar-flow', '__particle'].join('')
 
@@ -192,8 +208,20 @@ describe('OAvatarFlow', () => {
     expect(avatarFlowStyles).not.toMatch(/@media\s*\([^)]*(?:max|min)-width/)
     expect(avatarFlowStyles).not.toContain(legacyMarkerClass)
     expect(avatarFlowStyles).not.toContain(legacyParticleClass)
-    expect(avatarFlowStyles).not.toContain('animation:')
-    expect(avatarFlowStyles).not.toContain('@keyframes')
+    expect(avatarFlowStyles).toContain('@keyframes o-avatar-flow-loading')
+    expect(avatarFlowStyles).toContain('@keyframes o-avatar-flow-transfer')
+    expect(avatarFlowStyles).toContain('animation: o-avatar-flow-loading')
+    expect(avatarFlowStyles).toContain('animation: o-avatar-flow-transfer')
+    expect(avatarFlowStyles).toContain('repeating-linear-gradient')
+    expect(avatarFlowStyles).toMatch(
+      /\.o-avatar-flow__dot:nth-child\(2\)[\s\S]*animation-delay:\s*-600ms/u,
+    )
+    expect(avatarFlowStyles).toMatch(
+      /\.o-avatar-flow__dot:nth-child\(3\)[\s\S]*animation-delay:\s*-300ms/u,
+    )
+    expect(avatarFlowStyles).toMatch(
+      /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*animation:\s*none/u,
+    )
     expect(avatarFlowStyles).not.toMatch(/--o-(?!mg-)/)
     expect(avatarFlowStyles).not.toMatch(/#[\da-f]{3,8}\b/iu)
   })

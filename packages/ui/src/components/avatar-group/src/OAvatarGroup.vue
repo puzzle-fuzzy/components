@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, type CSSProperties } from 'vue'
 import { OAvatar } from '../../avatar'
-import { normalizeOAvatarGroupMax, oAvatarGroupProps } from './avatar-group'
+import {
+  normalizeOAvatarGroupMax,
+  normalizeOAvatarGroupOverlap,
+  oAvatarGroupProps,
+} from './avatar-group'
 
 defineOptions({ name: 'OAvatarGroup' })
 
@@ -10,12 +14,18 @@ const visibleItems = computed(() =>
   props.items.slice(0, normalizeOAvatarGroupMax(props.max, props.items.length)),
 )
 const overflowCount = computed(() => Math.max(0, props.items.length - visibleItems.value.length))
+const groupStyle = computed<CSSProperties | undefined>(() => {
+  const overlap = normalizeOAvatarGroupOverlap(props.overlap)
+
+  return overlap === undefined ? undefined : { '--omg-avatar-group-overlap': overlap }
+})
 </script>
 
 <template>
   <span
     class="o-avatar-group"
     :class="{ 'o-avatar-group--reverse': props.reverse }"
+    :style="groupStyle"
     role="group"
     :aria-label="props.ariaLabel"
   >

@@ -1,5 +1,3 @@
-@import '../../../styles/mixins.less';
-
 .o-avatar-flow {
   --omg-avatar-flow-text: var(--omg-color-text);
   --omg-avatar-flow-line: var(--omg-color-border);
@@ -7,16 +5,18 @@
   --omg-avatar-flow-gap: var(--omg-space-2);
   --omg-avatar-flow-overlap: var(--omg-space-2);
   --omg-avatar-flow-connector-size: calc(var(--omg-space-6) * 2);
+  --omg-avatar-flow-dot-size: var(--omg-space-1);
+  --omg-avatar-flow-dot-lift: calc(var(--omg-space-1) * -0.5);
+  --omg-avatar-flow-dash-size: 6px;
+  --omg-avatar-flow-dash-gap: 4px;
+  --omg-avatar-flow-loading-duration: 900ms;
+  --omg-avatar-flow-transfer-duration: 700ms;
 
   container: o-avatar-flow / inline-size;
   display: block;
   min-inline-size: 0;
   inline-size: 100%;
   color: var(--omg-avatar-flow-text);
-}
-
-.o-avatar-flow__live-status {
-  .visually-hidden();
 }
 
 .o-avatar-flow__inner {
@@ -49,6 +49,19 @@
   background: currentcolor;
 }
 
+.o-avatar-flow__dash-line {
+  inline-size: 100%;
+  block-size: 1px;
+  background-image: repeating-linear-gradient(
+    to right,
+    currentcolor 0 var(--omg-avatar-flow-dash-size),
+    transparent var(--omg-avatar-flow-dash-size)
+      calc(var(--omg-avatar-flow-dash-size) + var(--omg-avatar-flow-dash-gap))
+  );
+  background-position: 0 0;
+  animation: o-avatar-flow-transfer var(--omg-avatar-flow-transfer-duration) linear infinite;
+}
+
 .o-avatar-flow__dots {
   display: inline-flex;
   align-items: center;
@@ -57,10 +70,21 @@
 }
 
 .o-avatar-flow__dot {
-  inline-size: var(--omg-space-1);
-  block-size: var(--omg-space-1);
+  inline-size: var(--omg-avatar-flow-dot-size);
+  block-size: var(--omg-avatar-flow-dot-size);
   border-radius: var(--omg-radius-full);
   background: currentcolor;
+  animation: o-avatar-flow-loading var(--omg-avatar-flow-loading-duration)
+    var(--omg-easing-standard) infinite;
+  will-change: transform, opacity;
+}
+
+.o-avatar-flow__dot:nth-child(2) {
+  animation-delay: -600ms;
+}
+
+.o-avatar-flow__dot:nth-child(3) {
+  animation-delay: -300ms;
 }
 
 .o-avatar-flow__receivers {
@@ -78,5 +102,38 @@
 
   .o-avatar-flow__connector {
     min-inline-size: var(--omg-space-5);
+  }
+}
+
+@keyframes o-avatar-flow-loading {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateY(var(--omg-avatar-flow-dot-lift));
+  }
+}
+
+@keyframes o-avatar-flow-transfer {
+  to {
+    background-position: calc(var(--omg-avatar-flow-dash-size) + var(--omg-avatar-flow-dash-gap)) 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .o-avatar-flow__dot,
+  .o-avatar-flow__dash-line {
+    animation: none;
+  }
+
+  .o-avatar-flow__dot {
+    opacity: 1;
+    transform: none;
+    will-change: auto;
   }
 }

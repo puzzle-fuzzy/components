@@ -6,15 +6,9 @@ import {
 } from '../../avatar/index'
 import type { ExtractPublicPropTypes, PropType } from 'vue'
 
-export const oAvatarFlowPhases = [
-  'idle',
-  'requesting',
-  'transferring',
-  'complete',
-  'error',
-] as const
+export const oAvatarFlowStates = ['loading', 'connected', 'transferring'] as const
 
-export type OAvatarFlowPhase = (typeof oAvatarFlowPhases)[number]
+export type OAvatarFlowState = (typeof oAvatarFlowStates)[number]
 
 export interface OAvatarFlowPeer {
   readonly id: string | number
@@ -25,8 +19,8 @@ export interface OAvatarFlowPeer {
 
 export const oAvatarFlowDefaultMaxVisibleReceivers = 3
 
-export function isOAvatarFlowPhase(value: unknown): value is OAvatarFlowPhase {
-  return oAvatarFlowPhases.some((phase) => phase === value)
+export function isOAvatarFlowState(value: unknown): value is OAvatarFlowState {
+  return typeof value === 'string' && oAvatarFlowStates.some((state) => state === value)
 }
 
 export function normalizeOAvatarFlowMaxVisibleReceivers(value: number | undefined): number {
@@ -46,12 +40,12 @@ export const oAvatarFlowProps = {
     type: Array as PropType<readonly OAvatarFlowPeer[]>,
     required: true,
   },
-  phase: {
-    type: String as PropType<OAvatarFlowPhase>,
-    default: 'idle',
-    validator: isOAvatarFlowPhase,
+  state: {
+    type: String as PropType<OAvatarFlowState>,
+    default: 'connected',
+    validator: isOAvatarFlowState,
   },
-  accessibleLabel: {
+  ariaLabel: {
     type: String,
     required: true,
   },

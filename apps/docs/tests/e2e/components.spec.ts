@@ -101,32 +101,66 @@ test('renders avatar groups with stacking and overflow', async ({ page }) => {
   await page.goto('/components/avatar-group')
 
   await expect(page.getByRole('heading', { level: 1, name: 'Avatar Group 头像组' })).toBeVisible()
-  const group = page.getByRole('group', { name: '五位项目成员' })
+  const group = page.getByRole('group', { name: '五位项目成员，重叠十二像素', exact: true })
   await expect(group).toBeVisible()
   await expect(group.locator('[data-avatar-group-role="item"]')).toHaveCount(3)
   await expect(group.locator('[data-avatar-group-role="overflow"]')).toContainText('+2')
+  await expect
+    .poll(() =>
+      group.evaluate((element) =>
+        getComputedStyle(element).getPropertyValue('--omg-avatar-group-overlap').trim(),
+      ),
+    )
+    .toBe('12px')
 
   await expectNoSeriousAccessibilityViolations(page)
 })
 
-test('renders a simple line or three-dot avatar flow connector', async ({ page }) => {
+test('renders three purposeful avatar flow visual states', async ({ page }) => {
   await page.goto('/components/avatar-flow')
 
   await expect(page.getByRole('heading', { level: 1, name: 'Avatar Flow 头像流' })).toBeVisible()
-  for (const phase of ['idle', 'requesting', 'transferring', 'complete', 'error']) {
-    await expect(page.locator('.o-avatar-flow[data-phase="' + phase + '"]')).toBeVisible()
+  for (const state of ['loading', 'connected', 'transferring']) {
+    await expect(page.locator('.o-avatar-flow[data-state="' + state + '"]')).toBeVisible()
   }
 
-  await expect(
-    page.locator('.o-avatar-flow[data-phase="transferring"] .o-avatar-flow__dot'),
-  ).toHaveCount(3)
-  await expect(
-    page.locator('.o-avatar-flow:not([data-phase="transferring"]) .o-avatar-flow__line'),
-  ).toHaveCount(4)
-  await expect(page.locator('.o-avatar-flow__phase-marker')).toHaveCount(0)
-  await expect(page.locator('.o-avatar-flow__particle')).toHaveCount(0)
+  const loading = page.locator('.o-avatar-flow[data-state="loading"]')
+  const connected = page.locator('.o-avatar-flow[data-state="connected"]')
+  const transferring = page.locator('.o-avatar-flow[data-state="transferring"]')
+
+  await expect(loading.locator('.o-avatar-flow__dot')).toHaveCount(3)
+  await expect(loading.locator('.o-avatar-flow__dot').first()).not.toHaveCSS(
+    'animation-name',
+    'none',
+  )
+  await expect(connected.locator('.o-avatar-flow__line')).toBeVisible()
+  await expect(connected.locator('.o-avatar-flow__line')).toHaveCSS('animation-name', 'none')
+  const dashLine = transferring.locator('.o-avatar-flow__dash-line')
+  await expect(dashLine).toBeVisible()
+  await expect(dashLine).not.toHaveCSS('animation-name', 'none')
+  const [startPosition, middlePosition] = await dashLine.evaluate((element) => {
+    const animation = element.getAnimations()[0]
+    if (!animation) throw new Error('Expected the transfer dash animation')
+
+    animation.pause()
+    animation.currentTime = 0
+    const start = Number.parseFloat(getComputedStyle(element).backgroundPositionX)
+    animation.currentTime = 350
+    const middle = Number.parseFloat(getComputedStyle(element).backgroundPositionX)
+
+    return [start, middle]
+  })
+  expect(middlePosition).toBeGreaterThan(startPosition)
 
   await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('stops avatar flow animation when reduced motion is requested', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/components/avatar-flow')
+
+  await expect(page.locator('.o-avatar-flow__dot').first()).toHaveCSS('animation-name', 'none')
+  await expect(page.locator('.o-avatar-flow__dash-line')).toHaveCSS('animation-name', 'none')
 })
 
 test('accepts a complete six-digit code by paste', async ({ page }) => {
@@ -136,6 +170,13 @@ test('accepts a complete six-digit code by paste', async ({ page }) => {
   const codeGroup = page.getByRole('group', { name: '六位验证码' })
   const inputs = codeGroup.locator('input')
   await expect(inputs).toHaveCount(6)
+
+  const fieldBox = await inputs.first().boundingBox()
+  expect(fieldBox).not.toBeNull()
+  expect(fieldBox!.height).toBeGreaterThan(fieldBox!.width)
+  await inputs.first().focus()
+  await expect(inputs.first()).toHaveCSS('outline-style', 'none')
+  await expect(inputs.first()).toHaveCSS('border-top-width', '2px')
 
   await inputs.first().evaluate((element) => {
     const clipboardData = new DataTransfer()

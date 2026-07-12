@@ -33,7 +33,15 @@ const members: readonly OAvatarGroupItem[] = [
       <OAvatar name="Docs" background-color="#7c3aed" text-color="#ffffff" stacked />
     </div>
 
-    <OAvatarGroup aria-label="五位项目成员" :items="members" :max="3" />
+    <OAvatarGroup aria-label="五位项目成员，重叠十二像素" :items="members" :max="3" :overlap="12" />
+
+    <OAvatarGroup
+      aria-label="五位项目成员，反向重叠半个根字号"
+      :items="members"
+      :max="4"
+      overlap="0.5rem"
+      reverse
+    />
   </div>
 </template>
 

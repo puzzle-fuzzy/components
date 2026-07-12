@@ -12,6 +12,16 @@ import CodeInputBasic from '../../examples/code-input/Basic.vue'
   <CodeInputBasic />
 </DemoBlock>
 
+## 尺寸与焦点
+
+| `size` | 宽度 | 高度 |
+| ------ | ---- | ---- |
+| `sm`   | 32px | 40px |
+| `md`   | 40px | 48px |
+| `lg`   | 48px | 56px |
+
+输入框默认使用 1px 边框；聚焦后边框变为 2px 品牌色，不使用 outline、阴影或光晕。`invalid` 状态始终使用危险色边框，聚焦时同样保持危险色。
+
 ## 使用
 
 ```vue

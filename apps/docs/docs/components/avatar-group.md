@@ -27,7 +27,7 @@ const members: readonly OAvatarGroupItem[] = [
 </script>
 
 <template>
-  <OAvatarGroup aria-label="三位成员" :items="members" :max="2" />
+  <OAvatarGroup aria-label="三位成员" :items="members" :max="2" :overlap="12" />
 </template>
 ```
 
@@ -40,7 +40,12 @@ const members: readonly OAvatarGroupItem[] = [
 | size      | `OAvatarSize`                 | `'md'`     | 所有头像尺寸               |
 | shape     | `OAvatarShape`                | `'circle'` | 所有头像形状               |
 | reverse   | `boolean`                     | `false`    | 反转视觉堆叠方向           |
+| overlap   | `number \| string`            | —          | 相邻头像的重叠距离         |
 | ariaLabel | `string`                      | —          | 头像组及溢出数量的完整说明 |
+
+有限数字按像素处理并收敛为非负值，例如 `12` 生成 `12px`，负数生成 `0px`。
+字符串会去除首尾空白后直接作为 CSS 长度使用，例如 `overlap="0.5rem"`。空字符串和
+`NaN`、`Infinity` 不生成局部覆盖，继续使用默认值。
 
 ## Item
 
@@ -49,4 +54,6 @@ const members: readonly OAvatarGroupItem[] = [
 
 ## CSS 变量
 
-通过 `--omg-avatar-overlap` 调整重叠距离；默认使用 `--omg-space-2`。
+通过 `--omg-avatar-group-overlap` 调整头像组的重叠距离；默认使用
+`--omg-space-2`。`overlap` prop 会在当前头像组根节点设置这个变量，正向和反向堆叠共用
+同一个距离。

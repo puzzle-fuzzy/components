@@ -62,12 +62,14 @@ describe('server rendering', () => {
             ariaLabel: 'Three participants',
             items: groupItems,
             max: 2,
+            overlap: 12,
           }),
       }),
     )
 
     expect(html).toContain('class="o-avatar-group')
     expect(html).toContain('aria-label="Three participants"')
+    expect(html).toContain('--omg-avatar-group-overlap:12px')
     expect(html).toContain('data-avatar-group-role="overflow"')
     expect(html).toContain('+1')
   })
@@ -77,17 +79,19 @@ describe('server rendering', () => {
       createSSRApp({
         render: () =>
           h(OAvatarFlow, {
-            accessibleLabel: '正在传输',
-            phase: 'transferring',
+            ariaLabel: '传输视觉状态',
             receivers,
             sender,
+            state: 'transferring',
           }),
       }),
     )
 
-    expect(html).toContain('role="status"')
-    expect(html).toContain('正在传输')
-    expect(html).toContain('data-phase="transferring"')
+    expect(html).toContain('role="img"')
+    expect(html).toContain('aria-label="传输视觉状态"')
+    expect(html).toContain('data-state="transferring"')
+    expect(html).toContain('o-avatar-flow__dash-line')
+    expect(html).not.toContain('aria-live')
   })
 
   test('renders OCodeInput without DOM globals', async () => {

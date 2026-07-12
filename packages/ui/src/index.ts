@@ -18,12 +18,17 @@ export type {
 export {
   OAvatarGroup,
   normalizeOAvatarGroupMax,
+  normalizeOAvatarGroupOverlap,
   oAvatarGroupProps,
 } from './components/avatar-group'
-export type { OAvatarGroupItem, OAvatarGroupProps } from './components/avatar-group'
+export type {
+  OAvatarGroupItem,
+  OAvatarGroupOverlap,
+  OAvatarGroupProps,
+} from './components/avatar-group'
 
-export { OAvatarFlow, oAvatarFlowPhases, oAvatarFlowProps } from './components/avatar-flow'
-export type { OAvatarFlowPeer, OAvatarFlowPhase, OAvatarFlowProps } from './components/avatar-flow'
+export { OAvatarFlow, oAvatarFlowProps, oAvatarFlowStates } from './components/avatar-flow'
+export type { OAvatarFlowPeer, OAvatarFlowProps, OAvatarFlowState } from './components/avatar-flow'
 
 export {
   OButton,

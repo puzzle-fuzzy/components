@@ -17,15 +17,7 @@ const hasReceivers = computed(() => props.receivers.length > 0)
 </script>
 
 <template>
-  <div
-    class="o-avatar-flow"
-    :data-phase="props.phase"
-    role="status"
-    aria-live="polite"
-    aria-atomic="true"
-  >
-    <span class="o-avatar-flow__live-status">{{ props.accessibleLabel }}</span>
-
+  <div class="o-avatar-flow" :data-state="props.state" role="img" :aria-label="props.ariaLabel">
     <div class="o-avatar-flow__inner" aria-hidden="true">
       <OAvatar
         class="o-avatar-flow__avatar o-avatar-flow__avatar--sender"
@@ -39,13 +31,14 @@ const hasReceivers = computed(() => props.receivers.length > 0)
       />
 
       <template v-if="hasReceivers">
-        <span class="o-avatar-flow__connector" :data-active="props.phase === 'transferring'">
-          <span v-if="props.phase === 'transferring'" class="o-avatar-flow__dots">
+        <span class="o-avatar-flow__connector" :data-state="props.state">
+          <span v-if="props.state === 'loading'" class="o-avatar-flow__dots">
             <span class="o-avatar-flow__dot" />
             <span class="o-avatar-flow__dot" />
             <span class="o-avatar-flow__dot" />
           </span>
-          <span v-else class="o-avatar-flow__line" />
+          <span v-else-if="props.state === 'connected'" class="o-avatar-flow__line" />
+          <span v-else class="o-avatar-flow__dash-line" />
         </span>
 
         <OAvatarGroup

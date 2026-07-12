@@ -10,9 +10,22 @@ export interface OAvatarGroupItem {
   readonly textColor?: string
 }
 
+export type OAvatarGroupOverlap = number | string
+
 export const normalizeOAvatarGroupMax = (value: number | undefined, itemCount: number): number => {
   if (value === undefined || !Number.isFinite(value)) return itemCount
   return Math.max(1, Math.floor(value))
+}
+
+export const normalizeOAvatarGroupOverlap = (
+  value: OAvatarGroupOverlap | undefined,
+): string | undefined => {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? `${Math.max(0, value)}px` : undefined
+  }
+
+  const normalized = value?.trim()
+  return normalized || undefined
 }
 
 export const oAvatarGroupProps = {
@@ -34,6 +47,7 @@ export const oAvatarGroupProps = {
       oAvatarShapes.some((shape) => shape === value),
   },
   reverse: Boolean,
+  overlap: [Number, String] as PropType<OAvatarGroupOverlap | undefined>,
   ariaLabel: String as PropType<string | undefined>,
 } as const
 

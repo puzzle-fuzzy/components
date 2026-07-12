@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { OAvatar } from '../../avatar'
-import { OAvatarGroup, normalizeOAvatarGroupMax } from '../index'
-import type { OAvatarGroupItem, OAvatarGroupProps } from '../index'
+import { OAvatarGroup, normalizeOAvatarGroupMax, normalizeOAvatarGroupOverlap } from '../index'
+import type { OAvatarGroupItem, OAvatarGroupOverlap, OAvatarGroupProps } from '../index'
 
 const items = Object.freeze<readonly OAvatarGroupItem[]>([
   Object.freeze({
@@ -29,9 +29,66 @@ describe('normalizeOAvatarGroupMax', () => {
   })
 })
 
+describe('normalizeOAvatarGroupOverlap', () => {
+  it.each([
+    [undefined, undefined],
+    [12, '12px'],
+    [2.5, '2.5px'],
+    [-4, '0px'],
+    [Number.NaN, undefined],
+    [Number.POSITIVE_INFINITY, undefined],
+    [Number.NEGATIVE_INFINITY, undefined],
+    ['', undefined],
+    ['   ', undefined],
+    ['0', '0'],
+    ['0.75rem', '0.75rem'],
+    ['  12px  ', '12px'],
+  ] as const)('normalizes overlap %s to %s', (value, expected) => {
+    expect(normalizeOAvatarGroupOverlap(value)).toBe(expected)
+  })
+})
+
 describe('OAvatarGroup', () => {
   it('publishes a readonly typed item contract', () => {
     expectTypeOf<OAvatarGroupProps['items']>().toEqualTypeOf<readonly OAvatarGroupItem[]>()
+    expectTypeOf<OAvatarGroupProps['overlap']>().toEqualTypeOf<OAvatarGroupOverlap | undefined>()
+  })
+
+  it('applies numeric and string overlap through a local CSS variable', async () => {
+    const wrapper = mount(OAvatarGroup, {
+      attrs: { style: { color: 'red' } },
+      props: { items, overlap: 12 },
+    })
+    const root = wrapper.element as HTMLElement
+
+    expect(root.style.getPropertyValue('--omg-avatar-group-overlap')).toBe('12px')
+    expect(root.style.color).toBe('red')
+
+    await wrapper.setProps({ overlap: '0.75rem' })
+
+    expect(root.style.getPropertyValue('--omg-avatar-group-overlap')).toBe('0.75rem')
+    expect(root.style.color).toBe('red')
+  })
+
+  it('does not emit an inline override when overlap is absent or invalid', () => {
+    expect(mount(OAvatarGroup, { props: { items } }).attributes('style')).toBeUndefined()
+    expect(
+      mount(OAvatarGroup, {
+        props: { items, overlap: Number.POSITIVE_INFINITY },
+      }).attributes('style'),
+    ).toBeUndefined()
+  })
+
+  it('keeps the same overlap variable in forward and reverse stacking directions', async () => {
+    const wrapper = mount(OAvatarGroup, { props: { items, overlap: 10 } })
+    const root = wrapper.element as HTMLElement
+
+    expect(root.style.getPropertyValue('--omg-avatar-group-overlap')).toBe('10px')
+
+    await wrapper.setProps({ reverse: true })
+
+    expect(wrapper.classes()).toContain('o-avatar-group--reverse')
+    expect(root.style.getPropertyValue('--omg-avatar-group-overlap')).toBe('10px')
   })
 
   it('renders typed items as stacked avatars and forwards presentation props', () => {

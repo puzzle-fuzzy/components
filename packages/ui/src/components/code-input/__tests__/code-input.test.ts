@@ -345,8 +345,31 @@ describe('OCodeInput', () => {
     expect(first.element.value).toBe('')
   })
 
+  it('uses rectangular size tokens and a border-only focus indicator', () => {
+    expect(codeInputStyles).toContain('--omg-code-input-width: 40px')
+    expect(codeInputStyles).toContain('--omg-code-input-height: 48px')
+    expect(codeInputStyles).toContain('--omg-code-input-width: 32px')
+    expect(codeInputStyles).toContain('--omg-code-input-height: 40px')
+    expect(codeInputStyles).toContain('--omg-code-input-width: 48px')
+    expect(codeInputStyles).toContain('--omg-code-input-height: 56px')
+    expect(codeInputStyles).toContain('border: 1px solid var(--omg-code-input-border-color)')
+    expect(codeInputStyles).toContain('border-width: 2px')
+    expect(codeInputStyles).toContain('border-color: var(--omg-color-brand)')
+    expect(codeInputStyles).toContain('outline: none')
+    expect(codeInputStyles).not.toContain('box-shadow')
+    expect(codeInputStyles).toMatch(
+      /@media \(prefers-reduced-motion: reduce\)[\s\S]*transition: none/u,
+    )
+  })
+
+  it('keeps an invalid focus border dangerous', () => {
+    expect(codeInputStyles).toMatch(
+      /\.o-code-input\.is-invalid[\s\S]*\.o-code-input__field:focus[\s\S]*var\(--omg-color-danger\)/u,
+    )
+  })
+
   it('uses only OMG custom properties and responsive flex sizing', () => {
-    expect(codeInputStyles).toContain('flex: 0 1 var(--omg-code-input-size)')
+    expect(codeInputStyles).toContain('flex: 0 1 var(--omg-code-input-width)')
     expect(codeInputStyles).toContain('min-inline-size: 0')
     expect(codeInputStyles).not.toMatch(/--o-(?!mg-)/)
     expect(codeInputStyles).not.toMatch(/--vp-/)
