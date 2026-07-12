@@ -11,9 +11,15 @@ const expectedComponents = [
   'avatar-group',
   'button',
   'code-input',
+  'dialog',
   'divider',
   'dropdown',
+  'image',
+  'reference-textarea',
   'select',
+  'tabs',
+  'textarea',
+  'upload',
 ]
 
 const toComponentName = (directory) =>

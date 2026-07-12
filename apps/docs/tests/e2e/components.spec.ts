@@ -676,3 +676,117 @@ test('renders horizontal and vertical divider semantics', async ({ page }) => {
 
   await expectNoSeriousAccessibilityViolations(page)
 })
+
+test('opens and closes dialog from the docs example', async ({ page }) => {
+  await page.goto('/components/dialog')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Dialog 对话框' })).toBeVisible()
+  await page.getByRole('button', { name: '打开弹窗' }).click()
+
+  const dialog = page.getByRole('dialog', { name: '收到文本' })
+  await expect(dialog).toBeVisible()
+  await expect(dialog).toContainText('这是一段可以复制')
+
+  await page.locator('.o-dialog__mask').click({ position: { x: 8, y: 8 } })
+  await expect(dialog).toBeHidden()
+
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('opens and closes the image fullscreen preview', async ({ page }) => {
+  await page.goto('/components/image')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Image 图片' })).toBeVisible()
+  const imageDemo = page.getByRole('region', { name: 'Image click preview' })
+  const image = imageDemo.getByRole('img', { name: '山谷与蓝绿色坡地插画' }).first()
+
+  await image.click()
+
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole('img', { name: '山谷与蓝绿色坡地插画' })).toBeVisible()
+
+  await page.locator('.o-image__preview-mask').click({ position: { x: 8, y: 8 } })
+
+  await expect(dialog).toBeHidden()
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('edits textarea and updates the character count', async ({ page }) => {
+  await page.goto('/components/textarea')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Textarea 多行输入' })).toBeVisible()
+  const textarea = page.getByRole('textbox', { name: '消息正文' })
+  await textarea.fill('新的消息')
+
+  await expect(textarea).toHaveValue('新的消息')
+  await expect(page.locator('.o-textarea__count')).toContainText('4/120')
+
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('renders reference textarea member and image previews', async ({ page }) => {
+  await page.goto('/components/reference-textarea')
+
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Reference Textarea 引用输入' }),
+  ).toBeVisible()
+  await expect(page.getByText('@ Yxswy')).toBeVisible()
+  await expect(page.locator('.o-reference-textarea__image img')).toBeVisible()
+
+  const textarea = page.getByRole('textbox', { name: '带引用的消息' })
+  await textarea.fill('普通文本')
+  await expect(page.locator('.o-reference-textarea__references')).toHaveCount(0)
+
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('switches tabs with slider and line variants', async ({ page }) => {
+  await page.goto('/components/tabs')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Tabs 标签页' })).toBeVisible()
+  const transferTabs = page.getByRole('tablist', { name: '传输类型' })
+  const textTab = transferTabs.getByRole('tab', { name: '传输文本' })
+  const fileTab = transferTabs.getByRole('tab', { name: '传输文件' })
+
+  await expect(textTab).toHaveAttribute('aria-selected', 'true')
+  await fileTab.click()
+  await expect(fileTab).toHaveAttribute('aria-selected', 'true')
+
+  const contentTabs = page.getByRole('tablist', { name: '内容视图' })
+  await expect(contentTabs.getByRole('tab', { name: '禁用' })).toBeDisabled()
+  await contentTabs.getByRole('tab', { name: '动态' }).click()
+  await expect(contentTabs.getByRole('tab', { name: '动态' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  )
+
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('renders upload selection and file list states', async ({ page }) => {
+  await page.goto('/components/upload')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Upload 文件上传' })).toBeVisible()
+  const uploadDemo = page.getByRole('region', { name: 'Upload click and drag selection' })
+  const uploadZone = uploadDemo.getByRole('button', { name: '上传项目附件', exact: true })
+  await expect(uploadZone).toBeVisible()
+  await expect(uploadZone).toHaveAttribute('tabindex', '0')
+
+  await uploadDemo.locator('input[type="file"]').setInputFiles({
+    name: 'contract.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('contract'),
+  })
+
+  await expect(uploadDemo.locator('[data-upload-file-id*="contract.pdf"]')).toContainText(
+    'contract.pdf',
+  )
+
+  const statesDemo = page.getByRole('region', { name: 'Upload file list states' })
+  await expect(statesDemo.locator('[data-upload-file-id="footage"]')).toContainText('58%')
+  await expect(statesDemo.locator('[data-upload-file-id="archive"]')).toContainText('已完成')
+  await expect(statesDemo.locator('[data-upload-file-id="poster"]')).toContainText('上传失败')
+
+  await expectNoSeriousAccessibilityViolations(page)
+})
