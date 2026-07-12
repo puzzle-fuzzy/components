@@ -8,7 +8,7 @@ export default defineConfig({
   vite: {
     resolve: {
       alias: {
-        '@omg/ui': fileURLToPath(new URL('../../../packages/ui/src/index.ts', import.meta.url)),
+        '@components/ui': fileURLToPath(new URL('../../../packages/ui/src/index.ts', import.meta.url)),
       },
     },
   },

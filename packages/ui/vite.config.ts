@@ -25,9 +25,9 @@ export default defineConfig({
     lib: {
       entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
       name: 'OmgUi',
-      cssFileName: 'omg-ui',
+      cssFileName: 'components-ui',
       formats: ['es', 'umd'],
-      fileName: (format) => `omg-ui.${format === 'es' ? 'es.js' : 'umd.cjs'}`,
+      fileName: (format) => `components-ui.${format === 'es' ? 'es.js' : 'umd.cjs'}`,
     },
     rollupOptions: {
       external: ['vue', '@vueuse/core'],

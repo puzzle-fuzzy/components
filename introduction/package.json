@@ -1,8 +1,8 @@
 {
-  "name": "@omg/introduction",
+  "name": "@components/introduction",
   "private": true,
   "dependencies": {
-    "@omg/ui": "workspace:*"
+    "@components/ui": "workspace:*"
   },
   "devDependencies": {
     "vitepress": "^2.0.0-alpha.18"

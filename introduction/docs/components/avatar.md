@@ -1,5 +1,5 @@
 <script setup>
-import { OAvatar } from '@omg/ui'
+import { OAvatar } from '@components/ui'
 </script>
 
 # Avatar
@@ -10,7 +10,7 @@ import { OAvatar } from '@omg/ui'
 
 <div class="preview-row">
   <OAvatar name="Yxswy" />
-  <OAvatar name="Omg UI" />
+  <OAvatar name="Components UI" />
   <OAvatar initials="AI" />
   <OAvatar />
 </div>
@@ -53,8 +53,8 @@ import { OAvatar } from '@omg/ui'
 
 ```vue
 <script setup lang="ts">
-import { OAvatar } from '@omg/ui'
-import '@omg/ui/style.css'
+import { OAvatar } from '@components/ui'
+import '@components/ui/style.css'
 </script>
 
 <template>

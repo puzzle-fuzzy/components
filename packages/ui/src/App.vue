@@ -53,7 +53,7 @@ function previewLoading() {
 
       <div class="demo-row demo-row--split">
         <OAvatar name="Yxswy" status="online" />
-        <OAvatar name="Omg UI" size="lg" shape="rounded" status="away" />
+        <OAvatar name="Components UI" size="lg" shape="rounded" status="away" />
         <OAvatar initials="UI" size="xl" theme="dark" status="busy" />
       </div>
 
@@ -63,7 +63,7 @@ function previewLoading() {
           phase="transferring"
           :sender="{ id: 'sender', name: 'Yxswy' }"
           :receivers="[
-            { id: 'a', name: 'Omg UI' },
+            { id: 'a', name: 'Components UI' },
             { id: 'b', name: 'Vue Kit' },
             { id: 'c', name: 'Bun Lab' },
             { id: 'd', name: 'Design' },

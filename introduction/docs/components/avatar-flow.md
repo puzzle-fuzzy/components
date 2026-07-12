@@ -1,9 +1,9 @@
 <script setup>
-import { OAvatarFlow } from '@omg/ui'
+import { OAvatarFlow } from '@components/ui'
 
 const sender = { id: 'sender', name: 'Yxswy' }
 const receivers = [
-  { id: 'a', name: 'Omg UI' },
+  { id: 'a', name: 'Components UI' },
   { id: 'b', name: 'Vue Kit' },
   { id: 'c', name: 'Bun Lab' },
   { id: 'd', name: 'Design' },
@@ -50,12 +50,12 @@ const receivers = [
 
 ```vue
 <script setup lang="ts">
-import { OAvatarFlow } from '@omg/ui'
-import '@omg/ui/style.css'
+import { OAvatarFlow } from '@components/ui'
+import '@components/ui/style.css'
 
 const sender = { id: 'sender', name: 'Yxswy' }
 const receivers = [
-  { id: 'a', name: 'Omg UI' },
+  { id: 'a', name: 'Components UI' },
   { id: 'b', name: 'Vue Kit' },
   { id: 'c', name: 'Bun Lab' },
   { id: 'd', name: 'Design' },

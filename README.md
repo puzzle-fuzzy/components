@@ -1,4 +1,4 @@
-# omg
+# components
 
 To install dependencies:
 

@@ -1,21 +1,21 @@
 {
-  "name": "@omg/ui",
+  "name": "@components/ui",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "files": [
     "dist"
   ],
-  "main": "./dist/omg-ui.umd.cjs",
-  "module": "./dist/omg-ui.es.js",
+  "main": "./dist/components-ui.umd.cjs",
+  "module": "./dist/components-ui.es.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/omg-ui.es.js",
-      "require": "./dist/omg-ui.umd.cjs"
+      "import": "./dist/components-ui.es.js",
+      "require": "./dist/components-ui.umd.cjs"
     },
-    "./style.css": "./dist/omg-ui.css"
+    "./style.css": "./dist/components-ui.css"
   },
   "sideEffects": [
     "*.css",

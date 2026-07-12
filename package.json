@@ -1,5 +1,5 @@
 {
-  "name": "omg",
+  "name": "components",
   "module": "index.ts",
   "type": "module",
   "private": true,

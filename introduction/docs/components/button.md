@@ -1,5 +1,5 @@
 <script setup>
-import { OButton } from '@omg/ui'
+import { OButton } from '@components/ui'
 </script>
 
 # Button
@@ -42,8 +42,8 @@ import { OButton } from '@omg/ui'
 
 ```vue
 <script setup lang="ts">
-import { OButton } from '@omg/ui'
-import '@omg/ui/style.css'
+import { OButton } from '@components/ui'
+import '@components/ui/style.css'
 </script>
 
 <template>
