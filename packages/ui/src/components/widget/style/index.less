@@ -1,19 +1,36 @@
 .o-widget {
+  position: relative;
   display: grid;
-  width: 200px;
-  min-width: 200px;
-  height: 160px;
+  width: 160px;
+  min-width: 160px;
+  height: 130px;
   box-sizing: border-box;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   padding: 16px;
   border-radius: 30px;
-  background: var(--omg-color-surface);
-  border: 1px solid var(--omg-color-border-subtle);
+  background: color-mix(in srgb, var(--omg-color-surface) 55%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid color-mix(in srgb, var(--omg-color-text) 12%, transparent);
   color: var(--omg-color-text);
 }
 
+.o-widget::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--omg-color-surface) 40%, transparent) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
 .o-widget__icon {
+  position: relative;
   align-self: start;
   justify-self: start;
   font-size: 22px;
@@ -21,6 +38,7 @@
 }
 
 .o-widget__title {
+  position: relative;
   align-self: start;
   justify-self: end;
   font-size: var(--omg-font-size-xs);
@@ -31,6 +49,7 @@
 }
 
 .o-widget__value {
+  position: relative;
   align-self: end;
   justify-self: start;
   display: flex;
@@ -53,6 +72,7 @@
 }
 
 .o-widget__chart {
+  position: relative;
   align-self: end;
   justify-self: end;
   display: flex;
