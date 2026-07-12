@@ -26,7 +26,7 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
       chart-type="line"
       :chart-data="spendingData"
     >
-      <template #icon><LuWallet aria-hidden="true" /></template>
+      <template #icon><LuWallet aria-hidden="true" :size="18" /></template>
     </OWidget>
 
     <OWidget
@@ -36,7 +36,7 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
       chart-type="line"
       :chart-data="incomeData"
     >
-      <template #icon><LuCoins aria-hidden="true" /></template>
+      <template #icon><LuCoins aria-hidden="true" :size="18" /></template>
     </OWidget>
 
     <OWidget
@@ -46,7 +46,7 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
       chart-type="activity"
       :chart-data="activityData"
     >
-      <template #icon><LuFlame aria-hidden="true" /></template>
+      <template #icon><LuFlame aria-hidden="true" :size="18" /></template>
     </OWidget>
 
     <OWidget
@@ -56,7 +56,7 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
       chart-type="line"
       :chart-data="stepsData"
     >
-      <template #icon><LuFootprints aria-hidden="true" /></template>
+      <template #icon><LuFootprints aria-hidden="true" :size="18" /></template>
     </OWidget>
 
     <OWidget
@@ -66,7 +66,7 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
       chart-type="activity"
       :chart-data="focusData"
     >
-      <template #icon><LuTarget aria-hidden="true" /></template>
+      <template #icon><LuTarget aria-hidden="true" :size="18" /></template>
     </OWidget>
 
     <OWidget
@@ -76,7 +76,7 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
       chart-type="line"
       :chart-data="tasksData"
     >
-      <template #icon><LuCheckCheck aria-hidden="true" /></template>
+      <template #icon><LuCheckCheck aria-hidden="true" :size="18" /></template>
     </OWidget>
   </div>
 </template>
@@ -85,7 +85,7 @@ const tasksData = [3, 5, 2, 7, 4, 6, 8]
 .omg-widget-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 4px;
   align-items: flex-start;
 }
 </style>

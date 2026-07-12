@@ -8,11 +8,10 @@
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   padding: 16px;
-  border-radius: 30px;
+  border-radius: 35px;
   background: color-mix(in srgb, var(--omg-color-surface) 55%, transparent);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid color-mix(in srgb, var(--omg-color-text) 12%, transparent);
   color: var(--omg-color-text);
 }
 
@@ -31,10 +30,16 @@
 
 .o-widget__icon {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   align-self: start;
   justify-self: start;
   font-size: 22px;
   line-height: 1;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--omg-color-text) 12%, transparent);
+  border-radius: 50%;
 }
 
 .o-widget__title {
