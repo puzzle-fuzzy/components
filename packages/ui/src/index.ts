@@ -130,6 +130,9 @@ export type {
   OTabsVariant,
 } from './components/tabs'
 
+export { OWidget, oWidgetChartTypes, oWidgetProps } from './components/widget'
+export type { OWidgetChartType, OWidgetProps, OWidgetSlots } from './components/widget'
+
 export { OTextarea, oTextareaProps, oTextareaResizeModes } from './components/textarea'
 export type { OTextareaEmits, OTextareaProps, OTextareaResizeMode } from './components/textarea'
 
