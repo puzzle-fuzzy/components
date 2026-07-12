@@ -81,12 +81,12 @@
 }
 
 .o-dialog.o-image__preview-dialog {
-  --omg-image-preview-backdrop: var(--omg-color-overlay-strong);
+  --omg-image-preview-backdrop: rgba(0, 0, 0, 0.85);
   --omg-image-preview-shadow: var(--omg-shadow-sm);
 
   inline-size: fit-content;
-  max-inline-size: calc(100vw - (var(--omg-space-6) * 2));
-  max-block-size: calc(100dvh - (var(--omg-space-6) * 2));
+  max-inline-size: 80vw;
+  max-block-size: 80dvh;
   padding: 0;
   overflow: visible;
   border: 0;
@@ -114,8 +114,8 @@
   display: block;
   inline-size: auto;
   block-size: auto;
-  max-inline-size: calc(100vw - (var(--omg-space-6) * 2));
-  max-block-size: calc(100dvh - (var(--omg-space-6) * 2));
+  max-inline-size: 80vw;
+  max-block-size: 80dvh;
   border-radius: var(--omg-radius-md);
   box-shadow: var(--omg-image-preview-shadow);
   object-fit: contain;

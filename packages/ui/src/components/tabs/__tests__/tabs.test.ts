@@ -79,7 +79,7 @@ describe('OTabs', () => {
     expect(panels[0]?.attributes('aria-labelledby')).toBe(tabs[0]?.attributes('id'))
     expect(panels[0]?.attributes('hidden')).toBeUndefined()
     expect(panels[1]?.attributes()).toHaveProperty('hidden')
-    expect(wrapper.find('.o-tabs__indicator').exists()).toBe(false)
+    expect(wrapper.find('.o-tabs__indicator').exists()).toBe(true)
 
     await tabs[1]?.trigger('click')
     await tabs[2]?.trigger('click')
@@ -241,6 +241,37 @@ describe('OTabs', () => {
     expect(first.match(/id="(o-tabs-[^"]+-tab-[^"]+)"/u)?.[1]).toBe(
       second.match(/id="(o-tabs-[^"]+-tab-[^"]+)"/u)?.[1],
     )
-    expect(first).not.toContain('o-tabs__indicator')
+    expect(first).toContain('o-tabs__indicator')
+  })
+
+  it('stretches tabs to fill the row when fill is true', () => {
+    const wrapper = mount(OTabs, {
+      props: {
+        modelValue: 'text',
+        items,
+        fill: true,
+      },
+    })
+
+    const tabsRoot = wrapper.get('.o-tabs')
+    const tabs = wrapper.findAll('[role="tab"]')
+
+    expect(tabsRoot.classes()).toContain('o-tabs--fill')
+    expect(tabsRoot.classes()).toContain('o-tabs--slider')
+    expect(tabs).toHaveLength(3)
+    for (const tab of tabs) {
+      expect(tab.classes()).toContain('o-tabs__tab')
+    }
+  })
+
+  it('does not stretch tabs when fill is false by default', () => {
+    const wrapper = mount(OTabs, {
+      props: {
+        modelValue: 'text',
+        items,
+      },
+    })
+
+    expect(wrapper.get('.o-tabs').classes()).not.toContain('o-tabs--fill')
   })
 })

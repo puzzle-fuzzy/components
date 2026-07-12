@@ -112,7 +112,7 @@ const handleError = (event: Event): void => {
       :close-aria-label="props.closeAriaLabel"
       :close-on-mask="true"
       :close-on-esc="true"
-      :show-close="true"
+      :show-close="false"
       @update:open="setPreviewOpen"
     >
       <div class="o-image__preview-stage">

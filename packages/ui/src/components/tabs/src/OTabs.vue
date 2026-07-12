@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, useId, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
 
 import { oTabsProps, type OTabsEmits, type OTabsItem, type OTabsSlots } from './tabs'
 
@@ -11,6 +11,44 @@ const slots = defineSlots<OTabsSlots>()
 
 const tabElements = new Map<string, HTMLButtonElement>()
 const instanceId = useId()
+
+const tabListRef = ref<HTMLElement | null>(null)
+
+const indicatorStyle = ref<{ width: string; transform: string }>({
+  width: '0',
+  transform: 'translateX(0)',
+})
+
+function updateIndicator(): void {
+  const list = tabListRef.value
+  if (!list) return
+
+  const activeTab = list.querySelector<HTMLElement>('.is-active')
+  if (!activeTab) {
+    indicatorStyle.value = { width: '0', transform: 'translateX(0)' }
+    return
+  }
+
+  indicatorStyle.value = {
+    width: `${activeTab.offsetWidth}px`,
+    transform: `translateX(${activeTab.offsetLeft}px)`,
+  }
+}
+
+let resizeObserver: ResizeObserver | null = null
+
+onMounted(() => {
+  updateIndicator()
+  const list = tabListRef.value
+  if (list) {
+    resizeObserver = new ResizeObserver(updateIndicator)
+    resizeObserver.observe(list)
+  }
+})
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+})
 
 const enabledItems = computed(() => props.items.filter((item) => !item.disabled))
 const selectedItem = computed(
@@ -94,16 +132,25 @@ watch(selectedValue, (value, previousValue) => {
     focusedValue.value = value
   }
 })
+
+watch(
+  [selectedValue, () => props.items],
+  () => {
+    void nextTick(updateIndicator)
+  },
+)
 </script>
 
 <template>
-  <div class="o-tabs" :class="`o-tabs--${props.variant}`">
+  <div class="o-tabs" :class="[`o-tabs--${props.variant}`, { 'o-tabs--fill': props.fill }]">
     <div
+      ref="tabListRef"
       class="o-tabs__list"
       role="tablist"
       aria-orientation="horizontal"
       :aria-label="props.ariaLabel"
     >
+      <div class="o-tabs__indicator" :style="indicatorStyle" aria-hidden="true" />
       <button
         v-for="item in props.items"
         :id="tabId(item.value)"
