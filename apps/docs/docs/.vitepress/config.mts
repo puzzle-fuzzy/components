@@ -92,6 +92,10 @@ const sourceAliases = useSource
         replacement: fromRepository('packages/ui/src/components/upload/index.ts'),
       },
       {
+        find: /^@puzzle-fuzzy\/ui\/widget$/,
+        replacement: fromRepository('packages/ui/src/components/widget/index.ts'),
+      },
+      {
         find: /^@puzzle-fuzzy\/ui\/styles\.css$/,
         replacement: fromRepository('packages/ui/src/styles/index.less'),
       },
@@ -140,6 +144,7 @@ export default defineConfig({
           { text: 'Code Input 验证码输入', link: '/components/code-input' },
           { text: 'Select 选择器', link: '/components/select' },
           { text: 'Upload 文件上传', link: '/components/upload' },
+          { text: 'Widget 小组件', link: '/components/widget' },
         ],
       },
       {

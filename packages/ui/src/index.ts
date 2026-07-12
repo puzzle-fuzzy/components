@@ -218,3 +218,6 @@ export type {
   OUploadProps,
   OUploadSlots,
 } from './components/upload'
+
+export { OWidget, oWidgetChartTypes, oWidgetProps } from './components/widget'
+export type { OWidgetChartType, OWidgetProps, OWidgetSlots } from './components/widget'

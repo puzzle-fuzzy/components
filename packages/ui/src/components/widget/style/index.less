@@ -1,0 +1,95 @@
+.o-widget {
+  position: relative;
+  display: grid;
+  width: 160px;
+  min-width: 160px;
+  height: 130px;
+  box-sizing: border-box;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  padding: 16px;
+  border-radius: 35px;
+  background: color-mix(in srgb, var(--omg-color-surface) 55%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--omg-color-text);
+}
+
+.o-widget::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--omg-color-surface) 40%, transparent) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+.o-widget__icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  justify-self: start;
+  font-size: 22px;
+  line-height: 1;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--omg-color-text) 12%, transparent);
+  border-radius: 50%;
+}
+
+.o-widget__title {
+  position: relative;
+  align-self: start;
+  justify-self: flex-end;
+  align-items: center;
+  font-size: var(--omg-font-size-md);
+  font-weight: var(--omg-font-weight-medium);
+  color: var(--omg-color-text-muted);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.o-widget__value {
+  position: relative;
+  align-self: end;
+  justify-self: start;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.o-widget__value-number {
+  font-size: 22px;
+  font-weight: var(--omg-font-weight-semibold);
+  line-height: 1;
+  color: var(--omg-color-text);
+}
+
+.o-widget__value-unit {
+  font-size: var(--omg-font-size-xs);
+  font-weight: var(--omg-font-weight-medium);
+  line-height: 1;
+  color: var(--omg-color-text-muted);
+}
+
+.o-widget__chart {
+  position: relative;
+  align-self: end;
+  justify-self: end;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  max-width: 96px;
+}
+
+.o-widget__chart-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--omg-color-brand);
+}
