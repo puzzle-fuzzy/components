@@ -2,6 +2,9 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
+    "paths": {
+      "@puzzle-fuzzy/ui": ["../../packages/ui/src/index.ts"]
+    },
     "tsBuildInfoFile": "../../node_modules/.cache/typescript/docs.tsbuildinfo",
     "types": ["node", "vitepress/client"]
   },
@@ -11,6 +14,9 @@
     "docs/.vitepress/**/*.vue",
     "examples/**/*.vue",
     "tests/**/*.ts",
-    "playwright.config.ts"
-  ]
+    "playwright.config.ts",
+    "../../packages/ui/src/**/*.ts",
+    "../../packages/ui/src/**/*.vue"
+  ],
+  "exclude": ["../../packages/ui/src/**/__tests__/**", "../../packages/ui/src/**/*.test.ts"]
 }

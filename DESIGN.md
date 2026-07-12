@@ -91,6 +91,30 @@ components:
     rounded: '{rounded.md}'
     padding: '0 12px'
     height: '38px'
+  dialog-surface:
+    backgroundColor: '{colors.light-surface}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.lg}'
+    padding: '20px'
+  textarea-field:
+    backgroundColor: '{colors.light-surface}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.md}'
+    padding: '12px'
+  tabs-control:
+    backgroundColor: '{colors.light-surface-muted}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.md}'
+    padding: '4px'
+  upload-dropzone:
+    backgroundColor: '{colors.light-surface-muted}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.lg}'
+    padding: '20px'
 ---
 
 # Design System: OMG UI
@@ -198,6 +222,8 @@ OMG UI is flat by default. Borders and tonal surface changes define structure; a
 - **Style:** 1px semantic border, 8px radius, inherited type, and a surface background.
 - **Focus:** border changes are immediate and legible; Code Input uses a 2px Focused Blue border without glow or box shadow.
 - **Error / Disabled:** danger border for invalid input; disabled opacity is 0.56 with a non-interactive cursor.
+- **Textarea:** native form attributes and events belong to the real textarea; visible counts and errors are connected through deterministic ARIA descriptions.
+- **Reference Textarea:** references are controlled visual items supplied by consumers. The component never parses member syntax, image syntax, URLs, or other domain protocols.
 
 ### Navigation
 
@@ -214,6 +240,13 @@ OMG UI is flat by default. Borders and tonal surface changes define structure; a
 - **Avatar Group:** overlap is a scoped CSS variable so composition controls spacing without changing individual avatars.
 - **Avatar Flow:** exactly three visual connector states. Loading dots scale in place, connected is a static line, and transferring is a moving dashed line.
 - **Avatar Dropdown:** a thin composition keeps Avatar pure while the Dropdown shell owns the native button, menu semantics, indicator, and focus behavior.
+
+### Dialog, Image, Tabs, and Upload
+
+- **Dialog:** uses the native `<dialog>` top layer for modal focus, background inertness, Escape ordering, and scroll behavior. Its surface keeps a 12px radius and the structural shadow ceiling.
+- **Image:** a native image remains non-interactive unless preview is enabled; preview activation is a named button and the modal reuses Dialog rather than creating a second overlay system.
+- **Tabs:** one enabled tab remains in the tab order, selection is tracked by stable values, optional panels are linked with deterministic IDs, and active presentation works without direction-sensitive index transforms.
+- **Upload:** selection, drag feedback, file state presentation, and list actions are UI-only. Requests, validation policy, retries, and persistence remain outside the component.
 
 ### Code Input and Divider
 

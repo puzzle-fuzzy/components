@@ -284,6 +284,7 @@ test('supports dropdown pointer and keyboard interactions', async ({ page }) => 
   const disabledItem = page.getByRole('menuitem', { name: '偏好设置（已停用）' })
   const signOutItem = page.getByRole('menuitem', { name: '退出示例' })
   await expect(menu).toBeVisible()
+  await expect(menu).toHaveCSS('opacity', '1')
   await expect(disabledItem).toBeDisabled()
   await expectNoSeriousAccessibilityViolations(page, ['.omg-docs-demo', '.o-dropdown__panel'])
 
@@ -636,6 +637,12 @@ test('stops flow, panel, and chevron motion when reduced motion is requested', a
   }
   await page.getByRole('combobox', { name: '选择展示项' }).click()
   await expect(page.locator('.o-select__panel')).toHaveCSS('transition-duration', '0s')
+
+  await page.goto('/components/upload')
+  await expect(page.locator('.o-upload__file-progress-bar').first()).toHaveCSS(
+    'transition-duration',
+    '0s',
+  )
 })
 
 test('accepts a complete six-digit code by paste', async ({ page }) => {
@@ -681,13 +688,26 @@ test('opens and closes dialog from the docs example', async ({ page }) => {
   await page.goto('/components/dialog')
 
   await expect(page.getByRole('heading', { level: 1, name: 'Dialog 对话框' })).toBeVisible()
-  await page.getByRole('button', { name: '打开弹窗' }).click()
+  const trigger = page.getByRole('button', { name: '打开弹窗' })
+  await trigger.click()
 
   const dialog = page.getByRole('dialog', { name: '收到文本' })
   await expect(dialog).toBeVisible()
   await expect(dialog).toContainText('这是一段可以复制')
+  await expect(page.getByRole('button', { name: '关闭收到文本弹窗' })).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  await expect(dialog.getByRole('button', { name: '确认' })).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('button', { name: '关闭收到文本弹窗' })).toBeFocused()
+  await expectNoSeriousAccessibilityViolations(page, ['.o-dialog'])
 
-  await page.locator('.o-dialog__mask').click({ position: { x: 8, y: 8 } })
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+  await expect(trigger).toBeFocused()
+
+  await trigger.click()
+  await expect(dialog).toBeVisible()
+  await page.mouse.click(4, 4)
   await expect(dialog).toBeHidden()
 
   await expectNoSeriousAccessibilityViolations(page)
@@ -698,17 +718,22 @@ test('opens and closes the image fullscreen preview', async ({ page }) => {
 
   await expect(page.getByRole('heading', { level: 1, name: 'Image 图片' })).toBeVisible()
   const imageDemo = page.getByRole('region', { name: 'Image click preview' })
-  const image = imageDemo.getByRole('img', { name: '山谷与蓝绿色坡地插画' }).first()
+  const previewTrigger = imageDemo.getByRole('button', {
+    name: '预览山谷与蓝绿色坡地插画',
+  })
 
-  await image.click()
+  await previewTrigger.focus()
+  await page.keyboard.press('Enter')
 
-  const dialog = page.getByRole('dialog')
+  const dialog = page.getByRole('dialog', { name: '预览山谷与蓝绿色坡地插画' })
   await expect(dialog).toBeVisible()
   await expect(dialog.getByRole('img', { name: '山谷与蓝绿色坡地插画' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '关闭图片预览' })).toBeFocused()
+  await expectNoSeriousAccessibilityViolations(page, ['.o-image__preview-dialog'])
 
-  await page.locator('.o-image__preview-mask').click({ position: { x: 8, y: 8 } })
-
+  await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
+  await expect(previewTrigger).toBeFocused()
   await expectNoSeriousAccessibilityViolations(page)
 })
 
@@ -725,18 +750,24 @@ test('edits textarea and updates the character count', async ({ page }) => {
   await expectNoSeriousAccessibilityViolations(page)
 })
 
-test('renders reference textarea member and image previews', async ({ page }) => {
+test('renders consumer-controlled textarea references', async ({ page }) => {
   await page.goto('/components/reference-textarea')
 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Reference Textarea 引用输入' }),
   ).toBeVisible()
-  await expect(page.getByText('@ Yxswy')).toBeVisible()
-  await expect(page.locator('.o-reference-textarea__image img')).toBeVisible()
+  await expect(page.getByText('需求说明', { exact: true })).toBeVisible()
+  await expect(page.getByText('界面预览', { exact: true })).toBeVisible()
+  await expect(page.locator('.o-reference-textarea__references')).toHaveCSS(
+    'list-style-type',
+    'none',
+  )
+  await expect(page.locator('.o-reference-textarea__thumbnail')).toBeVisible()
 
-  const textarea = page.getByRole('textbox', { name: '带引用的消息' })
+  const textarea = page.getByRole('textbox', { name: '消息正文' })
   await textarea.fill('普通文本')
-  await expect(page.locator('.o-reference-textarea__references')).toHaveCount(0)
+  await expect(textarea).toHaveValue('普通文本')
+  await expect(page.locator('.o-reference-textarea__reference')).toHaveCount(2)
 
   await expectNoSeriousAccessibilityViolations(page)
 })
@@ -750,8 +781,11 @@ test('switches tabs with slider and line variants', async ({ page }) => {
   const fileTab = transferTabs.getByRole('tab', { name: '传输文件' })
 
   await expect(textTab).toHaveAttribute('aria-selected', 'true')
-  await fileTab.click()
+  await textTab.focus()
+  await page.keyboard.press('ArrowRight')
   await expect(fileTab).toHaveAttribute('aria-selected', 'true')
+  await expect(fileTab).toBeFocused()
+  await expect(page.getByRole('tabpanel', { name: '传输文件' })).toContainText('选择并传输')
 
   const contentTabs = page.getByRole('tablist', { name: '内容视图' })
   await expect(contentTabs.getByRole('tab', { name: '禁用' })).toBeDisabled()
@@ -782,8 +816,16 @@ test('renders upload selection and file list states', async ({ page }) => {
   await expect(uploadDemo.locator('[data-upload-file-id*="contract.pdf"]')).toContainText(
     'contract.pdf',
   )
+  await expect(uploadDemo.getByRole('list', { name: '已选项目附件' })).toBeVisible()
+  await expect(uploadDemo.locator('.o-upload__list')).toHaveCSS('list-style-type', 'none')
+  await expect(
+    uploadDemo.locator(
+      '[data-upload-file-id*="contract.pdf"][role="listitem"], li[data-upload-file-id*="contract.pdf"]',
+    ),
+  ).toHaveCount(1)
 
   const statesDemo = page.getByRole('region', { name: 'Upload file list states' })
+  await expect(statesDemo.getByRole('list', { name: '文件上传状态' })).toBeVisible()
   await expect(statesDemo.locator('[data-upload-file-id="footage"]')).toContainText('58%')
   await expect(statesDemo.locator('[data-upload-file-id="archive"]')).toContainText('已完成')
   await expect(statesDemo.locator('[data-upload-file-id="poster"]')).toContainText('上传失败')

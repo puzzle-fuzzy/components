@@ -5,14 +5,62 @@ export const oUploadFileStates = ['queued', 'uploading', 'success', 'error'] as 
 export type OUploadFileState = (typeof oUploadFileStates)[number]
 
 export interface OUploadFile {
-  id: string
-  file: File
-  state?: OUploadFileState | undefined
-  progress?: number | undefined
+  readonly id: string
+  readonly name: string
+  readonly size?: number | undefined
+  readonly state?: OUploadFileState | undefined
+  readonly progress?: number | undefined
 }
 
+export interface OUploadLabels {
+  readonly select: string
+  readonly description: string
+  readonly dragActive: string
+  readonly add: string
+  readonly clear: string
+  readonly list: string
+  readonly queued: string
+  readonly uploading: (percentage: number | undefined) => string
+  readonly success: string
+  readonly error: string
+  readonly remove: (name: string) => string
+  readonly progress: (name: string) => string
+}
+
+export type OUploadLabelOverrides = Partial<OUploadLabels>
+
+export const defaultOUploadLabels: Readonly<OUploadLabels> = {
+  select: 'Select files',
+  description: 'Drag files here, or select from your device',
+  dragActive: 'Drop files to select them',
+  add: 'Add more files',
+  clear: 'Clear',
+  list: 'Selected files',
+  queued: 'Queued',
+  uploading: (percentage) => (percentage === undefined ? 'Uploading' : `${String(percentage)}%`),
+  success: 'Complete',
+  error: 'Upload failed',
+  remove: (name) => `Remove ${name}`,
+  progress: (name) => `${name} upload progress`,
+}
+
+export const resolveOUploadLabels = (overrides: OUploadLabelOverrides = {}): OUploadLabels => ({
+  select: overrides.select ?? defaultOUploadLabels.select,
+  description: overrides.description ?? defaultOUploadLabels.description,
+  dragActive: overrides.dragActive ?? defaultOUploadLabels.dragActive,
+  add: overrides.add ?? defaultOUploadLabels.add,
+  clear: overrides.clear ?? defaultOUploadLabels.clear,
+  list: overrides.list ?? defaultOUploadLabels.list,
+  queued: overrides.queued ?? defaultOUploadLabels.queued,
+  uploading: overrides.uploading ?? defaultOUploadLabels.uploading,
+  success: overrides.success ?? defaultOUploadLabels.success,
+  error: overrides.error ?? defaultOUploadLabels.error,
+  remove: overrides.remove ?? defaultOUploadLabels.remove,
+  progress: overrides.progress ?? defaultOUploadLabels.progress,
+})
+
 export interface OUploadFileSlotProps {
-  file: OUploadFile
+  readonly file: OUploadFile
 }
 
 export interface OUploadSlots {
@@ -33,57 +81,60 @@ export const normalizeOUploadProgress = (progress: number | undefined): number =
   return Math.min(1, Math.max(0, progress ?? 0))
 }
 
+export const resolveOUploadProgress = (file: OUploadFile): number | undefined => {
+  const state = file.state ?? 'queued'
+
+  if (state === 'queued') return 0
+  if (state === 'success') return 1
+  if (!Number.isFinite(file.progress)) return undefined
+  return normalizeOUploadProgress(file.progress)
+}
+
+export const normalizeOUploadMaxCount = (maxCount: number | undefined): number | undefined => {
+  if (maxCount === undefined || maxCount === Number.POSITIVE_INFINITY) return undefined
+  if (!Number.isFinite(maxCount)) return 0
+  return Math.max(0, Math.floor(maxCount))
+}
+
 export const formatOUploadFileSize = (bytes: number): string => {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B'
-  if (bytes < 1024) return `${String(bytes)} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KiB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MiB`
+
+  const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'] as const
+  const unitIndex = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1)
+  if (unitIndex === 0) return `${String(Math.floor(bytes))} B`
+
+  return `${(bytes / 1024 ** unitIndex).toFixed(1)} ${units[unitIndex]}`
 }
 
 export const oUploadProps = {
   files: {
-    type: Array as PropType<OUploadFile[]>,
-    default: (): OUploadFile[] => [],
+    type: Array as PropType<readonly OUploadFile[]>,
+    default: (): readonly OUploadFile[] => [],
   },
-  title: {
-    type: String,
-    default: '点击选择文件',
-  },
-  description: {
-    type: String,
-    default: '拖拽文件到这里，或点击选择',
-  },
-  dragTitle: {
-    type: String,
-    default: '松开以上传',
-  },
-  actionText: {
-    type: String,
-    default: '添加更多文件',
+  labels: {
+    type: Object as PropType<OUploadLabelOverrides>,
+    default: (): OUploadLabelOverrides => ({}),
   },
   accept: String as PropType<string | undefined>,
   multiple: Boolean,
   disabled: Boolean,
   maxCount: Number as PropType<number | undefined>,
-  empty: Boolean,
   clearable: Boolean,
-  ariaLabel: {
-    type: String,
-    default: 'Select files',
-  },
-  listLabel: {
-    type: String,
-    default: 'Selected files',
-  },
 } as const
 
 export type OUploadProps = ExtractPublicPropTypes<typeof oUploadProps>
 
-export const getOUploadStateLabel = (file: OUploadFile): string => {
-  const progress = normalizeOUploadProgress(file.progress)
+export const getOUploadStateLabel = (
+  file: OUploadFile,
+  labels: OUploadLabels = defaultOUploadLabels,
+): string => {
+  const state = file.state ?? 'queued'
 
-  if (file.state === 'success') return '已完成'
-  if (file.state === 'error') return '上传失败'
-  if (file.state === 'uploading') return `${String(Math.round(progress * 100))}%`
-  return '等待上传'
+  if (state === 'success') return labels.success
+  if (state === 'error') return labels.error
+  if (state === 'uploading') {
+    const progress = resolveOUploadProgress(file)
+    return labels.uploading(progress === undefined ? undefined : Math.round(progress * 100))
+  }
+  return labels.queued
 }

@@ -1,102 +1,144 @@
 <script setup lang="ts">
-import { computed, ref, nextTick } from 'vue'
+import { computed, nextTick, ref, useId, watch } from 'vue'
 
-import { oTabsProps, type OTabsEmits, type OTabsItem } from './tabs'
+import { oTabsProps, type OTabsEmits, type OTabsItem, type OTabsSlots } from './tabs'
 
 defineOptions({ name: 'OTabs' })
 
 const props = defineProps(oTabsProps)
 const emit = defineEmits<OTabsEmits>()
+const slots = defineSlots<OTabsSlots>()
 
-const tabElements = ref<Array<HTMLButtonElement | undefined>>([])
+const tabElements = new Map<string, HTMLButtonElement>()
+const instanceId = useId()
+
 const enabledItems = computed(() => props.items.filter((item) => !item.disabled))
-const activeIndex = computed(() =>
-  Math.max(
-    0,
-    props.items.findIndex((item) => item.value === props.modelValue),
-  ),
+const selectedItem = computed(
+  () =>
+    props.items.find((item) => item.value === props.modelValue && !item.disabled) ??
+    enabledItems.value[0],
 )
-const indicatorStyle = computed(() => ({
-  width: props.items.length === 0 ? '0%' : `${String(100 / props.items.length)}%`,
-  transform: `translateX(${String(activeIndex.value * 100)}%)`,
-}))
+const selectedValue = computed(() => selectedItem.value?.value)
+const enabledValues = computed(() => enabledItems.value.map((item) => item.value))
+const focusedValue = ref(selectedValue.value)
 
-const setTabElement = (element: unknown, index: number): void => {
-  tabElements.value[index] = element instanceof HTMLButtonElement ? element : undefined
+const valueIdSegment = (value: string): string =>
+  Array.from(value, (character) => character.codePointAt(0)?.toString(16) ?? '').join('-') ||
+  'empty'
+const tabId = (value: string): string => `o-tabs-${instanceId}-tab-${valueIdSegment(value)}`
+const panelId = (value: string): string => `o-tabs-${instanceId}-panel-${valueIdSegment(value)}`
+
+const setTabElement = (element: unknown, value: string): void => {
+  if (typeof HTMLButtonElement !== 'undefined' && element instanceof HTMLButtonElement) {
+    tabElements.set(value, element)
+  } else {
+    tabElements.delete(value)
+  }
 }
 
-const selectItem = (item: OTabsItem, focus = false): void => {
-  if (item.disabled || item.value === props.modelValue) return
+const focusItem = async (item: OTabsItem): Promise<void> => {
+  focusedValue.value = item.value
+  await nextTick()
+  tabElements.get(item.value)?.focus()
+}
 
-  emit('update:modelValue', item.value)
-  emit('change', item.value)
+const activateItem = (item: OTabsItem, focus = false): void => {
+  if (item.disabled) return
 
-  if (focus) {
-    void nextTick(() => {
-      const index = props.items.findIndex((candidate) => candidate.value === item.value)
-      tabElements.value[index]?.focus()
-    })
+  focusedValue.value = item.value
+  if (item.value !== props.modelValue) {
+    emit('update:modelValue', item.value)
+    emit('change', item.value)
   }
+
+  if (focus) void focusItem(item)
 }
 
 const move = (current: OTabsItem, direction: 1 | -1): void => {
   const enabled = enabledItems.value
-  const currentIndex = enabled.findIndex((item) => item.value === current.value)
-  if (currentIndex < 0) return
+  if (enabled.length === 0) return
 
-  const nextIndex = (currentIndex + direction + enabled.length) % enabled.length
+  const currentIndex = enabled.findIndex((item) => item.value === current.value)
+  const nextIndex =
+    currentIndex < 0 ? 0 : (currentIndex + direction + enabled.length) % enabled.length
   const nextItem = enabled[nextIndex]
-  if (nextItem) selectItem(nextItem, true)
+  if (nextItem) activateItem(nextItem, true)
 }
 
 const handleKeydown = (event: KeyboardEvent, item: OTabsItem): void => {
-  if (event.key === 'ArrowRight') {
+  if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
     event.preventDefault()
-    move(item, 1)
+    move(item, event.key === 'ArrowRight' ? 1 : -1)
     return
   }
 
-  if (event.key === 'ArrowLeft') {
+  if (event.key === 'Home' || event.key === 'End') {
     event.preventDefault()
-    move(item, -1)
-    return
-  }
-
-  if (event.key === 'Home') {
-    event.preventDefault()
-    const first = enabledItems.value[0]
-    if (first) selectItem(first, true)
-    return
-  }
-
-  if (event.key === 'End') {
-    event.preventDefault()
-    const last = enabledItems.value.at(-1)
-    if (last) selectItem(last, true)
+    const boundaryItem = event.key === 'Home' ? enabledItems.value[0] : enabledItems.value.at(-1)
+    if (boundaryItem) activateItem(boundaryItem, true)
   }
 }
+
+watch(enabledValues, (values) => {
+  if (!focusedValue.value || !values.includes(focusedValue.value)) {
+    focusedValue.value = selectedValue.value
+  }
+})
+
+watch(selectedValue, (value, previousValue) => {
+  if (
+    focusedValue.value === previousValue ||
+    !focusedValue.value ||
+    !enabledValues.value.includes(focusedValue.value)
+  ) {
+    focusedValue.value = value
+  }
+})
 </script>
 
 <template>
   <div class="o-tabs" :class="`o-tabs--${props.variant}`">
-    <div class="o-tabs__list" role="tablist" :aria-label="props.ariaLabel">
-      <span class="o-tabs__indicator" :style="indicatorStyle" aria-hidden="true" />
+    <div
+      class="o-tabs__list"
+      role="tablist"
+      aria-orientation="horizontal"
+      :aria-label="props.ariaLabel"
+    >
       <button
-        v-for="(item, index) in props.items"
+        v-for="item in props.items"
+        :id="tabId(item.value)"
         :key="item.value"
-        :ref="(element) => setTabElement(element, index)"
+        :ref="(element) => setTabElement(element, item.value)"
         class="o-tabs__tab"
+        :class="{ 'is-active': item.value === selectedValue }"
         type="button"
         role="tab"
-        :aria-selected="item.value === props.modelValue"
+        :aria-selected="item.value === selectedValue"
         :aria-disabled="item.disabled || undefined"
-        :tabindex="item.value === props.modelValue ? 0 : -1"
+        :aria-controls="slots.default ? panelId(item.value) : undefined"
+        :tabindex="!item.disabled && item.value === focusedValue ? 0 : -1"
         :disabled="item.disabled"
-        @click="selectItem(item)"
+        @focus="focusedValue = item.value"
+        @click="activateItem(item)"
         @keydown="handleKeydown($event, item)"
       >
         {{ item.label }}
       </button>
     </div>
+
+    <template v-if="slots.default">
+      <div
+        v-for="item in props.items"
+        :id="panelId(item.value)"
+        :key="`panel-${item.value}`"
+        class="o-tabs__panel"
+        role="tabpanel"
+        :aria-labelledby="tabId(item.value)"
+        :hidden="item.value !== selectedValue"
+        :tabindex="item.value === selectedValue ? 0 : -1"
+      >
+        <slot :item="item" :selected="item.value === selectedValue" />
+      </div>
+    </template>
   </div>
 </template>

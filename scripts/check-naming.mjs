@@ -49,7 +49,7 @@ const collectFiles = async (directory) => {
 
 for (const root of [uiSourceRoot, docsExamplesRoot]) {
   for (const file of await collectFiles(root)) {
-    if (file.endsWith('.svg') && file.startsWith(uiSourceRoot)) {
+    if (file.endsWith('.svg')) {
       errors.push('raw SVG is not allowed: ' + relative(repositoryRoot, file))
       continue
     }
@@ -57,6 +57,13 @@ for (const root of [uiSourceRoot, docsExamplesRoot]) {
     if (!/\.(?:ts|vue)$/u.test(file)) continue
 
     const source = await readFile(file, 'utf8')
+    if (file.endsWith('.vue')) {
+      const templateSource = source.match(/<template\b[^>]*>([\s\S]*)<\/template>/iu)?.[1] ?? ''
+      if (/<svg\b/iu.test(templateSource)) {
+        errors.push('inline SVG is not allowed: ' + relative(repositoryRoot, file))
+      }
+    }
+
     for (const match of source.matchAll(/from\s+['"]([^'"]+)['"]/gu)) {
       const importSource = match[1]
       if (!importSource) continue

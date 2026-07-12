@@ -29,6 +29,8 @@ const previewImage =
     <OImage
       :src="previewImage"
       alt="山谷与蓝绿色坡地插画"
+      preview-aria-label="预览山谷与蓝绿色坡地插画"
+      close-aria-label="关闭图片预览"
       width="360px"
       height="225px"
       fit="cover"

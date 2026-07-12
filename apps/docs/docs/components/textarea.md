@@ -4,7 +4,7 @@ import TextareaBasic from '../../examples/textarea/Basic.vue'
 
 # Textarea 多行输入
 
-`OTextarea` 是基础多行文本输入，支持受控值、字数统计、禁用、只读和错误状态。
+`OTextarea` 是基础多行文本输入，支持受控值、字数统计、禁用、只读和错误状态。组件会把未声明的原生 textarea 属性与监听器绑定到真实的 `<textarea>`，可以直接使用 `id`、`name`、`required`、`aria-describedby`、`@change` 等原生能力。
 
 ## 基础用法
 
@@ -34,3 +34,10 @@ import TextareaBasic from '../../examples/textarea/Basic.vue'
 | `update:modelValue` | 值变化   |
 | `focus`             | 获得焦点 |
 | `blur`              | 失去焦点 |
+
+## 可访问性
+
+- 推荐使用原生 `<label for="...">` 与传入组件的 `id` 建立可访问名称。
+- 开启 `showCount` 后，组件会使用 SSR-safe ID 自动把计数器合并到 textarea 的 `aria-describedby`，不会覆盖已有的帮助文本关联。
+- `invalid` 会设置 `aria-invalid="true"`；具体错误文案应由表单层提供，并通过 `aria-describedby` 或 `aria-errormessage` 关联。
+- `maxlength` 与计数器均遵循原生 textarea 的 UTF-16 code-unit 长度语义。

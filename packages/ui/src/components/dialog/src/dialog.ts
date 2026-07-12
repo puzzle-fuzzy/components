@@ -1,4 +1,4 @@
-import type { ExtractPublicPropTypes } from 'vue'
+import type { ExtractPublicPropTypes, VNodeChild } from 'vue'
 
 export const oDialogProps = {
   open: {
@@ -15,6 +15,14 @@ export const oDialogProps = {
     type: Boolean,
     default: true,
   },
+  showClose: {
+    type: Boolean,
+    default: true,
+  },
+  closeAriaLabel: {
+    type: String,
+    default: 'Close dialog',
+  },
   ariaLabel: String,
 } as const
 
@@ -23,4 +31,10 @@ export type ODialogProps = ExtractPublicPropTypes<typeof oDialogProps>
 export interface ODialogEmits {
   'update:open': [open: boolean]
   close: []
+}
+
+export interface ODialogSlots {
+  default?: () => VNodeChild
+  header?: () => VNodeChild
+  footer?: () => VNodeChild
 }

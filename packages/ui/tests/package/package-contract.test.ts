@@ -40,9 +40,15 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       './avatar-group',
       './button',
       './code-input',
+      './dialog',
       './divider',
       './dropdown',
+      './image',
+      './reference-textarea',
       './select',
+      './tabs',
+      './textarea',
+      './upload',
     ]
 
     for (const subpath of componentSubpaths) {
@@ -69,12 +75,24 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/components/button/index.d.ts',
       'dist/components/code-input/index.js',
       'dist/components/code-input/index.d.ts',
+      'dist/components/dialog/index.js',
+      'dist/components/dialog/index.d.ts',
       'dist/components/divider/index.js',
       'dist/components/divider/index.d.ts',
       'dist/components/dropdown/index.js',
       'dist/components/dropdown/index.d.ts',
+      'dist/components/image/index.js',
+      'dist/components/image/index.d.ts',
+      'dist/components/reference-textarea/index.js',
+      'dist/components/reference-textarea/index.d.ts',
       'dist/components/select/index.js',
       'dist/components/select/index.d.ts',
+      'dist/components/tabs/index.js',
+      'dist/components/tabs/index.d.ts',
+      'dist/components/textarea/index.js',
+      'dist/components/textarea/index.d.ts',
+      'dist/components/upload/index.js',
+      'dist/components/upload/index.d.ts',
     ]
 
     await expect(

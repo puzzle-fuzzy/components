@@ -1,66 +1,37 @@
-import type { ExtractPublicPropTypes, PropType } from 'vue'
+import type { ExtractPublicPropTypes, PropType, VNodeChild } from 'vue'
 
-export type OReferenceTextareaReferenceKind = 'member' | 'image'
+import { oTextareaProps } from '../../textarea'
+
+export type OReferenceTextareaReferenceKind = 'text' | 'image'
 
 export interface OReferenceTextareaReference {
-  id: string
-  kind: OReferenceTextareaReferenceKind
-  label: string
-  value: string
+  readonly id: string
+  readonly label: string
+  readonly kind?: OReferenceTextareaReferenceKind
+  readonly thumbnailSrc?: string
 }
 
 export const oReferenceTextareaProps = {
-  modelValue: {
-    type: String,
-    default: '',
+  ...oTextareaProps,
+  references: {
+    type: Array as PropType<readonly OReferenceTextareaReference[]>,
+    default: () => [] as readonly OReferenceTextareaReference[],
   },
-  placeholder: String,
-  rows: {
-    type: Number,
-    default: 4,
-  },
-  maxlength: Number as PropType<number | undefined>,
-  showCount: Boolean,
-  disabled: Boolean,
-  readonly: Boolean,
-  invalid: Boolean,
-  ariaLabel: String,
 } as const
 
 export type OReferenceTextareaProps = ExtractPublicPropTypes<typeof oReferenceTextareaProps>
 
 export interface OReferenceTextareaEmits {
   'update:modelValue': [value: string]
-  referencesChange: [references: OReferenceTextareaReference[]]
+  focus: [event: FocusEvent]
+  blur: [event: FocusEvent]
 }
 
-const memberPattern = /@\[([^\]]+)\]\(member:([^)]+)\)/gu
-const imagePattern = /!\[([^\]]+)\]\(image:([^)]+)\)/gu
+export interface OReferenceTextareaReferenceSlotProps {
+  readonly reference: OReferenceTextareaReference
+  readonly index: number
+}
 
-export const parseOReferenceTextareaReferences = (value: string): OReferenceTextareaReference[] => {
-  const references: OReferenceTextareaReference[] = []
-
-  for (const match of value.matchAll(memberPattern)) {
-    const label = match[1] ?? ''
-    const member = match[2] ?? ''
-    references.push({
-      id: `member:${member}`,
-      kind: 'member',
-      label,
-      value: member,
-    })
-  }
-
-  for (const match of value.matchAll(imagePattern)) {
-    const label = match[1] ?? ''
-    const image = match[2] ?? ''
-    references.push({
-      id: `image:${image}`,
-      kind: 'image',
-      label,
-      value: image,
-    })
-  }
-
-  return references
+export interface OReferenceTextareaSlots {
+  readonly reference?: (props: OReferenceTextareaReferenceSlotProps) => VNodeChild
 }

@@ -1,8 +1,9 @@
-import { createSSRApp, nextTick, h } from 'vue'
+import { createSSRApp, h, nextTick } from 'vue'
 import { renderToString } from '@vue/server-renderer'
 import { mount } from '@vue/test-utils'
-import { describe, expect, expectTypeOf, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 
+import { ODialog } from '../../dialog'
 import {
   OImage,
   oImageFits,
@@ -12,10 +13,47 @@ import {
   type OImageProps,
 } from '../index'
 
-const findPreviewMask = (): HTMLElement | null =>
-  document.body.querySelector('.o-image__preview-mask')
-const findPreviewDialog = (): HTMLElement | null =>
-  document.body.querySelector('.o-image__preview-dialog')
+const showModal = vi.fn(function (this: HTMLDialogElement): void {
+  this.setAttribute('open', '')
+})
+const closeDialog = vi.fn(function (this: HTMLDialogElement): void {
+  this.removeAttribute('open')
+  this.dispatchEvent(new Event('close'))
+})
+
+let showModalDescriptor: PropertyDescriptor | undefined
+let closeDescriptor: PropertyDescriptor | undefined
+
+beforeEach(() => {
+  showModalDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')
+  closeDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close')
+  Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+    configurable: true,
+    value: showModal,
+  })
+  Object.defineProperty(HTMLDialogElement.prototype, 'close', {
+    configurable: true,
+    value: closeDialog,
+  })
+  showModal.mockClear()
+  closeDialog.mockClear()
+})
+
+afterEach(() => {
+  if (showModalDescriptor) {
+    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', showModalDescriptor)
+  } else {
+    Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal')
+  }
+  if (closeDescriptor) {
+    Object.defineProperty(HTMLDialogElement.prototype, 'close', closeDescriptor)
+  } else {
+    Reflect.deleteProperty(HTMLDialogElement.prototype, 'close')
+  }
+})
+
+const findPreviewDialog = (): HTMLDialogElement | null =>
+  document.body.querySelector('dialog.o-image__preview-dialog')
 const findPreviewImage = (): HTMLImageElement | null =>
   document.body.querySelector('.o-image__preview-image')
 
@@ -29,6 +67,8 @@ describe('OImage', () => {
       width: '320px',
       height: 180,
       preview: true,
+      previewAriaLabel: 'Preview gallery photo',
+      closeAriaLabel: 'Close gallery preview',
       disabled: false,
     }
     const event = new Event('load')
@@ -43,33 +83,47 @@ describe('OImage', () => {
     expect(oImageProps.fit.validator(publicProps.fit)).toBe(true)
     expect(oImageProps.fit.validator('stretch')).toBe(false)
     expect(oImageProps.preview.default).toBe(true)
+    expect(oImageProps.previewAriaLabel.default).toBe('Preview image')
+    expect(oImageProps.closeAriaLabel.default).toBe('Close image preview')
     expect(publicEmits.load).toEqual([event])
     expectTypeOf(publicProps.fit).toEqualTypeOf<OImageFit | undefined>()
   })
 
-  it('renders native image semantics with safe defaults', () => {
+  it('renders a native preview button with an explicit accessible name', () => {
     const wrapper = mount(OImage, {
       props: {
         src: '/photo.jpg',
         alt: 'Gallery photo',
+        previewAriaLabel: 'Preview gallery photo',
       },
     })
     const image = wrapper.get('img')
+    const trigger = wrapper.get('button.o-image__trigger')
 
     expect(wrapper.classes()).toEqual(expect.arrayContaining(['o-image', 'o-image--contain']))
+    expect(trigger.attributes()).toMatchObject({
+      'aria-expanded': 'false',
+      'aria-haspopup': 'dialog',
+      'aria-label': 'Preview gallery photo',
+      type: 'button',
+    })
     expect(image.attributes('src')).toBe('/photo.jpg')
     expect(image.attributes('alt')).toBe('Gallery photo')
     expect(image.attributes('draggable')).toBe('false')
-    expect(wrapper.find('.o-image__preview-mask').exists()).toBe(false)
+    expect(wrapper.get('dialog').attributes('open')).toBeUndefined()
   })
 
-  it('applies fit, width, height, and loading attributes to the image', () => {
+  it('forwards native image attributes and uses numeric dimensions as native attributes', () => {
     const wrapper = mount(OImage, {
+      attrs: {
+        decoding: 'async',
+        'data-image-id': 'hero',
+      },
       props: {
         src: '/wide.jpg',
         alt: '',
         fit: 'cover',
-        width: '320px',
+        width: 320,
         height: 180,
         loading: 'lazy',
       },
@@ -79,8 +133,30 @@ describe('OImage', () => {
 
     expect(wrapper.classes()).toContain('o-image--cover')
     expect(image.attributes('loading')).toBe('lazy')
+    expect(image.attributes('decoding')).toBe('async')
+    expect(image.attributes('data-image-id')).toBe('hero')
+    expect(image.attributes('width')).toBe('320')
+    expect(image.attributes('height')).toBe('180')
+    expect(wrapper.attributes('data-image-id')).toBeUndefined()
     expect(element.style.width).toBe('320px')
     expect(element.style.height).toBe('180px')
+  })
+
+  it('keeps CSS dimensions out of invalid native width and height attributes', () => {
+    const wrapper = mount(OImage, {
+      props: {
+        src: '/wide.jpg',
+        alt: 'Wide photo',
+        width: '50%',
+        height: 'auto',
+      },
+    })
+    const image = wrapper.get('img')
+
+    expect(image.attributes('width')).toBeUndefined()
+    expect(image.attributes('height')).toBeUndefined()
+    expect((image.element as HTMLImageElement).style.width).toBe('50%')
+    expect((image.element as HTMLImageElement).style.height).toBe('auto')
   })
 
   it('emits load and error events from the native image', async () => {
@@ -106,27 +182,40 @@ describe('OImage', () => {
         src: '/photo.jpg',
         alt: 'Gallery photo',
         previewSrc: '/photo-large.jpg',
+        previewAriaLabel: 'Preview gallery photo',
+        closeAriaLabel: 'Close gallery preview',
       },
     })
 
-    await wrapper.get('img').trigger('click')
+    await wrapper.get('button.o-image__trigger').trigger('click')
+    await nextTick()
 
-    const mask = findPreviewMask()
     const dialog = findPreviewDialog()
     const previewImage = findPreviewImage()
+    const dialogComponent = wrapper.getComponent(ODialog)
 
     expect(wrapper.classes()).toContain('is-previewing')
-    expect(mask?.getAttribute('role')).toBe('presentation')
-    expect(dialog?.getAttribute('role')).toBe('dialog')
-    expect(dialog?.getAttribute('aria-modal')).toBe('true')
+    expect(dialog?.open).toBe(true)
+    expect(dialog?.getAttribute('aria-label')).toBe('Preview gallery photo')
+    expect(dialog?.classList.contains('o-image__preview-dialog')).toBe(true)
+    expect(dialogComponent.props()).toMatchObject({
+      closeAriaLabel: 'Close gallery preview',
+      closeOnEsc: true,
+      closeOnMask: true,
+      showClose: true,
+    })
     expect(previewImage?.getAttribute('src')).toBe('/photo-large.jpg')
     expect(previewImage?.getAttribute('alt')).toBe('Gallery photo')
+    expect(document.body.querySelector('[aria-label="Close gallery preview"]')).toBeInstanceOf(
+      HTMLButtonElement,
+    )
+    expect(wrapper.get('button.o-image__trigger').attributes('aria-expanded')).toBe('true')
     expect(wrapper.emitted('previewOpen')).toEqual([[]])
 
     wrapper.unmount()
   })
 
-  it('closes the preview when the mask is clicked', async () => {
+  it('closes the preview through the dialog close control', async () => {
     const wrapper = mount(OImage, {
       attachTo: document.body,
       props: {
@@ -135,11 +224,12 @@ describe('OImage', () => {
       },
     })
 
-    await wrapper.get('img').trigger('click')
-    findPreviewMask()?.click()
+    await wrapper.get('button.o-image__trigger').trigger('click')
+    await wrapper.get('.o-dialog__close').trigger('click')
+    await wrapper.setProps({})
     await nextTick()
 
-    expect(findPreviewMask()).toBeNull()
+    expect(findPreviewDialog()?.open).toBe(false)
     expect(wrapper.emitted('previewClose')).toEqual([[]])
 
     wrapper.unmount()
@@ -154,11 +244,11 @@ describe('OImage', () => {
       },
     })
 
-    await wrapper.get('img').trigger('click')
+    await wrapper.get('button.o-image__trigger').trigger('click')
     findPreviewImage()?.click()
     await nextTick()
 
-    expect(findPreviewMask()).not.toBeNull()
+    expect(findPreviewDialog()?.open).toBe(true)
 
     wrapper.unmount()
   })
@@ -172,17 +262,17 @@ describe('OImage', () => {
       },
     })
 
-    await wrapper.get('img').trigger('click')
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await wrapper.get('button.o-image__trigger').trigger('click')
+    findPreviewDialog()?.dispatchEvent(new Event('cancel', { cancelable: true }))
     await nextTick()
 
-    expect(findPreviewMask()).toBeNull()
+    expect(findPreviewDialog()?.open).toBe(false)
     expect(wrapper.emitted('previewClose')).toEqual([[]])
 
     wrapper.unmount()
   })
 
-  it('does not open the preview while disabled or preview is off', async () => {
+  it('uses a disabled native button and a plain image when preview is off', async () => {
     const disabled = mount(OImage, {
       props: {
         src: '/photo.jpg',
@@ -198,12 +288,36 @@ describe('OImage', () => {
       },
     })
 
-    await disabled.get('img').trigger('click')
+    expect(disabled.get('button.o-image__trigger').attributes('disabled')).toBeDefined()
+    expect(previewOff.find('button.o-image__trigger').exists()).toBe(false)
+
+    await disabled.get('button.o-image__trigger').trigger('click')
     await previewOff.get('img').trigger('click')
 
-    expect(findPreviewMask()).toBeNull()
+    expect(disabled.get('dialog').attributes('open')).toBeUndefined()
+    expect(previewOff.get('dialog').attributes('open')).toBeUndefined()
     expect(disabled.emitted('previewOpen')).toBeUndefined()
     expect(previewOff.emitted('previewOpen')).toBeUndefined()
+  })
+
+  it('closes an active preview when it becomes disabled', async () => {
+    const wrapper = mount(OImage, {
+      attachTo: document.body,
+      props: {
+        src: '/photo.jpg',
+        alt: 'Gallery photo',
+      },
+    })
+
+    await wrapper.get('button.o-image__trigger').trigger('click')
+    await wrapper.setProps({ disabled: true })
+    await nextTick()
+
+    expect(findPreviewDialog()?.open).toBe(false)
+    expect(wrapper.emitted('previewClose')).toEqual([[]])
+    expect(wrapper.get('button.o-image__trigger').attributes('disabled')).toBeDefined()
+
+    wrapper.unmount()
   })
 
   it('renders on the server without DOM globals', async () => {
@@ -218,8 +332,11 @@ describe('OImage', () => {
     )
 
     expect(html).toContain('class="o-image')
+    expect(html).toContain('type="button"')
+    expect(html).toContain('aria-haspopup="dialog"')
     expect(html).toContain('src="/photo.jpg"')
     expect(html).toContain('alt="Gallery photo"')
-    expect(html).not.toContain('o-image__preview-mask')
+    expect(html).toContain('<dialog')
+    expect(html).not.toContain(' open')
   })
 })

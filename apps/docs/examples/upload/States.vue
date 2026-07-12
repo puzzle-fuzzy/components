@@ -1,51 +1,54 @@
 <script setup lang="ts">
-import { OUpload, type OUploadFile } from '@puzzle-fuzzy/ui'
-
-const createFile = (name: string, size: number, type = 'application/octet-stream'): File => {
-  const file = new File(['x'], name, { type })
-  Object.defineProperty(file, 'size', {
-    configurable: true,
-    value: size,
-  })
-  return file
-}
+import { OUpload, type OUploadFile, type OUploadLabels } from '@puzzle-fuzzy/ui'
 
 const files: OUploadFile[] = [
   {
     id: 'brief',
-    file: createFile('brand-brief.pdf', 1640 * 1024, 'application/pdf'),
+    name: 'brand-brief.pdf',
+    size: 1640 * 1024,
     state: 'queued',
   },
   {
     id: 'footage',
-    file: createFile('product-footage.mov', 12 * 1024 * 1024, 'video/quicktime'),
+    name: 'product-footage.mov',
+    size: 12 * 1024 * 1024,
     progress: 0.58,
     state: 'uploading',
   },
   {
     id: 'archive',
-    file: createFile('source-assets.zip', 5.2 * 1024 * 1024, 'application/zip'),
+    name: 'source-assets.zip',
+    size: 5.2 * 1024 * 1024,
     progress: 1,
     state: 'success',
   },
   {
     id: 'poster',
-    file: createFile('poster-final.png', 780 * 1024, 'image/png'),
+    name: 'poster-final.png',
+    size: 780 * 1024,
     progress: 0.22,
     state: 'error',
   },
 ]
+
+const labels = {
+  select: '继续添加文件',
+  description: '列表状态由外部上传任务驱动。',
+  dragActive: '松开以选择文件',
+  add: '添加更多文件',
+  clear: '清空',
+  list: '文件上传状态',
+  queued: '等待上传',
+  uploading: (percentage) => (percentage === undefined ? '上传中' : `${percentage}%`),
+  success: '已完成',
+  error: '上传失败',
+  remove: (name) => `移除 ${name}`,
+  progress: (name) => `${name} 上传进度`,
+} satisfies OUploadLabels
 </script>
 
 <template>
   <div class="omg-example-stack">
-    <OUpload
-      v-bind="{ files }"
-      title="继续添加文件"
-      description="列表状态可由业务上传任务驱动。"
-      list-label="文件上传状态"
-      aria-label="上传状态示例"
-      clearable
-    />
+    <OUpload v-bind="{ files }" :labels="labels" clearable />
   </div>
 </template>

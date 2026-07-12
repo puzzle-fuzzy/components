@@ -81,16 +81,17 @@ const openFloatingHydrationCases: readonly {
   },
 ]
 
-const uploadFiles: OUploadFile[] = [
+const uploadFiles: readonly OUploadFile[] = [
   {
     id: 'upload',
-    file: new File(['upload'], 'upload.txt', { type: 'text/plain' }),
+    name: 'upload.txt',
+    size: 6,
     progress: 1,
     state: 'success',
   },
 ]
 
-const tabItems: OTabsItem[] = [
+const tabItems: readonly OTabsItem[] = [
   { value: 'text', label: '传输文本' },
   { value: 'file', label: '传输文件' },
 ]
@@ -143,6 +144,66 @@ describe('server rendering', () => {
       }
     },
   )
+
+  test('hydrates an initially open ODialog with stable labels and one native surface', async () => {
+    const Root = {
+      render: () => h(ODialog, { open: true, title: 'Hydration dialog' }, () => 'Body'),
+    }
+    const html = await renderToString(createSSRApp(Root))
+    const container = document.createElement('div')
+    container.innerHTML = html
+    document.body.append(container)
+
+    const serverDialog = container.querySelector<HTMLDialogElement>('.o-dialog')
+    const serverLabelId = serverDialog?.getAttribute('aria-labelledby')
+    expect(serverLabelId).toBeTruthy()
+    expect(container.querySelector(`#${serverLabelId}`)?.textContent).toBe('Hydration dialog')
+    expect(serverDialog?.hasAttribute('open')).toBe(false)
+
+    const originalShowModal = Object.getOwnPropertyDescriptor(
+      HTMLDialogElement.prototype,
+      'showModal',
+    )
+    const showModal = vi.fn(function (this: HTMLDialogElement): void {
+      this.setAttribute('open', '')
+    })
+    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+      configurable: true,
+      value: showModal,
+    })
+
+    const hydrationMessages: string[] = []
+    const recordHydrationMessage = (...messages: unknown[]): void => {
+      hydrationMessages.push(messages.map(String).join(' '))
+    }
+    const warn = vi.spyOn(console, 'warn').mockImplementation(recordHydrationMessage)
+    const error = vi.spyOn(console, 'error').mockImplementation(recordHydrationMessage)
+    const app = createSSRApp(Root)
+
+    try {
+      app.mount(container)
+      await nextTick()
+
+      const hydratedDialogs = container.querySelectorAll<HTMLDialogElement>('.o-dialog')
+      expect(hydratedDialogs).toHaveLength(1)
+      expect(hydratedDialogs[0]?.open).toBe(true)
+      expect(hydratedDialogs[0]?.getAttribute('aria-labelledby')).toBe(serverLabelId)
+      expect(showModal).toHaveBeenCalledOnce()
+      expect(hydrationMessages.filter((message) => /hydration|mismatch/iu.test(message))).toEqual(
+        [],
+      )
+    } finally {
+      app.unmount()
+      warn.mockRestore()
+      error.mockRestore()
+      document.body.replaceChildren()
+      if (originalShowModal) {
+        Object.defineProperty(HTMLDialogElement.prototype, 'showModal', originalShowModal)
+      } else {
+        Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal')
+      }
+    }
+  })
 
   test('renders OButton without DOM globals', async () => {
     const html = await renderToString(
@@ -239,14 +300,16 @@ describe('server rendering', () => {
     expect(html).toContain('autocomplete="one-time-code"')
   })
 
-  test('renders closed ODialog without DOM globals', async () => {
+  test('renders a closed native ODialog surface without DOM globals', async () => {
     const html = await renderToString(
       createSSRApp({
         render: () => h(ODialog, { open: false, title: '收到文本' }, () => '正文'),
       }),
     )
 
-    expect(html).not.toContain('o-dialog')
+    expect(html).toContain('<dialog')
+    expect(html).toContain('class="o-dialog')
+    expect(html).not.toContain(' open')
   })
 
   test('renders ODivider without DOM globals', async () => {
@@ -328,8 +391,9 @@ describe('server rendering', () => {
       createSSRApp({
         render: () =>
           h(OReferenceTextarea, {
-            modelValue: '@[Yxswy](member:yxswy)',
+            modelValue: 'SSR',
             ariaLabel: '消息',
+            references: [{ id: 'one', label: 'Yxswy' }],
           }),
       }),
     )
@@ -360,8 +424,9 @@ describe('server rendering', () => {
       createSSRApp({
         render: () =>
           h(OUpload, {
-            ariaLabel: 'Upload files',
+            'aria-label': 'Upload files',
             files: uploadFiles,
+            labels: { success: '已完成' },
           }),
       }),
     )

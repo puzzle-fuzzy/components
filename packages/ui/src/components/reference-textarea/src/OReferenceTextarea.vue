@@ -1,35 +1,48 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, mergeProps, useAttrs } from 'vue'
 
+import { OTextarea } from '../../textarea'
 import {
   oReferenceTextareaProps,
-  parseOReferenceTextareaReferences,
   type OReferenceTextareaEmits,
+  type OReferenceTextareaReference,
+  type OReferenceTextareaReferenceKind,
+  type OReferenceTextareaSlots,
 } from './reference-textarea'
 
-defineOptions({ name: 'OReferenceTextarea' })
+defineOptions({
+  name: 'OReferenceTextarea',
+  inheritAttrs: false,
+})
 
 const props = defineProps(oReferenceTextareaProps)
 const emit = defineEmits<OReferenceTextareaEmits>()
+const attrs = useAttrs()
 
-const references = computed(() => parseOReferenceTextareaReferences(props.modelValue))
-const countText = computed(() =>
-  props.maxlength === undefined
-    ? String(props.modelValue.length)
-    : `${String(props.modelValue.length)}/${String(props.maxlength)}`,
-)
+defineSlots<OReferenceTextareaSlots>()
 
-watch(
-  references,
-  (nextReferences) => {
-    emit('referencesChange', nextReferences)
-  },
-  { immediate: true },
-)
+const textareaBindings = computed(() => ({
+  modelValue: props.modelValue,
+  rows: props.rows,
+  resize: props.resize,
+  showCount: props.showCount,
+  disabled: props.disabled,
+  readonly: props.readonly,
+  invalid: props.invalid,
+  ...(props.placeholder === undefined ? {} : { placeholder: props.placeholder }),
+  ...(props.maxlength === undefined ? {} : { maxlength: props.maxlength }),
+  ...(props.ariaLabel === undefined ? {} : { ariaLabel: props.ariaLabel }),
+}))
 
-const handleInput = (event: Event): void => {
-  emit('update:modelValue', (event.target as HTMLTextAreaElement).value)
-}
+const getTextareaBindings = () =>
+  mergeProps(attrs, textareaBindings.value, { class: 'o-reference-textarea__field' })
+
+const normalizeReferenceKind = (
+  reference: OReferenceTextareaReference,
+): OReferenceTextareaReferenceKind => (reference.kind === 'image' ? 'image' : 'text')
+
+const getReferenceKey = (reference: OReferenceTextareaReference, index: number): string =>
+  JSON.stringify([reference.id, index])
 </script>
 
 <template>
@@ -39,40 +52,37 @@ const handleInput = (event: Event): void => {
       'is-disabled': props.disabled,
       'is-readonly': props.readonly,
       'is-invalid': props.invalid,
-      'is-referenced': references.length > 0,
+      'is-referenced': props.references.length > 0,
     }"
   >
-    <textarea
-      class="o-reference-textarea__field"
-      :value="props.modelValue"
-      :placeholder="props.placeholder"
-      :rows="props.rows"
-      :maxlength="props.maxlength"
-      :disabled="props.disabled"
-      :readonly="props.readonly"
-      :aria-label="props.ariaLabel"
-      :aria-invalid="props.invalid || undefined"
-      @input="handleInput"
+    <OTextarea
+      v-bind="getTextareaBindings()"
+      @update:model-value="emit('update:modelValue', $event)"
+      @focus="emit('focus', $event)"
+      @blur="emit('blur', $event)"
     />
 
-    <span v-if="props.showCount" class="o-reference-textarea__count">{{ countText }}</span>
-
-    <div v-if="references.length > 0" class="o-reference-textarea__references">
-      <span
-        v-for="reference in references"
-        :key="reference.id"
+    <ul v-if="props.references.length > 0" class="o-reference-textarea__references">
+      <li
+        v-for="(reference, index) in props.references"
+        :key="getReferenceKey(reference, index)"
         class="o-reference-textarea__reference"
-        :class="`o-reference-textarea__reference--${reference.kind}`"
+        :class="`o-reference-textarea__reference--${normalizeReferenceKind(reference)}`"
       >
-        <span v-if="reference.kind === 'member'" class="o-reference-textarea__member">
-          <span class="o-reference-textarea__member-symbol" aria-hidden="true">@</span>
-          {{ reference.label }}
-        </span>
-        <span v-else class="o-reference-textarea__image">
-          <img :src="reference.value" :alt="reference.label" />
-          <span>{{ reference.label }}</span>
-        </span>
-      </span>
-    </div>
+        <slot name="reference" :reference="reference" :index="index">
+          <span class="o-reference-textarea__reference-content">
+            <img
+              v-if="normalizeReferenceKind(reference) === 'image' && reference.thumbnailSrc"
+              class="o-reference-textarea__thumbnail"
+              :src="reference.thumbnailSrc"
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+            <span class="o-reference-textarea__reference-label">{{ reference.label }}</span>
+          </span>
+        </slot>
+      </li>
+    </ul>
   </div>
 </template>

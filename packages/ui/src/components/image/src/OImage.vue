@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, watch, ref, type CSSProperties } from 'vue'
+import { computed, ref, watch, type CSSProperties } from 'vue'
 
+import { ODialog } from '../../dialog'
 import { oImageProps, type OImageEmits } from './image'
 
-defineOptions({ name: 'OImage' })
+defineOptions({ name: 'OImage', inheritAttrs: false })
 
 const props = defineProps(oImageProps)
 const emit = defineEmits<OImageEmits>()
@@ -11,49 +12,35 @@ const emit = defineEmits<OImageEmits>()
 const isPreviewing = ref(false)
 const previewImageSrc = computed(() => props.previewSrc ?? props.src)
 const canPreview = computed(() => props.preview && !props.disabled)
+const nativeWidth = computed(() => (typeof props.width === 'number' ? props.width : undefined))
+const nativeHeight = computed(() => (typeof props.height === 'number' ? props.height : undefined))
 const imageStyle = computed<CSSProperties>(() => ({
   width: typeof props.width === 'number' ? `${props.width}px` : props.width,
   height: typeof props.height === 'number' ? `${props.height}px` : props.height,
 }))
 
-const openPreview = (): void => {
-  if (!canPreview.value) return
-  isPreviewing.value = true
-  emit('previewOpen')
-}
+const setPreviewOpen = (open: boolean): void => {
+  if (open && !canPreview.value) return
+  if (isPreviewing.value === open) return
 
-const closePreview = (): void => {
-  if (!isPreviewing.value) return
-  isPreviewing.value = false
-  emit('previewClose')
-}
-
-const handleKeydown = (event: KeyboardEvent): void => {
-  if (event.key === 'Escape') closePreview()
-}
-
-watch(isPreviewing, (active) => {
-  if (typeof window === 'undefined') return
-
-  if (active) {
-    window.addEventListener('keydown', handleKeydown)
+  isPreviewing.value = open
+  if (open) {
+    emit('previewOpen')
   } else {
-    window.removeEventListener('keydown', handleKeydown)
+    emit('previewClose')
   }
-})
+}
+
+const openPreview = (): void => {
+  setPreviewOpen(true)
+}
 
 watch(
-  () => [props.src, props.previewSrc, props.preview, props.disabled] as const,
+  () => [props.preview, props.disabled] as const,
   () => {
-    if (!canPreview.value) closePreview()
+    if (!canPreview.value) setPreviewOpen(false)
   },
 )
-
-onBeforeUnmount(() => {
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('keydown', handleKeydown)
-  }
-})
 
 const handleLoad = (event: Event): void => {
   emit('load', event)
@@ -76,35 +63,64 @@ const handleError = (event: Event): void => {
       },
     ]"
   >
+    <button
+      v-if="props.preview"
+      class="o-image__trigger"
+      type="button"
+      :disabled="props.disabled"
+      :aria-label="props.previewAriaLabel"
+      aria-haspopup="dialog"
+      :aria-expanded="isPreviewing"
+      @click="openPreview"
+    >
+      <img
+        v-bind="$attrs"
+        class="o-image__img"
+        :src="props.src"
+        :alt="props.alt"
+        :loading="props.loading"
+        :width="nativeWidth"
+        :height="nativeHeight"
+        :style="imageStyle"
+        draggable="false"
+        @load="handleLoad"
+        @error="handleError"
+      />
+    </button>
+
     <img
+      v-else
+      v-bind="$attrs"
       class="o-image__img"
       :src="props.src"
       :alt="props.alt"
       :loading="props.loading"
+      :width="nativeWidth"
+      :height="nativeHeight"
       :style="imageStyle"
       draggable="false"
-      @click="openPreview"
       @load="handleLoad"
       @error="handleError"
     />
 
-    <Teleport to="body">
-      <div
-        v-if="isPreviewing"
-        class="o-image__preview-mask"
-        role="presentation"
-        @click="closePreview"
-      >
-        <div class="o-image__preview-dialog" role="dialog" aria-modal="true">
-          <img
-            class="o-image__preview-image"
-            :src="previewImageSrc"
-            :alt="props.alt"
-            draggable="false"
-            @click.stop
-          />
-        </div>
+    <ODialog
+      class="o-image__preview-dialog"
+      :open="isPreviewing"
+      :aria-label="props.previewAriaLabel"
+      :close-aria-label="props.closeAriaLabel"
+      :close-on-mask="true"
+      :close-on-esc="true"
+      :show-close="true"
+      @update:open="setPreviewOpen"
+    >
+      <div class="o-image__preview-stage">
+        <img
+          class="o-image__preview-image"
+          :src="previewImageSrc"
+          :alt="props.alt"
+          draggable="false"
+        />
       </div>
-    </Teleport>
+    </ODialog>
   </div>
 </template>

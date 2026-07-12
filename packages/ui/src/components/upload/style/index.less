@@ -1,5 +1,3 @@
-@import '../../../styles/mixins.less';
-
 .o-upload {
   --omg-upload-border-color: var(--omg-color-border);
   --omg-upload-background: var(--omg-color-surface);
@@ -50,15 +48,21 @@
 }
 
 .o-upload.is-disabled {
-  opacity: 0.62;
+  opacity: 0.56;
 }
 
-.o-upload.is-disabled .o-upload__dropzone {
-  cursor: default;
+.o-upload.is-selection-disabled .o-upload__dropzone {
+  cursor: not-allowed;
+}
+
+.o-upload.is-selection-disabled .o-upload__dropzone:hover {
+  --omg-upload-border-color: var(--omg-color-border);
+
+  background: var(--omg-upload-background);
 }
 
 .o-upload__input {
-  .visually-hidden();
+  display: none;
 }
 
 .o-upload__empty {
@@ -83,16 +87,15 @@
   color: var(--omg-color-brand);
 }
 
-.o-upload__icon svg,
-.o-upload__file-icon svg,
-.o-upload__remove svg {
+.o-upload__icon-svg,
+.o-upload__file-icon-svg,
+.o-upload__remove-icon {
   display: block;
   width: 1em;
   height: 1em;
-  fill: currentcolor;
 }
 
-.o-upload__icon svg {
+.o-upload__icon-svg {
   font-size: 22px;
 }
 
@@ -113,12 +116,23 @@
   line-height: 1.6;
 }
 
-.o-upload__list {
+.o-upload__selection {
   display: flex;
   min-width: 0;
   flex: 1 1 auto;
   flex-direction: column;
   gap: var(--omg-space-2);
+}
+
+.o-upload .o-upload__list {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--omg-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .o-upload__file {
@@ -148,10 +162,16 @@
 
 .o-upload__file-progress-bar {
   display: block;
-  width: 0;
+  width: 100%;
   height: 100%;
   background: var(--omg-upload-progress-background);
-  transition: width var(--omg-duration-fast) var(--omg-easing-standard);
+  transform: scaleX(var(--omg-upload-progress, 0));
+  transform-origin: 0 50%;
+  transition: transform var(--omg-duration-fast) var(--omg-easing-standard);
+}
+
+.o-upload:dir(rtl) .o-upload__file-progress-bar {
+  transform-origin: 100% 50%;
 }
 
 .o-upload__file-content {
@@ -176,8 +196,8 @@
   color: var(--omg-color-text-muted);
 }
 
-.o-upload__file-icon svg,
-.o-upload__remove svg {
+.o-upload__file-icon-svg,
+.o-upload__remove-icon {
   font-size: 16px;
 }
 
@@ -204,7 +224,6 @@
 }
 
 .o-upload__file-state {
-  width: 64px;
   text-align: end;
 }
 
@@ -255,7 +274,13 @@
 .o-upload__clear:focus-visible {
   background: var(--omg-color-neutral-soft);
   color: var(--omg-color-text);
-  outline: none;
+}
+
+.o-upload__remove:focus-visible,
+.o-upload__add:focus-visible,
+.o-upload__clear:focus-visible {
+  outline: 2px solid var(--omg-color-focus-ring);
+  outline-offset: 2px;
 }
 
 .o-upload__actions {
@@ -278,5 +303,27 @@
   .o-upload__file-state {
     width: auto;
     margin-inline-start: auto;
+  }
+}
+
+@media (pointer: coarse) {
+  .o-upload__remove {
+    width: 44px;
+    height: 44px;
+  }
+
+  .o-upload__add,
+  .o-upload__clear {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .o-upload__dropzone,
+  .o-upload__file-progress-bar,
+  .o-upload__remove,
+  .o-upload__add,
+  .o-upload__clear {
+    transition: none;
   }
 }

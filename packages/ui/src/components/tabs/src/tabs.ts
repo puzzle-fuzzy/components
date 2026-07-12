@@ -1,13 +1,13 @@
-import type { ExtractPublicPropTypes, PropType } from 'vue'
+import type { ExtractPublicPropTypes, PropType, VNodeChild } from 'vue'
 
 export const oTabsVariants = ['slider', 'line'] as const
 
 export type OTabsVariant = (typeof oTabsVariants)[number]
 
 export interface OTabsItem {
-  value: string
-  label: string
-  disabled?: boolean | undefined
+  readonly value: string
+  readonly label: string
+  readonly disabled?: boolean | undefined
 }
 
 const isStringMember = <Value extends string>(
@@ -21,8 +21,8 @@ export const oTabsProps = {
     required: true,
   },
   items: {
-    type: Array as PropType<OTabsItem[]>,
-    default: (): OTabsItem[] => [],
+    type: Array as PropType<readonly OTabsItem[]>,
+    default: (): readonly OTabsItem[] => [],
   },
   variant: {
     type: String as PropType<OTabsVariant>,
@@ -40,4 +40,13 @@ export type OTabsProps = ExtractPublicPropTypes<typeof oTabsProps>
 export interface OTabsEmits {
   'update:modelValue': [value: string]
   change: [value: string]
+}
+
+export interface OTabsPanelSlotProps {
+  item: OTabsItem
+  selected: boolean
+}
+
+export interface OTabsSlots {
+  default?: (props: OTabsPanelSlotProps) => VNodeChild
 }

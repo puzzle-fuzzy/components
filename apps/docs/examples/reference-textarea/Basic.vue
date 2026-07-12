@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { OReferenceTextarea } from '@puzzle-fuzzy/ui'
+import { OReferenceTextarea, type OReferenceTextareaReference } from '@puzzle-fuzzy/ui'
 
 const imageUrl =
   'data:image/svg+xml;utf8,' +
@@ -12,17 +12,30 @@ const imageUrl =
 </svg>
 `)
 
-const message = ref(`请看 @[Yxswy](member:yxswy) 的设计图：![界面截图](image:${imageUrl})`)
+const message = ref('请检查下面的需求说明和界面预览。')
+const references: readonly OReferenceTextareaReference[] = [
+  { id: 'brief', label: '需求说明' },
+  {
+    id: 'preview',
+    label: '界面预览',
+    kind: 'image',
+    thumbnailSrc: imageUrl,
+  },
+]
 </script>
 
 <template>
   <div class="omg-example-stack">
+    <label for="reference-message">消息正文</label>
     <OReferenceTextarea
+      id="reference-message"
       v-model="message"
-      aria-label="带引用的消息"
-      placeholder="输入 @[成员](member:id) 或 ![图片](image:url)"
+      :references="references"
+      aria-describedby="reference-message-help"
+      placeholder="输入消息正文"
       :maxlength="240"
       show-count
     />
+    <small id="reference-message-help">引用数据由使用方提供，输入内容不会被组件解析。</small>
   </div>
 </template>

@@ -69,7 +69,7 @@ export type {
 } from './components/code-input'
 
 export { ODialog, oDialogProps } from './components/dialog'
-export type { ODialogEmits, ODialogProps } from './components/dialog'
+export type { ODialogEmits, ODialogProps, ODialogSlots } from './components/dialog'
 
 export {
   ODivider,
@@ -98,16 +98,14 @@ export type {
 export { OImage, oImageFits, oImageProps } from './components/image'
 export type { OImageEmits, OImageFit, OImageProps } from './components/image'
 
-export {
-  OReferenceTextarea,
-  oReferenceTextareaProps,
-  parseOReferenceTextareaReferences,
-} from './components/reference-textarea'
+export { OReferenceTextarea, oReferenceTextareaProps } from './components/reference-textarea'
 export type {
   OReferenceTextareaEmits,
   OReferenceTextareaProps,
   OReferenceTextareaReference,
   OReferenceTextareaReferenceKind,
+  OReferenceTextareaReferenceSlotProps,
+  OReferenceTextareaSlots,
 } from './components/reference-textarea'
 
 export { OSelect, oSelectPlacements, oSelectProps, oSelectSizes } from './components/select'
@@ -123,23 +121,37 @@ export type {
 } from './components/select'
 
 export { OTabs, oTabsProps, oTabsVariants } from './components/tabs'
-export type { OTabsEmits, OTabsItem, OTabsProps, OTabsVariant } from './components/tabs'
+export type {
+  OTabsEmits,
+  OTabsItem,
+  OTabsPanelSlotProps,
+  OTabsProps,
+  OTabsSlots,
+  OTabsVariant,
+} from './components/tabs'
 
 export { OTextarea, oTextareaProps, oTextareaResizeModes } from './components/textarea'
 export type { OTextareaEmits, OTextareaProps, OTextareaResizeMode } from './components/textarea'
 
 export {
   OUpload,
+  defaultOUploadLabels,
   formatOUploadFileSize,
+  getOUploadStateLabel,
+  normalizeOUploadMaxCount,
   normalizeOUploadProgress,
   oUploadFileStates,
   oUploadProps,
+  resolveOUploadLabels,
+  resolveOUploadProgress,
 } from './components/upload'
 export type {
   OUploadEmits,
   OUploadFile,
   OUploadFileSlotProps,
   OUploadFileState,
+  OUploadLabelOverrides,
+  OUploadLabels,
   OUploadProps,
   OUploadSlots,
 } from './components/upload'

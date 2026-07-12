@@ -334,6 +334,38 @@
       "css": ".ds-select { display: inline-flex; min-width: 180px; flex-direction: column; gap: 6px; font: inherit; color: var(--omg-color-text, #273040); } .ds-select-trigger { display: flex; min-height: 38px; align-items: center; justify-content: space-between; padding: 0 12px; border: 1px solid var(--omg-color-border, rgb(24 30 40 / 18%)); border-radius: 8px; background: var(--omg-color-surface, #fff); color: inherit; font: inherit; } .ds-select-trigger:hover { border-color: var(--omg-color-brand-border, rgb(29 78 216 / 28%)); } .ds-select-trigger:focus-visible { outline: 3px solid var(--omg-color-focus-ring, #1d4ed8); outline-offset: 2px; } .ds-select-panel { padding: 4px; border: 1px solid var(--omg-color-border, rgb(24 30 40 / 18%)); border-radius: 8px; background: var(--omg-color-surface, #fff); box-shadow: var(--omg-shadow-sm, 0 1px 2px rgb(15 23 42 / 10%)); } .ds-select-option { display: flex; min-height: 36px; align-items: center; justify-content: space-between; padding: 0 8px; border-radius: 6px; } .ds-select-option:hover { background: var(--omg-color-neutral-soft, rgb(32 34 38 / 8%)); } .ds-select-option.ds-selected { color: var(--omg-color-brand, #1d4ed8); font-weight: 650; }"
     },
     {
+      "name": "Native Modal Dialog",
+      "kind": "custom",
+      "refersTo": "dialog-surface",
+      "description": "A restrained native top-layer modal with explicit naming and close action.",
+      "html": "<dialog class=\"ds-dialog\" open aria-labelledby=\"ds-dialog-title\"><h2 id=\"ds-dialog-title\">Review details</h2><button type=\"button\" aria-label=\"Close dialog\">×</button><p>Dialog content</p></dialog>",
+      "css": ".ds-dialog { width: min(520px, calc(100% - 32px)); padding: 20px; border: 1px solid var(--omg-color-border, rgb(24 30 40 / 18%)); border-radius: 12px; background: var(--omg-color-surface, #fff); color: var(--omg-color-text, #273040); box-shadow: var(--omg-shadow-sm, 0 1px 2px rgb(15 23 42 / 10%)); font: inherit; } .ds-dialog::backdrop { background: var(--omg-color-overlay, rgb(0 0 0 / 62%)); }"
+    },
+    {
+      "name": "Multiline Text Field",
+      "kind": "input",
+      "refersTo": "textarea-field",
+      "description": "A native multiline field with tokenized border focus and a connected count.",
+      "html": "<label for=\"ds-message\">Message</label><textarea id=\"ds-message\" class=\"ds-textarea\" aria-describedby=\"ds-message-count\"></textarea><span id=\"ds-message-count\">0/120</span>",
+      "css": ".ds-textarea { min-height: 112px; width: 100%; padding: 12px; border: 1px solid var(--omg-color-border, rgb(24 30 40 / 18%)); border-radius: 8px; background: var(--omg-color-surface, #fff); color: var(--omg-color-text, #273040); font: inherit; resize: vertical; } .ds-textarea:focus-visible { border-color: var(--omg-color-brand, #1d4ed8); outline: 2px solid var(--omg-color-focus-ring, #1d4ed8); outline-offset: 1px; }"
+    },
+    {
+      "name": "Value Tabs",
+      "kind": "nav",
+      "refersTo": "tabs-control",
+      "description": "A stable-value tablist with one enabled tab in the keyboard order.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\" aria-label=\"View\"><button role=\"tab\" aria-selected=\"true\" tabindex=\"0\">Details</button><button role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">History</button></div>",
+      "css": ".ds-tabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: 8px; background: var(--omg-color-surface-muted, #eef2f7); } .ds-tabs button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent; color: var(--omg-color-text-muted, #475467); font: inherit; } .ds-tabs button[aria-selected=\"true\"] { background: var(--omg-color-surface, #fff); color: var(--omg-color-text, #273040); box-shadow: var(--omg-shadow-sm, 0 1px 2px rgb(15 23 42 / 10%)); }"
+    },
+    {
+      "name": "File Selection Dropzone",
+      "kind": "input",
+      "refersTo": "upload-dropzone",
+      "description": "A UI-only file picker and drop target with controlled list state.",
+      "html": "<label class=\"ds-upload\"><input type=\"file\"><strong>Select files</strong><span>Choose or drop files here</span></label>",
+      "css": ".ds-upload { display: grid; min-height: 132px; place-items: center; gap: 8px; padding: 20px; border: 1px dashed var(--omg-color-border, rgb(24 30 40 / 18%)); border-radius: 12px; background: var(--omg-color-surface-muted, #eef2f7); color: var(--omg-color-text, #273040); font: inherit; text-align: center; } .ds-upload:focus-within { border-color: var(--omg-color-brand, #1d4ed8); outline: 2px solid var(--omg-color-focus-ring, #1d4ed8); outline-offset: 2px; }"
+    },
+    {
       "name": "Semantic Divider",
       "kind": "custom",
       "description": "A one-pixel separator that uses content only when it adds structure.",

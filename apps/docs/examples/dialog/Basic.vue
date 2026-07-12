@@ -12,7 +12,7 @@ const open = ref(false)
       v-model:open="open"
       title="收到文本"
       description="来自 Yxswy"
-      aria-label="收到文本弹窗"
+      close-aria-label="关闭收到文本弹窗"
     >
       <div class="omg-example-panel">这是一段可以复制、阅读或进一步处理的文本内容。</div>
       <template #footer>
