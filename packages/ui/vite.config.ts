@@ -20,6 +20,7 @@ export default defineConfig({
         'components/button/index': fromPackageRoot('src/components/button/index.ts'),
         'components/code-input/index': fromPackageRoot('src/components/code-input/index.ts'),
         'components/divider/index': fromPackageRoot('src/components/divider/index.ts'),
+        'components/upload/index': fromPackageRoot('src/components/upload/index.ts'),
       },
       cssFileName: 'styles',
       fileName: (_format, entryName) => entryName + '.js',

@@ -9,8 +9,10 @@ import {
   OButton,
   OCodeInput,
   ODivider,
+  OUpload,
   type OAvatarFlowPeer,
   type OAvatarGroupItem,
+  type OUploadFile,
 } from '../../src'
 
 const sender: OAvatarFlowPeer = {
@@ -29,6 +31,15 @@ const groupItems: readonly OAvatarGroupItem[] = [
   { id: 'one', name: 'One' },
   { id: 'two', name: 'Two' },
   { id: 'three', name: 'Three' },
+]
+
+const uploadFiles: OUploadFile[] = [
+  {
+    id: 'upload',
+    file: new File(['upload'], 'upload.txt', { type: 'text/plain' }),
+    progress: 1,
+    state: 'success',
+  },
 ]
 
 describe('server rendering', () => {
@@ -120,5 +131,22 @@ describe('server rendering', () => {
     expect(html).toContain('role="separator"')
     expect(html).toContain('aria-orientation="horizontal"')
     expect(html).toContain('Details')
+  })
+
+  test('renders OUpload without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h(OUpload, {
+            ariaLabel: 'Upload files',
+            files: uploadFiles,
+          }),
+      }),
+    )
+
+    expect(html).toContain('class="o-upload')
+    expect(html).toContain('aria-label="Upload files"')
+    expect(html).toContain('upload.txt')
+    expect(html).toContain('已完成')
   })
 })

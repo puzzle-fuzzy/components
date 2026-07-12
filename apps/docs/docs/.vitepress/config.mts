@@ -36,6 +36,10 @@ const sourceAliases = useSource
         replacement: fromRepository('packages/ui/src/components/divider/index.ts'),
       },
       {
+        find: /^@puzzle-fuzzy\/ui\/upload$/,
+        replacement: fromRepository('packages/ui/src/components/upload/index.ts'),
+      },
+      {
         find: /^@puzzle-fuzzy\/ui\/styles\.css$/,
         replacement: fromRepository('packages/ui/src/styles/index.less'),
       },
@@ -67,6 +71,7 @@ export default defineConfig({
           { text: 'Avatar Flow 头像流', link: '/components/avatar-flow' },
           { text: 'Code Input 验证码输入', link: '/components/code-input' },
           { text: 'Divider 分割线', link: '/components/divider' },
+          { text: 'Upload 文件上传', link: '/components/upload' },
         ],
       },
     ],

@@ -201,3 +201,30 @@ test('renders horizontal and vertical divider semantics', async ({ page }) => {
 
   await expectNoSeriousAccessibilityViolations(page)
 })
+
+test('renders upload selection and file list states', async ({ page }) => {
+  await page.goto('/components/upload')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Upload 文件上传' })).toBeVisible()
+  const uploadDemo = page.getByRole('region', { name: 'Upload click and drag selection' })
+  const uploadZone = uploadDemo.getByRole('button', { name: '上传项目附件', exact: true })
+  await expect(uploadZone).toBeVisible()
+  await expect(uploadZone).toHaveAttribute('tabindex', '0')
+
+  await uploadDemo.locator('input[type="file"]').setInputFiles({
+    name: 'contract.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('contract'),
+  })
+
+  await expect(uploadDemo.locator('[data-upload-file-id*="contract.pdf"]')).toContainText(
+    'contract.pdf',
+  )
+
+  const statesDemo = page.getByRole('region', { name: 'Upload file list states' })
+  await expect(statesDemo.locator('[data-upload-file-id="footage"]')).toContainText('58%')
+  await expect(statesDemo.locator('[data-upload-file-id="archive"]')).toContainText('已完成')
+  await expect(statesDemo.locator('[data-upload-file-id="poster"]')).toContainText('上传失败')
+
+  await expectNoSeriousAccessibilityViolations(page)
+})

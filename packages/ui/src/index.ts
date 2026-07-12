@@ -73,3 +73,19 @@ export type {
   ODividerProps,
   ODividerSlots,
 } from './components/divider'
+
+export {
+  OUpload,
+  formatOUploadFileSize,
+  normalizeOUploadProgress,
+  oUploadFileStates,
+  oUploadProps,
+} from './components/upload'
+export type {
+  OUploadEmits,
+  OUploadFile,
+  OUploadFileSlotProps,
+  OUploadFileState,
+  OUploadProps,
+  OUploadSlots,
+} from './components/upload'

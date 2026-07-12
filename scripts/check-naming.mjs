@@ -11,6 +11,7 @@ const expectedComponents = [
   'button',
   'code-input',
   'divider',
+  'upload',
 ]
 
 const toComponentName = (directory) =>
