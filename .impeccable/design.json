@@ -556,6 +556,38 @@
       "description": "Three dots scale in place to show a visual connection state without vertical movement.",
       "html": "<span class=\"ds-flow\" role=\"img\" aria-label=\"Loading avatar connection\"><span></span><span></span><span></span></span>",
       "css": ".ds-flow { display: inline-flex; align-items: center; gap: 4px; color: var(--omg-color-brand, #1d4ed8); } .ds-flow span { width: 4px; height: 4px; border-radius: 999px; background: currentcolor; animation: ds-flow-pulse 900ms cubic-bezier(0.2, 0, 0, 1) infinite; } .ds-flow span:nth-child(2) { animation-delay: -600ms; } .ds-flow span:nth-child(3) { animation-delay: -300ms; } @keyframes ds-flow-pulse { 0%, 60%, 100% { opacity: .35; transform: scale(.7); } 30% { opacity: 1; transform: scale(1); } } @media (prefers-reduced-motion: reduce) { .ds-flow span { animation: none; opacity: 1; transform: none; } }"
+    },
+    {
+      "name": "Native Boolean Switch",
+      "kind": "input",
+      "refersTo": "switch-control",
+      "description": "A controlled native checkbox switch with logical thumb movement, form semantics, and UI-only readonly or loading states.",
+      "html": "<label class=\"ds-switch\"><input type=\"checkbox\" role=\"switch\"><span aria-hidden=\"true\"><i></i></span><strong>Sync files</strong></label>",
+      "css": ".ds-switch { display: inline-flex; min-height: 44px; align-items: center; gap: 8px; font: inherit; } .ds-switch > span { display: inline-flex; width: 36px; height: 20px; align-items: center; padding: 2px; border: 0; border-radius: 999px; background: var(--omg-color-neutral-soft, rgb(32 34 38 / 8%)); } .ds-switch input:checked + span { background: var(--omg-color-brand, #1d4ed8); } .ds-switch i { width: 16px; height: 16px; border-radius: 50%; background: var(--omg-color-surface, #fff); transform: translateX(16px); }"
+    },
+    {
+      "name": "Persistent Inline Alert",
+      "kind": "custom",
+      "refersTo": "alert-surface",
+      "description": "Borderless persistent feedback with a semantic Lucide icon, optional consumer live-region semantics, and close intent without automatic removal.",
+      "html": "<article class=\"ds-alert\"><span aria-hidden=\"true\">i</span><div><strong>Saved</strong><p>Your changes are available.</p></div></article>",
+      "css": ".ds-alert { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; padding: 12px 16px; border: 0; border-radius: 12px; background: var(--omg-color-brand-soft, rgb(29 78 216 / 12%)); color: var(--omg-color-text, #273040); font: inherit; } .ds-alert p { margin: 4px 0 0; overflow-wrap: anywhere; color: var(--omg-color-text-muted, #475467); }"
+    },
+    {
+      "name": "Atomic Loading Skeleton",
+      "kind": "custom",
+      "refersTo": "skeleton",
+      "description": "Consumer-controlled text, rectangle, or circle placeholders with no card frame, no business announcement, and a static reduced-motion path.",
+      "html": "<span class=\"ds-skeleton\" aria-hidden=\"true\"></span>",
+      "css": ".ds-skeleton { display: block; width: 100%; height: 1em; border: 0; border-radius: 999px; background: var(--omg-color-surface-muted, #eef2f7); animation: ds-skeleton 1400ms linear infinite; } @keyframes ds-skeleton { 50% { opacity: .65; } } @media (prefers-reduced-motion: reduce) { .ds-skeleton { animation: none; } }"
+    },
+    {
+      "name": "Inverse Description Tooltip",
+      "kind": "custom",
+      "refersTo": "tooltip-surface",
+      "description": "A pointer-inert, focus-preserving description linked to one trigger through aria-describedby; interactive content belongs in Popover.",
+      "html": "<button type=\"button\" aria-describedby=\"tip\">Help</button><span id=\"tip\" class=\"ds-tooltip\" role=\"tooltip\">More context</span>",
+      "css": ".ds-tooltip { position: fixed; max-width: 240px; padding: 6px 8px; border: 0; border-radius: 6px; background: var(--omg-color-text, #273040); color: var(--omg-color-surface, #fff); box-shadow: var(--omg-shadow-sm, 0 1px 2px rgb(15 23 42 / 10%)); font: inherit; font-size: 12px; pointer-events: none; }"
     }
   ],
   "narrative": {
@@ -569,7 +601,8 @@
       "Protected personal effects over generic redesigns.",
       "Deliberate composition without forced public-component coupling.",
       "Borders reserved for input, state, focus, separation, or irreplaceable hierarchy.",
-      "Solid Message and native Drawer overlays with short directional motion."
+      "Solid Message and native Drawer overlays with short directional motion.",
+      "Borderless state primitives with explicit consumer-owned meaning and lifecycle."
     ],
     "rules": [
       {
@@ -611,6 +644,11 @@
         "name": "The Personal Workbench Rule",
         "body": "Personal, frequently reused, and stylistically specific components are valid public components even when they are not conventional market primitives.",
         "section": "components"
+      },
+      {
+        "name": "The Non-interactive Tooltip Rule",
+        "body": "Tooltip is a pointer-inert accessible description that never moves focus or contains interactive content; buttons, links, inputs, menus, and forms belong in a separate Popover.",
+        "section": "components"
       }
     ],
     "dos": [
@@ -624,7 +662,8 @@
       "Do allow personal, high-frequency, or stylistically specific public components when they are valuable to the owner's projects.",
       "Do share internal foundations when they reduce real duplication; keep a component self-contained when public composition adds coupling without a user-facing benefit.",
       "Do spend borders on form boundaries, state, focus, and real separation; prefer surface, spacing, or one shadow for ordinary layers.",
-      "Do keep Message and Drawer opaque, borderless, keyboard-safe, SSR-safe, and reduced-motion aware."
+      "Do keep Message and Drawer opaque, borderless, keyboard-safe, SSR-safe, and reduced-motion aware.",
+      "Do keep Switch persistence, Alert exception mapping, Skeleton readiness, and Tooltip visibility under explicit consumer control while limiting each component to reusable UI behavior."
     ],
     "donts": [
       "Don't put remote requests, business countdowns, permissions, routing, retry, or result mapping inside foundational components.",
@@ -636,7 +675,8 @@
       "Don't combine a decorative border with a surface or shadow that already communicates the same boundary.",
       "Don't override --vp-c-brand-* or allow VitePress theme values to become component tokens.",
       "Don't preserve pre-release compatibility aliases, private branches, CommonJS, or UMD entries.",
-      "Don't add borders to Dialog, Drawer, or Message surfaces, decorative card shadows, controls rounded beyond 12px, or color-only status signals."
+      "Don't add borders to Dialog, Drawer, Message, Alert, Tooltip, or Skeleton surfaces, decorative card shadows, controls rounded beyond 12px, or color-only status signals.",
+      "Don't put interactive content inside Tooltip, turn Alert into a timed Message queue, or let Skeleton infer loading from requests or content measurement."
     ]
   }
 }

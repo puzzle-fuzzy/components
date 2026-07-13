@@ -133,7 +133,6 @@ Follow the Checkbox controlled-state pattern. Bind undeclared attrs to the input
   <span class="o-switch__thumb">
     <LuLoaderCircle v-if="props.loading" class="o-switch__spinner" />
   </span>
-</span>
 ```
 
 - [ ] **Step 5: Add borderless logical-axis styles**
@@ -251,7 +250,8 @@ Use:
 ```ts
 export const oSkeletonVariants = ['text', 'rect', 'circle'] as const
 export const normalizeOSkeletonDimension = (value: string | number | undefined) => {
-  if (typeof value === 'number') return Number.isFinite(value) && value > 0 ? `${Math.floor(value)}px` : undefined
+  if (typeof value === 'number')
+    return Number.isFinite(value) && value > 0 ? `${Math.floor(value)}px` : undefined
   const normalized = value?.trim()
   return normalized || undefined
 }

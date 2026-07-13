@@ -25,6 +25,7 @@ OMG UI 是一个仅面向 Vue 3 的个人组件库。它同时容纳边界清晰
 - 不覆盖 VitePress 品牌变量，也不让文档站主题泄漏到组件 tokens。
 - 不为未上线的旧接口保留兼容别名、私有分支或 CommonJS/UMD 入口。
 - 不在已有背景、间距或阴影足以表达层级时继续叠加装饰性边框。
+- 不把 Tooltip 扩展成可交互浮层；按钮、链接、输入、菜单和表单属于未来独立的 Popover。
 
 ## Design Principles
 
@@ -36,6 +37,7 @@ OMG UI 是一个仅面向 Vue 3 的个人组件库。它同时容纳边界清晰
 6. 边框必须承担输入边界、状态、焦点、分隔或不可替代的层级职责，否则优先删除。
 7. Message 只管理视觉队列和显示生命周期，Drawer 只管理模态侧面板；请求结果、重试、保存、脏表单确认和路由仍由使用方负责。
 8. Tag 的移除、Badge 的显示值以及 Progress 的数值、状态和标签都属于使用方状态；组件只负责可靠地呈现和发出交互意图。
+9. Switch 不持久化设置，Alert 不映射异常，Skeleton 不判断数据是否就绪，Tooltip 不接管焦点或执行交互内容。
 
 ## Component Contracts
 
@@ -44,8 +46,12 @@ OMG UI 是一个仅面向 Vue 3 的个人组件库。它同时容纳边界清晰
 - **Tag：** `soft` 与 `solid` 只表达语义色表面。关闭按钮发出关闭意图，但不会删除数组项、更新筛选条件或持久化状态，这些操作全部由使用方决定。
 - **Badge：** 包裹内容时标记位于逻辑 top-end，并随 RTL 镜像。无名称的 dot 是装饰；只有使用方提供 `ariaLabel` 时才成为可访问图像。数字、文字、是否隐藏和数据来源均由使用方提供，组件只执行 `max` 等展示格式。
 - **Progress：** 确定进度使用 transform 呈现使用方提供的数值，并随 RTL 调整起点；不确定进度在 reduced motion 下退化为静态段。`value`、`status` 与标签都由使用方明确传入，组件不拥有上传、任务或请求，不根据 `100` 自动推导成功，也不触发后续业务。
+- **Switch：** 使用真实 checkbox 与 `role="switch"` 保留表单、键盘和 label 语义。普通轨道无边框，状态由填充和逻辑方向滑块表达；loading 与 readonly 只阻止界面更新，不代表请求或持久化。
+- **Alert：** 是持久、静态的内联反馈，不复用 Message 服务、队列或计时器。默认不创建 live region，关闭按钮只发出意图，异常映射、重试和移除由使用方决定。
+- **Skeleton：** 只提供 text、rect 和 circle 原子占位形状，加载状态完全受控；占位节点对辅助技术隐藏，内容区域的 `aria-busy` 与加载播报由使用方负责。
+- **Tooltip：** 是不可交互的辅助描述层，通过单一触发器、`aria-describedby`、悬停、焦点和 Escape 工作。它不移动焦点、不因点击单独打开，也不承载任何可交互内容；未来 Popover 保持独立合同。
 - **Image 与 Tabs：** Image 继续使用自身独立的 Teleport 预览层，不为了复用而依赖 Dialog。Tabs 的测量滑块、线型和填充效果属于已确认的组件能力，规范化工作不得将其替换为普通颜色切换。
-- **Border budget：** Dialog、Drawer、Message 以及已有表面不会为了“完整”额外添加边框。只有输入边界、状态、焦点、真实分隔或无法由背景、间距和阴影表达的层级可以消耗边框预算。
+- **Border budget：** Dialog、Drawer、Message、Alert、Tooltip、Skeleton 以及已有表面不会为了“完整”额外添加边框。只有输入边界、状态、焦点、真实分隔或无法由背景、间距和阴影表达的层级可以消耗边框预算。
 
 ## Accessibility & Inclusion
 

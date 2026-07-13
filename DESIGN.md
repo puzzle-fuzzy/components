@@ -293,7 +293,7 @@ OMG UI is flat by default. Surface tone, spacing, and one purposeful elevation l
 `vue-icons-plus/lu` is the only icon source for component code and documentation examples. Icons remain direct named imports so bundlers can tree-shake them; the library does not expose a pass-through icon wrapper.
 
 - Decorative icons use `aria-hidden="true"`; the native control keeps the accessible name.
-- Checkbox check/mixed marks, Input clear/password controls, Upload actions and states, Select indicators, Dialog close, Button icons, and loading feedback all use Lucide Vue components.
+- Checkbox check/mixed marks, Switch loading feedback, Alert status/close controls, Input clear/password controls, Upload actions and states, Select indicators, Dialog close, and Button icons all use Lucide Vue components.
 - Avatar status marks, Avatar Flow connectors, Tabs indicators, Divider lines, and progress geometry are CSS state shapes rather than icons.
 - Widget sparklines and activity points are marked data visualizations, not icons; they may use controlled inline SVG with explicit accessibility semantics.
 - Unmarked handwritten template SVG, raw SVG assets, second icon libraries, and icon-only controls without a name are prohibited.
@@ -317,7 +317,7 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 - **Message exit:** 180ms top-right-origin scale to 0.9 and fade, with no rightward return; remaining rows reflow with transform-only FLIP movement.
 - **Drawer entry:** 260ms directional translation from logical start/end with backdrop fade.
 - **Drawer exit:** at most 180ms, preserving native `display` and `overlay` until the discrete transition completes.
-- **Reduced motion:** Dialog, Message, Drawer, and Progress remove non-essential transitions or animation while preserving the same state and lifecycle semantics.
+- **Reduced motion:** Dialog, Message, Drawer, Progress, Switch, Tooltip, and Skeleton remove non-essential transitions or animation while preserving the same state and lifecycle semantics.
 
 Motion explains arrival, departure, and spatial ownership. It never uses bounce, elastic overshoot, animated layout dimensions, or a settled Drawer transform that would change fixed-position descendants.
 
@@ -346,6 +346,7 @@ Motion explains arrival, departure, and spatial ownership. It never uses bounce,
 - **Error / Disabled:** danger border for invalid input; disabled opacity is 0.56 with a non-interactive cursor.
 - **Input:** single-line controls retain the real input, controlled-value rejection, IME commitment, autocomplete, prefix/suffix composition, clear action, and optional password visibility.
 - **Checkbox / Radio:** selection mirrors a real native input. Checkbox mixed state and Radio Group naming remain SSR-safe; CSS or Lucide marks never replace native semantics.
+- **Switch:** a real checkbox with `role="switch"` owns form submission, Space-key interaction, and label activation. Track fill and logical-axis thumb position communicate state without a normal border; loading and readonly only block UI changes and never persist settings or start requests.
 - **Textarea:** native form attributes and events belong to the real textarea; native resize is always disabled. Fixed rows scroll internally, while `autosize` can grow freely or clamp between `minRows` and `maxRows`.
 - **Reference Textarea:** references are controlled visual items supplied by consumers. The component never parses member syntax, image syntax, URLs, or other domain protocols.
 
@@ -380,6 +381,13 @@ Motion explains arrival, departure, and spatial ownership. It never uses bounce,
 - **Badge semantics:** an unnamed dot is decorative and hidden from assistive technology; adding `ariaLabel` makes the dot a named `img`. Counts and text are consumer values, with only presentation rules such as `max`, zero visibility, and `hidden` handled by Badge.
 - **Progress rendering:** determinate fill always occupies the track geometrically and renders its supplied percentage through `scaleX`, avoiding width animation and layout work. Transform origin follows LTR/RTL.
 - **Progress motion and meaning:** indeterminate progress uses a translating segment, but reduced motion shows a static segment. `value`, `status`, and label meaning are consumer-provided; Progress does not infer upload, task, request, or completion state and never converts `100` to success automatically.
+
+### Alert, Skeleton, and Tooltip
+
+- **Alert:** persistent inline feedback uses a borderless semantic soft surface and a strong Lucide status icon. It remains static by default, creates no unsolicited live region, and only emits close intent; exception mapping, retry, timers, queues, and removal stay outside.
+- **Skeleton:** atomic text, rectangle, and circle placeholders use muted opaque surfaces without a card frame or shadow. Loading is consumer-controlled, placeholder shapes are hidden from assistive technology, and the surrounding content region owns `aria-busy` and any announcement.
+- **Tooltip:** an opaque inverse, borderless description layer opens from hover or focus, never moves focus, and remains pointer-inert. It clones one meaningful trigger so the visible layer can own `aria-describedby` without changing trigger layout.
+- **Tooltip boundary:** Tooltip content is strictly non-interactive. Buttons, links, inputs, menus, forms, and other focusable content belong in a future independent Popover rather than expanding Tooltip into a second menu/dialog primitive.
 
 ### Message and Drawer
 
@@ -421,6 +429,7 @@ Motion explains arrival, departure, and spatial ownership. It never uses bounce,
 - **Do** spend borders on form boundaries, state, focus, and real separation; prefer surface, spacing, or one shadow for ordinary layers.
 - **Do** keep Message and Drawer surfaces opaque and borderless, and verify their real enter/leave behavior with reduced-motion alternatives.
 - **Do** treat Tag removal, Badge values, and Progress value/status as controlled consumer state; components may format or display that state but never interpret its business origin.
+- **Do** keep Switch persistence, Alert exception mapping, Skeleton readiness, and Tooltip visibility under explicit consumer control while limiting the component to reusable UI behavior.
 
 ### Don't:
 
@@ -435,3 +444,4 @@ Motion explains arrival, departure, and spatial ownership. It never uses bounce,
 - **Don't** preserve pre-release compatibility aliases, private branches, CommonJS, or UMD entries.
 - **Don't** add borders to Dialog, Drawer, or Message surfaces, decorative card shadows, unrequested oversized radii, or color-only status signals; protected personal components such as Widget may keep their deliberate geometry.
 - **Don't** turn Progress into an upload/task controller, remove Tag data after a close click, or derive Badge counts from application records inside the component library.
+- **Don't** put interactive content inside Tooltip, turn Alert into a timed Message queue, or let Skeleton infer loading from requests or content measurement.
