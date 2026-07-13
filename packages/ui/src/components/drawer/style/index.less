@@ -50,10 +50,16 @@
   box-shadow: var(--omg-shadow-drawer-start);
 }
 
-.o-dialog.o-drawer[open] {
+.o-dialog.o-drawer[open][data-state='opening'],
+.o-dialog.o-drawer[open][data-state='open'] {
   opacity: 1;
   transform: none;
   transition-duration: 260ms, 260ms, 260ms, 260ms;
+}
+
+.o-dialog.o-drawer[open][data-state='closing'] {
+  opacity: 0;
+  transform: translate3d(var(--omg-drawer-closed-translate), 0, 0);
 }
 
 .o-dialog.o-drawer > .o-dialog__body {
@@ -75,7 +81,8 @@
 }
 
 @starting-style {
-  .o-dialog.o-drawer[open] {
+  .o-dialog.o-drawer[open][data-state='opening'],
+  .o-dialog.o-drawer[open][data-state='open'] {
     opacity: 0;
     transform: translate3d(var(--omg-drawer-closed-translate), 0, 0);
   }

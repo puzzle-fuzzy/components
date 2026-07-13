@@ -5,6 +5,7 @@ import { mount } from '@vue/test-utils'
 import { createSSRApp, h, nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { ODialogCloseRequest } from '../../dialog'
 import {
   OConfirmDialog,
   oConfirmDialogProps,
@@ -13,6 +14,13 @@ import {
   type OConfirmDialogProps,
   type OConfirmDialogSlots,
 } from '../index'
+
+const flushDialog = async (): Promise<void> => {
+  for (let index = 0; index < 6; index += 1) {
+    await nextTick()
+    await Promise.resolve()
+  }
+}
 
 const confirmDialogSource = readFileSync(
   resolve(process.cwd(), 'packages/ui/src/components/confirm-dialog/src/OConfirmDialog.vue'),
@@ -44,11 +52,16 @@ beforeEach(() => {
     configurable: true,
     value: closeDialog,
   })
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    callback(0)
+    return 1
+  })
   showModal.mockClear()
   closeDialog.mockClear()
 })
 
 afterEach(() => {
+  vi.unstubAllGlobals()
   if (showModalDescriptor) {
     Object.defineProperty(HTMLDialogElement.prototype, 'showModal', showModalDescriptor)
   } else {
@@ -80,6 +93,9 @@ describe('OConfirmDialog', () => {
     }
     const publicEmits: OConfirmDialogEmits = {
       'update:open': [false],
+      'request-close': [{ reason: 'slot' }],
+      close: ['slot'],
+      closed: ['slot'],
       confirm: [new MouseEvent('click')],
       cancel: [new MouseEvent('click')],
     }
@@ -93,6 +109,10 @@ describe('OConfirmDialog', () => {
     expect(oConfirmDialogProps.tone.default).toBe('neutral')
     expect(oConfirmDialogProps.confirmLabel.default).toBe('Confirm')
     expect(oConfirmDialogProps.cancelLabel.default).toBe('Cancel')
+    expect('width' in oConfirmDialogProps).toBe(false)
+    expect('fullscreen' in oConfirmDialogProps).toBe(false)
+    expect('destroyOnClose' in oConfirmDialogProps).toBe(false)
+    expect('initialFocus' in oConfirmDialogProps).toBe(false)
     expect(publicProps.tone).toBe('danger')
     expect(publicEmits.confirm[0]).toBeInstanceOf(MouseEvent)
     expect(publicSlots.details).toBeTypeOf('function')
@@ -116,7 +136,7 @@ describe('OConfirmDialog', () => {
         cancelLabel: '取消',
       },
     })
-    await nextTick()
+    await flushDialog()
 
     const dialog = wrapper.get<HTMLDialogElement>('dialog')
     await wrapper.get('.o-confirm-dialog__confirm').trigger('click')
@@ -128,12 +148,18 @@ describe('OConfirmDialog', () => {
     wrapper.unmount()
   })
 
-  it('requests close and emits cancel while preserving controlled rejection', async () => {
+  it('emits cancel before requesting a slot close and preserves controlled rejection', async () => {
+    const events: string[] = []
     const wrapper = mount(OConfirmDialog, {
       attachTo: document.body,
-      props: { open: true, title: '删除项目？' },
+      props: {
+        open: true,
+        title: '删除项目？',
+        onCancel: () => events.push('cancel'),
+        onRequestClose: ({ reason }: ODialogCloseRequest) => events.push(`request:${reason}`),
+      },
     })
-    await nextTick()
+    await flushDialog()
 
     const dialog = wrapper.get<HTMLDialogElement>('dialog')
     const cancelButton = wrapper.get<HTMLButtonElement>('.o-confirm-dialog__cancel')
@@ -141,8 +167,11 @@ describe('OConfirmDialog', () => {
     expect(cancelButton.attributes()).toHaveProperty('autofocus')
     await cancelButton.trigger('click')
 
+    expect(events).toEqual(['cancel', 'request:slot'])
     expect(wrapper.emitted('cancel')).toEqual([[expect.any(MouseEvent)]])
+    expect(wrapper.emitted('request-close')?.[0]?.[0]).toMatchObject({ reason: 'slot' })
     expect(wrapper.emitted('update:open')).toEqual([[false]])
+    expect(wrapper.emitted('close')).toBeUndefined()
     expect(dialog.element.open).toBe(true)
 
     wrapper.unmount()
@@ -153,15 +182,17 @@ describe('OConfirmDialog', () => {
       attachTo: document.body,
       props: { open: true, title: '继续操作？' },
     })
-    await nextTick()
+    await flushDialog()
 
     const dialog = wrapper.get<HTMLDialogElement>('dialog')
     dialog.element.dispatchEvent(new Event('cancel', { cancelable: true }))
     await nextTick()
 
     expect(wrapper.emitted('update:open')).toEqual([[false]])
+    expect(wrapper.emitted('request-close')?.[0]?.[0]).toMatchObject({ reason: 'escape' })
     expect(wrapper.emitted('cancel')).toBeUndefined()
 
+    await nextTick()
     vi.spyOn(dialog.element, 'getBoundingClientRect').mockReturnValue({
       bottom: 300,
       height: 200,
@@ -174,11 +205,15 @@ describe('OConfirmDialog', () => {
       toJSON: () => ({}),
     })
     dialog.element.dispatchEvent(
-      new MouseEvent('click', { bubbles: true, clientX: 40, clientY: 40 }),
+      new MouseEvent('pointerdown', { bubbles: true, clientX: 40, clientY: 40 }),
+    )
+    dialog.element.dispatchEvent(
+      new MouseEvent('pointerup', { bubbles: true, clientX: 40, clientY: 40 }),
     )
     await nextTick()
 
     expect(wrapper.emitted('update:open')).toEqual([[false], [false]])
+    expect(wrapper.emitted('request-close')?.[1]?.[0]).toMatchObject({ reason: 'mask' })
     expect(wrapper.emitted('cancel')).toBeUndefined()
 
     wrapper.unmount()

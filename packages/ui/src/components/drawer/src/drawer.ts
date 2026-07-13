@@ -1,4 +1,9 @@
-import { oDialogProps, type ODialogSlots } from '../../dialog'
+import {
+  oDialogCommonProps,
+  type ODialogCloseReason,
+  type ODialogCloseRequest,
+  type ODialogSlots,
+} from '../../dialog'
 import type { ExtractPublicPropTypes, PropType } from 'vue'
 
 export const oDrawerPlacements = ['start', 'end'] as const
@@ -24,7 +29,7 @@ export const normalizeODrawerSize = (size: ODrawerSize | undefined): string => {
 }
 
 export const oDrawerProps = {
-  ...oDialogProps,
+  ...oDialogCommonProps,
   closeAriaLabel: {
     type: String,
     default: 'Close drawer',
@@ -44,7 +49,9 @@ export type ODrawerProps = ExtractPublicPropTypes<typeof oDrawerProps>
 
 export interface ODrawerEmits {
   'update:open': [open: boolean]
-  close: []
+  'request-close': [request: ODialogCloseRequest]
+  close: [reason: ODialogCloseReason]
+  closed: [reason: ODialogCloseReason]
 }
 
 export type ODrawerSlots = ODialogSlots

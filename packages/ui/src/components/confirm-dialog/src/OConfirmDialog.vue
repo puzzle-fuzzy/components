@@ -3,7 +3,7 @@ import { LuAlertTriangle } from 'vue-icons-plus/lu'
 import { computed } from 'vue'
 
 import { OButton } from '../../button'
-import { ODialog } from '../../dialog'
+import { ODialog, type ODialogCloseRequest } from '../../dialog'
 import {
   oConfirmDialogProps,
   type OConfirmDialogEmits,
@@ -28,13 +28,18 @@ const handleOpenUpdate = (open: boolean): void => {
   emit('update:open', open)
 }
 
+const handleCloseRequest = (request: ODialogCloseRequest): void => {
+  // eslint-disable-next-line vue/custom-event-name-casing -- Public Vue events use template kebab-case.
+  emit('request-close', request)
+}
+
 const handleConfirm = (event: MouseEvent): void => {
   emit('confirm', event)
 }
 
-const handleCancel = (event: MouseEvent): void => {
+const handleCancel = (event: MouseEvent, close: () => void): void => {
   emit('cancel', event)
-  emit('update:open', false)
+  close()
 }
 </script>
 
@@ -49,6 +54,9 @@ const handleCancel = (event: MouseEvent): void => {
     :show-close="props.showClose"
     :close-aria-label="props.closeAriaLabel"
     @update:open="handleOpenUpdate"
+    @request-close="handleCloseRequest"
+    @close="emit('close', $event)"
+    @closed="emit('closed', $event)"
   >
     <div
       v-if="props.tone === 'danger' || slots.default || slots.details"
@@ -66,13 +74,13 @@ const handleCancel = (event: MouseEvent): void => {
       </div>
     </div>
 
-    <template #footer>
+    <template #footer="{ close }">
       <OButton
         class="o-confirm-dialog__cancel"
         variant="outline"
         tone="neutral"
         autofocus
-        @click="handleCancel"
+        @click="handleCancel($event, close)"
       >
         {{ props.cancelLabel }}
       </OButton>

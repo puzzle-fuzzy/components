@@ -1,18 +1,27 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { renderToString } from '@vue/server-renderer'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createSSRApp, h, nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   ODialog,
+  normalizeODialogWidth,
+  oDialogCloseReasons,
+  oDialogCommonProps,
   oDialogProps,
+  type ODialogCloseRequest,
   type ODialogEmits,
   type ODialogProps,
+  type ODialogSlotProps,
   type ODialogSlots,
 } from '../index'
 
+const dialogSource = readFileSync(
+  resolve(process.cwd(), 'packages/ui/src/components/dialog/src/ODialog.vue'),
+  'utf8',
+)
 const dialogStyles = readFileSync(
   resolve(process.cwd(), 'packages/ui/src/components/dialog/style/index.less'),
   'utf8',
@@ -29,6 +38,27 @@ const closeDialog = vi.fn(function (this: HTMLDialogElement): void {
 let showModalDescriptor: PropertyDescriptor | undefined
 let closeDescriptor: PropertyDescriptor | undefined
 
+const flushDialog = async (): Promise<void> => {
+  for (let index = 0; index < 6; index += 1) {
+    await nextTick()
+    await Promise.resolve()
+  }
+}
+
+const mockDialogBounds = (wrapper: VueWrapper): void => {
+  vi.spyOn(wrapper.get('dialog').element, 'getBoundingClientRect').mockReturnValue({
+    bottom: 300,
+    height: 200,
+    left: 100,
+    right: 400,
+    top: 100,
+    width: 300,
+    x: 100,
+    y: 100,
+    toJSON: () => ({}),
+  })
+}
+
 beforeEach(() => {
   showModalDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')
   closeDescriptor = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'close')
@@ -40,11 +70,17 @@ beforeEach(() => {
     configurable: true,
     value: closeDialog,
   })
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    callback(0)
+    return 1
+  })
   showModal.mockClear()
   closeDialog.mockClear()
 })
 
 afterEach(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
   if (showModalDescriptor) {
     Object.defineProperty(HTMLDialogElement.prototype, 'showModal', showModalDescriptor)
   } else {
@@ -58,260 +94,364 @@ afterEach(() => {
 })
 
 describe('ODialog', () => {
-  it('uses a borderless elevated surface with a component-local width contract', () => {
-    expect(dialogStyles).toMatch(/\.o-dialog\s*\{[^}]*--omg-dialog-max-inline-size:\s*520px/su)
-    expect(dialogStyles).toMatch(/\.o-dialog\s*\{[^}]*border:\s*0/su)
-    expect(dialogStyles).toMatch(/\.o-dialog\s*\{[^}]*box-shadow:\s*var\(--omg-shadow-dialog\)/su)
-    expect(dialogStyles).toMatch(/width:\s*min\([^;]*var\(--omg-dialog-max-inline-size\)[^;]*\)/su)
-  })
-
-  it('locks document scrolling while any native dialog is open', () => {
-    expect(dialogStyles).toContain('html:has(.o-dialog[open])')
-    expect(dialogStyles).toMatch(/html:has\(\.o-dialog\[open\]\)\s*\{[^}]*overflow:\s*hidden/su)
-  })
-
-  it('keeps the public props, emits, and slots typed', () => {
-    const publicProps: ODialogProps = {
+  it('defines explicit width, lifecycle, close-reason, and slot contracts', () => {
+    const props: ODialogProps = {
       open: true,
-      title: '收到文本',
-      description: '来自 Yxswy',
-      closeOnMask: true,
-      closeOnEsc: true,
-      ariaLabel: '文本弹窗',
-      showClose: true,
-      closeAriaLabel: '关闭文本弹窗',
+      width: 'min(92vw, 42rem)',
+      fullscreen: false,
+      destroyOnClose: true,
+      initialFocus: '#dialog-primary-field',
     }
-    const publicEmits: ODialogEmits = {
+    const request: ODialogCloseRequest = {
+      reason: 'mask',
+      originalEvent: new MouseEvent('click'),
+    }
+    const emits: ODialogEmits = {
       'update:open': [false],
-      close: [],
+      'request-close': [request],
+      open: [],
+      opened: [],
+      close: ['mask'],
+      closed: ['mask'],
     }
-    const publicSlots: ODialogSlots = {
-      default: () => '正文内容',
-      header: () => h('h2', '自定义标题'),
-      footer: () => h('button', { type: 'button' }, '确认'),
+    const slotProps: ODialogSlotProps = {
+      close: () => undefined,
+      titleId: 'dialog-title',
+      descriptionId: 'dialog-description',
+    }
+    const slots: ODialogSlots = {
+      title: () => '标题',
+      description: () => '描述',
+      default: ({ close }) => h('button', { onClick: close }, '关闭'),
+      closeIcon: () => h('span', '×'),
     }
 
-    expect(oDialogProps.open.default).toBe(false)
-    expect(oDialogProps.closeOnMask.default).toBe(true)
-    expect(oDialogProps.closeOnEsc.default).toBe(true)
-    expect(oDialogProps.showClose.default).toBe(true)
-    expect(oDialogProps.closeAriaLabel.default).toBe('Close dialog')
-    expect(publicProps.open).toBe(true)
-    expect(publicEmits.close).toEqual([])
-    expect(publicSlots.header).toBeTypeOf('function')
+    expect(oDialogCloseReasons).toEqual([
+      'close-button',
+      'mask',
+      'escape',
+      'slot',
+      'native',
+      'programmatic',
+    ])
+    expect(oDialogCommonProps.open.default).toBe(false)
+    expect(oDialogProps.width.default).toBe(520)
+    expect(oDialogProps.fullscreen.default).toBe(false)
+    expect(oDialogProps.destroyOnClose.default).toBe(false)
+    expect(props.destroyOnClose).toBe(true)
+    expect(emits.close).toEqual(['mask'])
+    expect(slotProps.titleId).toBe('dialog-title')
+    expect(slots.title?.(slotProps)).toBe('标题')
   })
 
-  it('always renders a native dialog and synchronizes the controlled open state', async () => {
+  it.each([
+    [undefined, '520px'],
+    [640, '640px'],
+    [640.9, '640px'],
+    [0, '520px'],
+    [Number.NaN, '520px'],
+    [' min(92vw, 42rem) ', 'min(92vw, 42rem)'],
+    ['   ', '520px'],
+  ] as const)('normalizes Dialog width %s to %s', (value, expected) => {
+    expect(normalizeODialogWidth(value)).toBe(expected)
+  })
+
+  it('opens an initial controlled Dialog once and emits lifecycle in order', async () => {
+    const events: string[] = []
     const wrapper = mount(ODialog, {
       attachTo: document.body,
-      attrs: {
-        class: 'consumer-dialog',
-        'data-preview': 'true',
-        style: 'inline-size: 480px',
-      },
+      attrs: { class: 'consumer-dialog', 'data-preview': 'true' },
       props: {
         open: true,
-        title: '收到文本',
-        description: '来自 Yxswy',
+        title: '工作区设置',
+        description: '调整显示偏好',
+        width: 'min(92vw, 42rem)',
+        onOpen: () => events.push('open'),
+        onOpened: () => events.push('opened'),
       },
-      slots: {
-        default: '正文内容',
-        footer: '<button type="button">确认</button>',
-      },
+      slots: { default: '正文内容' },
     })
-    await nextTick()
+    await flushDialog()
 
-    const dialog = wrapper.get('dialog.o-dialog')
-    expect(dialog.element).toBeInstanceOf(HTMLDialogElement)
+    const dialog = wrapper.get<HTMLDialogElement>('dialog.o-dialog')
+    expect(dialog.element.open).toBe(true)
+    expect(showModal).toHaveBeenCalledOnce()
+    expect(events).toEqual(['open', 'opened'])
     expect(dialog.classes()).toContain('consumer-dialog')
     expect(dialog.attributes('data-preview')).toBe('true')
-    expect(dialog.attributes('style')).toContain('inline-size: 480px')
-    expect((dialog.element as HTMLDialogElement).open).toBe(true)
-    expect(showModal).toHaveBeenCalledOnce()
+    expect(dialog.attributes('style')).toContain('--omg-dialog-inline-size: min(92vw, 42rem)')
     expect(dialog.attributes('role')).toBeUndefined()
     expect(dialog.attributes('aria-modal')).toBeUndefined()
-    expect(dialog.text()).toContain('收到文本')
-    expect(dialog.text()).toContain('来自 Yxswy')
-    expect(dialog.text()).toContain('正文内容')
-    expect(dialog.find('.o-dialog__footer').text()).toContain('确认')
+  })
+
+  it('separates a rejected request from a later programmatic close', async () => {
+    const wrapper = mount(ODialog, {
+      attachTo: document.body,
+      props: { open: true, title: 'Settings' },
+    })
+    await flushDialog()
+
+    await wrapper.get('.o-dialog__close').trigger('click')
+    expect(wrapper.emitted('request-close')?.[0]?.[0]).toMatchObject({
+      reason: 'close-button',
+    })
+    expect(wrapper.emitted('update:open')).toEqual([[false]])
+    expect(wrapper.emitted('close')).toBeUndefined()
+    expect(wrapper.get<HTMLDialogElement>('dialog').element.open).toBe(true)
 
     await wrapper.setProps({ open: false })
-    await nextTick()
+    await flushDialog()
+    expect(wrapper.emitted('close')).toEqual([['programmatic']])
+    expect(wrapper.emitted('closed')).toEqual([['programmatic']])
+  })
 
-    expect((dialog.element as HTMLDialogElement).open).toBe(false)
+  it('retains the first accepted close reason and ignores duplicate gestures', async () => {
+    const wrapper = mount(ODialog, {
+      attachTo: document.body,
+      props: {
+        open: true,
+        title: 'Settings',
+        'onUpdate:open': (open: boolean) => void wrapper.setProps({ open }),
+      },
+    })
+    await flushDialog()
+
+    const close = wrapper.get<HTMLButtonElement>('.o-dialog__close').element
+    close.click()
+    close.click()
+    await flushDialog()
+
+    expect(wrapper.emitted('request-close')).toHaveLength(1)
+    expect(wrapper.emitted('close')).toEqual([['close-button']])
+    expect(wrapper.emitted('closed')).toEqual([['close-button']])
     expect(closeDialog).toHaveBeenCalledOnce()
-
-    wrapper.unmount()
   })
 
-  it('requests close without imperatively closing when the controlled parent rejects it', async () => {
+  it('prevents native cancel and controls Escape requests', async () => {
     const wrapper = mount(ODialog, {
       attachTo: document.body,
-      props: { open: true, title: '收到文本', closeAriaLabel: '关闭文本弹窗' },
+      props: { open: true, title: 'Settings' },
     })
-    await nextTick()
-
-    const dialog = wrapper.get('dialog')
-    await wrapper.get('.o-dialog__close').trigger('click')
-
-    expect(wrapper.emitted('update:open')).toEqual([[false]])
-    expect(wrapper.emitted('close')).toEqual([[]])
-    expect((dialog.element as HTMLDialogElement).open).toBe(true)
-    expect(closeDialog).not.toHaveBeenCalled()
-
-    wrapper.unmount()
-  })
-
-  it('prevents native cancel and only requests Escape close when enabled', async () => {
-    const wrapper = mount(ODialog, {
-      attachTo: document.body,
-      props: { open: true, title: '收到文本' },
-    })
-    await nextTick()
+    await flushDialog()
 
     const dialog = wrapper.get('dialog')
     const cancel = new Event('cancel', { cancelable: true })
     dialog.element.dispatchEvent(cancel)
     await nextTick()
-
     expect(cancel.defaultPrevented).toBe(true)
-    expect(wrapper.emitted('update:open')).toEqual([[false]])
-    expect(wrapper.emitted('close')).toEqual([[]])
-    expect((dialog.element as HTMLDialogElement).open).toBe(true)
+    expect(wrapper.emitted('request-close')?.[0]?.[0]).toMatchObject({ reason: 'escape' })
 
     await wrapper.setProps({ closeOnEsc: false })
     const lockedCancel = new Event('cancel', { cancelable: true })
     dialog.element.dispatchEvent(lockedCancel)
     await nextTick()
-
     expect(lockedCancel.defaultPrevented).toBe(true)
-    expect(wrapper.emitted('update:open')).toEqual([[false]])
-
-    wrapper.unmount()
+    expect(wrapper.emitted('request-close')).toHaveLength(1)
   })
 
-  it('keeps forward and backward Tab focus inside the modal', async () => {
+  it('requires pointer-down and pointer-up outside for a mask request', async () => {
     const wrapper = mount(ODialog, {
       attachTo: document.body,
-      props: { open: true, title: '收到文本', closeAriaLabel: '关闭文本弹窗' },
-      slots: {
-        footer:
-          '<button type="button" class="cancel-action">取消</button><button type="button" class="confirm-action">确认</button>',
+      props: { open: true, title: 'Gesture' },
+      slots: { default: '<button class="inside" type="button">Inside</button>' },
+    })
+    await flushDialog()
+    mockDialogBounds(wrapper)
+
+    wrapper
+      .get('.inside')
+      .element.dispatchEvent(
+        new MouseEvent('pointerdown', { bubbles: true, clientX: 200, clientY: 200 }),
+      )
+    wrapper
+      .get('dialog')
+      .element.dispatchEvent(
+        new MouseEvent('pointerup', { bubbles: true, clientX: 20, clientY: 20 }),
+      )
+    expect(wrapper.emitted('request-close')).toBeUndefined()
+
+    wrapper
+      .get('dialog')
+      .element.dispatchEvent(
+        new MouseEvent('pointerdown', { bubbles: true, clientX: 20, clientY: 20 }),
+      )
+    wrapper
+      .get('dialog')
+      .element.dispatchEvent(
+        new MouseEvent('pointerup', { bubbles: true, clientX: 20, clientY: 20 }),
+      )
+    await nextTick()
+    expect(wrapper.emitted('request-close')?.[0]?.[0]).toMatchObject({ reason: 'mask' })
+  })
+
+  it('focuses initialFocus and falls back safely for invalid selectors', async () => {
+    const focused = mount(ODialog, {
+      attachTo: document.body,
+      props: { open: true, title: 'Focus', initialFocus: '#primary-field' },
+      slots: { default: '<input id="primary-field" /><button type="button">Done</button>' },
+    })
+    await flushDialog()
+    expect(document.activeElement).toBe(focused.get('#primary-field').element)
+
+    const fallback = mount(ODialog, {
+      attachTo: document.body,
+      props: { open: true, title: 'Fallback', initialFocus: '[' },
+      slots: { default: '<input autofocus id="fallback-field" />' },
+    })
+    await expect(flushDialog()).resolves.toBeUndefined()
+    expect(document.activeElement).toBe(fallback.get('#fallback-field').element)
+  })
+
+  it('mounts lazily, preserves by default, and destroys only after closed', async () => {
+    const preserved = mount(ODialog, {
+      attachTo: document.body,
+      props: { title: 'Preserved' },
+      slots: { default: '<input aria-label="Preserved field" />' },
+    })
+    expect(preserved.find('[aria-label="Preserved field"]').exists()).toBe(false)
+    await preserved.setProps({ open: true })
+    await flushDialog()
+    preserved.get<HTMLInputElement>('[aria-label="Preserved field"]').element.value = 'kept'
+    await preserved.setProps({ open: false })
+    await flushDialog()
+    await preserved.setProps({ open: true })
+    await flushDialog()
+    expect(preserved.get<HTMLInputElement>('[aria-label="Preserved field"]').element.value).toBe(
+      'kept',
+    )
+
+    const destroyed = mount(ODialog, {
+      attachTo: document.body,
+      props: { open: true, title: 'Destroyed', destroyOnClose: true },
+      slots: { default: '<input aria-label="Destroyed field" />' },
+    })
+    await flushDialog()
+    await destroyed.setProps({ open: false })
+    expect(destroyed.find('[aria-label="Destroyed field"]').exists()).toBe(true)
+    await flushDialog()
+    expect(destroyed.find('[aria-label="Destroyed field"]').exists()).toBe(false)
+  })
+
+  it('reopens a rejected unexpected native close', async () => {
+    const wrapper = mount(ODialog, {
+      attachTo: document.body,
+      props: { open: true, title: 'Native' },
+    })
+    await flushDialog()
+    const dialog = wrapper.get<HTMLDialogElement>('dialog')
+    dialog.element.removeAttribute('open')
+    dialog.element.dispatchEvent(new Event('close'))
+    await flushDialog()
+
+    expect(wrapper.emitted('request-close')?.[0]?.[0]).toEqual({ reason: 'native' })
+    expect(wrapper.emitted('close')).toBeUndefined()
+    expect(dialog.element.open).toBe(true)
+    expect(showModal).toHaveBeenCalledTimes(2)
+  })
+
+  it('finalizes an accepted unexpected native close once', async () => {
+    const wrapper = mount(ODialog, {
+      attachTo: document.body,
+      props: {
+        open: true,
+        title: 'Native',
+        'onUpdate:open': (open: boolean) => void wrapper.setProps({ open }),
       },
     })
-    await nextTick()
+    await flushDialog()
+    const dialog = wrapper.get<HTMLDialogElement>('dialog')
+    dialog.element.removeAttribute('open')
+    dialog.element.dispatchEvent(new Event('close'))
+    await flushDialog()
 
-    const dialog = wrapper.get('dialog')
-    const closeButton = wrapper.get<HTMLButtonElement>('.o-dialog__close')
-    const confirmButton = wrapper.get<HTMLButtonElement>('.confirm-action')
-
-    closeButton.element.focus()
-    await dialog.trigger('keydown', { key: 'Tab', shiftKey: true })
-    expect(document.activeElement).toBe(confirmButton.element)
-
-    await dialog.trigger('keydown', { key: 'Tab' })
-    expect(document.activeElement).toBe(closeButton.element)
-
-    wrapper.unmount()
+    expect(wrapper.emitted('request-close')?.[0]?.[0]).toEqual({ reason: 'native' })
+    expect(wrapper.emitted('close')).toEqual([['native']])
+    expect(wrapper.emitted('closed')).toEqual([['native']])
   })
 
-  it('only treats coordinates outside the dialog surface as a mask click', async () => {
+  it('keeps accessible IDs valid for default and custom slot structures', async () => {
     const wrapper = mount(ODialog, {
-      attachTo: document.body,
-      props: { open: true, title: '收到文本' },
-      slots: { default: '<button type="button">正文操作</button>' },
+      props: { open: true },
+      slots: {
+        title: ({ titleId }: ODialogSlotProps) => h('span', { 'data-id': titleId }, '标题'),
+        description: () => '描述',
+        default: ({ close }: ODialogSlotProps) =>
+          h('button', { class: 'slot-close', onClick: close }, '关闭'),
+      },
     })
-    await nextTick()
-
+    await flushDialog()
     const dialog = wrapper.get('dialog')
-    vi.spyOn(dialog.element, 'getBoundingClientRect').mockReturnValue({
-      bottom: 300,
-      height: 200,
-      left: 100,
-      right: 400,
-      top: 100,
-      width: 300,
-      x: 100,
-      y: 100,
-      toJSON: () => ({}),
+    const titleId = dialog.attributes('aria-labelledby')
+    const descriptionId = dialog.attributes('aria-describedby')
+    expect(wrapper.get(`#${titleId}`).text()).toBe('标题')
+    expect(wrapper.get(`#${descriptionId}`).text()).toBe('描述')
+    await wrapper.get('.slot-close').trigger('click')
+    expect(wrapper.emitted('request-close')?.[0]?.[0]).toMatchObject({ reason: 'slot' })
+
+    const custom = mount(ODialog, {
+      props: { open: true },
+      slots: {
+        header: ({ titleId: customTitleId }: ODialogSlotProps) =>
+          h('h2', { id: customTitleId }, '自定义标题'),
+      },
     })
-
-    dialog.element.dispatchEvent(
-      new MouseEvent('click', { bubbles: true, clientX: 200, clientY: 200 }),
+    await flushDialog()
+    expect(custom.get(`#${custom.get('dialog').attributes('aria-labelledby')}`).text()).toBe(
+      '自定义标题',
     )
-    await wrapper.get('.o-dialog__body button').trigger('click')
-    expect(wrapper.emitted('update:open')).toBeUndefined()
-
-    dialog.element.dispatchEvent(
-      new MouseEvent('click', { bubbles: true, clientX: 40, clientY: 40 }),
-    )
-    await nextTick()
-    expect(wrapper.emitted('update:open')).toEqual([[false]])
-
-    await wrapper.setProps({ closeOnMask: false })
-    dialog.element.dispatchEvent(
-      new MouseEvent('click', { bubbles: true, clientX: 40, clientY: 40 }),
-    )
-    await nextTick()
-    expect(wrapper.emitted('update:open')).toEqual([[false]])
-
-    wrapper.unmount()
   })
 
-  it('keeps accessible naming references valid for default and custom headers', async () => {
-    const defaultWrapper = mount(ODialog, {
-      props: { title: '默认标题', description: '默认描述' },
-    })
-    const defaultDialog = defaultWrapper.get('dialog')
-    const titleId = defaultDialog.attributes('aria-labelledby')
-    const descriptionId = defaultDialog.attributes('aria-describedby')
+  it('warns once for an unnamed Dialog or a custom header missing titleId', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    mount(ODialog, { props: { open: true } })
+    await flushDialog()
+    expect(warn).toHaveBeenCalledWith(
+      '[OMG UI][ODialog] Provide ariaLabel, title, a title slot, or titleId in header.',
+    )
 
-    expect(titleId).toBeTruthy()
-    expect(descriptionId).toBeTruthy()
-    expect(defaultWrapper.get('.o-dialog__title').attributes()).toMatchObject({
-      role: 'heading',
-      'aria-level': '2',
-    })
-    expect(defaultWrapper.get(`#${titleId}`).text()).toBe('默认标题')
-    expect(defaultWrapper.get(`#${descriptionId}`).text()).toBe('默认描述')
-
-    const customWrapper = mount(ODialog, {
-      props: { ariaLabel: '显式名称', title: '不会作为名称' },
-      slots: { header: '<strong>自定义头部</strong>' },
-    })
-    const customDialog = customWrapper.get('dialog')
-
-    expect(customDialog.attributes('aria-label')).toBe('显式名称')
-    expect(customDialog.attributes('aria-labelledby')).toBeUndefined()
-    expect(customWrapper.get('.o-dialog__header-content').text()).toBe('自定义头部')
-
-    const labelledCustomWrapper = mount(ODialog, {
-      slots: { header: '<strong>作为名称的自定义头部</strong>' },
-    })
-    const customLabelId = labelledCustomWrapper.get('dialog').attributes('aria-labelledby')
-    expect(customLabelId).toBeTruthy()
-    expect(labelledCustomWrapper.get(`#${customLabelId}`).text()).toBe('作为名称的自定义头部')
-
-    defaultWrapper.unmount()
-    customWrapper.unmount()
-    labelledCustomWrapper.unmount()
+    warn.mockClear()
+    mount(ODialog, { props: { open: true }, slots: { header: '<h2>Missing id</h2>' } })
+    await flushDialog()
+    expect(warn).toHaveBeenCalledOnce()
   })
 
-  it('renders deterministic native dialog markup on the server', async () => {
-    const render = () =>
+  it('uses borderless motion, body scrolling, fullscreen, and reduced-motion rules', () => {
+    expect(dialogStyles).toMatch(/\.o-dialog\s*\{[^}]*--omg-dialog-inline-size:\s*520px/su)
+    expect(dialogStyles).toMatch(/\.o-dialog\s*\{[^}]*border:\s*0/su)
+    expect(dialogStyles).toMatch(/\.o-dialog\s*\{[^}]*box-shadow:\s*var\(--omg-shadow-dialog\)/su)
+    expect(dialogStyles).toContain("[data-state='opening']")
+    expect(dialogStyles).toContain("[data-state='open']")
+    expect(dialogStyles).toContain('@starting-style')
+    expect(dialogStyles).toContain('allow-discrete')
+    expect(dialogStyles).toContain('env(safe-area-inset-top)')
+    expect(dialogStyles).toContain('@media (width <= 480px)')
+    expect(dialogStyles).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(dialogStyles).toMatch(/\.o-dialog__body\s*\{[^}]*overflow:\s*auto/su)
+    expect(dialogSource).not.toContain('focusableSelector')
+    expect(dialogSource).not.toContain('@keydown')
+  })
+
+  it('renders lazy deterministic native markup on the server', async () => {
+    const closed = await renderToString(
+      createSSRApp({
+        render: () => h(ODialog, { title: 'Closed' }, () => 'Hidden content'),
+      }),
+    )
+    expect(closed).toContain('<dialog')
+    expect(closed).not.toContain('Hidden content')
+
+    const renderOpen = () =>
       renderToString(
         createSSRApp({
-          render: () => h(ODialog, { open: true, title: '收到文本' }, () => '正文内容'),
+          render: () =>
+            h(ODialog, { open: true, title: 'Open', width: 640 }, () => 'Visible content'),
         }),
       )
-    const first = await render()
-    const second = await render()
-
-    expect(first).toContain('<dialog')
-    expect(first).toContain('class="o-dialog"')
-    expect(first).toContain('正文内容')
-    expect(first).not.toContain('open')
-    expect(first).not.toContain('teleport')
+    const first = await renderOpen()
+    const second = await renderOpen()
+    expect(first).toContain('Visible content')
+    expect(first).toContain('--omg-dialog-inline-size:640px')
+    expect(first).not.toMatch(/<dialog[^>]*\sopen(?:\s|>)/u)
     expect(first.match(/aria-labelledby="([^"]+)"/u)?.[1]).toBe(
       second.match(/aria-labelledby="([^"]+)"/u)?.[1],
     )

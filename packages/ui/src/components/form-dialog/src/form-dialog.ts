@@ -1,8 +1,9 @@
-import { oDialogProps } from '../../dialog'
+import { oDialogCommonProps } from '../../dialog'
+import type { ODialogCloseReason, ODialogCloseRequest } from '../../dialog'
 import type { ExtractPublicPropTypes, VNodeChild } from 'vue'
 
 export const oFormDialogProps = {
-  ...oDialogProps,
+  ...oDialogCommonProps,
   submitLabel: {
     type: String,
     default: 'Submit',
@@ -25,6 +26,9 @@ export type OFormDialogProps = ExtractPublicPropTypes<typeof oFormDialogProps>
 
 export interface OFormDialogEmits {
   'update:open': [open: boolean]
+  'request-close': [request: ODialogCloseRequest]
+  close: [reason: ODialogCloseReason]
+  closed: [reason: ODialogCloseReason]
   submit: [event: SubmitEvent]
   cancel: [event: MouseEvent]
 }

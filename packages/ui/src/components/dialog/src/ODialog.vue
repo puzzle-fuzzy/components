@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import { LuX } from 'vue-icons-plus/lu'
-import { computed, nextTick, onMounted, shallowRef, useId, watch } from 'vue'
+import { computed, nextTick, onMounted, shallowRef, useId, watch, type CSSProperties } from 'vue'
 
-import { oDialogProps, type ODialogEmits, type ODialogSlots } from './dialog'
+import {
+  normalizeODialogWidth,
+  oDialogProps,
+  type ODialogCloseReason,
+  type ODialogCloseRequest,
+  type ODialogEmits,
+  type ODialogSlotProps,
+  type ODialogSlots,
+} from './dialog'
 
 defineOptions({
   name: 'ODialog',
@@ -13,102 +21,228 @@ const props = defineProps(oDialogProps)
 const emit = defineEmits<ODialogEmits>()
 const slots = defineSlots<ODialogSlots>()
 
+type DialogPhase = 'closed' | 'opening' | 'open' | 'closing'
+
 const dialogElement = shallowRef<HTMLDialogElement | null>(null)
+const phase = shallowRef<DialogPhase>('closed')
+const rendered = shallowRef(props.open)
+const pendingReason = shallowRef<ODialogCloseReason>()
 const instanceId = useId()
 const titleId = `o-dialog-${instanceId}-title`
 const descriptionId = `o-dialog-${instanceId}-description`
-const focusableSelector = [
-  'a[href]',
-  'button:not([disabled])',
-  'input:not([disabled]):not([type="hidden"])',
-  'select:not([disabled])',
-  'textarea:not([disabled])',
-  '[contenteditable]:not([contenteditable="false"])',
-  '[tabindex]:not([tabindex="-1"])',
-].join(',')
+
+let transitionGeneration = 0
+let internalNativeClose = false
+let pointerDownOutside = false
+let warnedAboutName = false
 
 const labelledBy = computed(() => {
   if (props.ariaLabel) return undefined
-  return props.title || slots.header ? titleId : undefined
+  return props.title || slots.title || slots.header ? titleId : undefined
 })
-const describedBy = computed(() => (props.description && !slots.header ? descriptionId : undefined))
+const describedBy = computed(() =>
+  !slots.header && (props.description || slots.description) ? descriptionId : undefined,
+)
+const dialogStyle = computed<CSSProperties & Record<'--omg-dialog-inline-size', string>>(() => ({
+  '--omg-dialog-inline-size': normalizeODialogWidth(props.width),
+}))
 
-const requestClose = (): void => {
-  emit('update:open', false)
-  emit('close')
+const slotProps: ODialogSlotProps = {
+  close: () => requestClose('slot'),
+  titleId,
+  descriptionId,
 }
 
-const syncOpenState = (): void => {
-  const dialog = dialogElement.value
-  if (!dialog) return
+const warnAboutAccessibleName = async (): Promise<void> => {
+  if (!import.meta.env.DEV || warnedAboutName) return
+  await nextTick()
 
-  if (props.open) {
-    if (!dialog.open) dialog.showModal()
+  const hasSource = Boolean(props.ariaLabel || props.title || slots.title || slots.header)
+  const customHeaderTarget = slots.header ? document.getElementById(titleId) : undefined
+  const customHeaderIsNamed =
+    !slots.header ||
+    Boolean(customHeaderTarget && dialogElement.value?.contains(customHeaderTarget))
+
+  if (hasSource && customHeaderIsNamed) return
+  warnedAboutName = true
+  console.warn('[OMG UI][ODialog] Provide ariaLabel, title, a title slot, or titleId in header.')
+}
+
+const focusInitialTarget = (dialog: HTMLDialogElement): void => {
+  let target: HTMLElement | null = null
+
+  if (props.initialFocus) {
+    try {
+      target = dialog.querySelector<HTMLElement>(props.initialFocus)
+    } catch {
+      target = null
+    }
+  }
+
+  if (!target || !dialog.contains(target)) {
+    target = dialog.querySelector<HTMLElement>('[autofocus]')
+  }
+
+  target?.focus()
+}
+
+const waitForOwnMotion = async (dialog: HTMLDialogElement): Promise<void> => {
+  await nextTick()
+  await new Promise<void>((resolve) => {
+    if (typeof requestAnimationFrame === 'undefined') {
+      resolve()
+      return
+    }
+    requestAnimationFrame(() => resolve())
+  })
+
+  const animations = dialog.getAnimations?.().filter(({ effect }) => {
+    if (typeof KeyframeEffect === 'undefined' || !(effect instanceof KeyframeEffect)) return false
+    return effect.target === dialog
+  })
+  await Promise.allSettled((animations ?? []).map(({ finished }) => finished))
+}
+
+const beginOpen = async (): Promise<void> => {
+  const dialog = dialogElement.value
+  if (!dialog || !props.open) return
+
+  const generation = ++transitionGeneration
+  rendered.value = true
+  phase.value = 'opening'
+  await nextTick()
+  if (generation !== transitionGeneration || !props.open) return
+
+  if (!dialog.open) dialog.showModal()
+  emit('open')
+  focusInitialTarget(dialog)
+  void warnAboutAccessibleName()
+  await waitForOwnMotion(dialog)
+
+  if (generation !== transitionGeneration || !props.open) return
+  phase.value = 'open'
+  emit('opened')
+}
+
+const beginClose = async (): Promise<void> => {
+  const dialog = dialogElement.value
+  if (!dialog || props.open) return
+
+  if (!dialog.open) {
+    phase.value = 'closed'
+    if (props.destroyOnClose) rendered.value = false
     return
   }
 
-  if (dialog.open) dialog.close()
+  const generation = ++transitionGeneration
+  const reason = pendingReason.value ?? 'programmatic'
+  pendingReason.value = undefined
+  phase.value = 'closing'
+  emit('close', reason)
+  await waitForOwnMotion(dialog)
+
+  if (generation !== transitionGeneration || props.open) return
+  internalNativeClose = true
+  dialog.close()
+  internalNativeClose = false
+  phase.value = 'closed'
+  if (props.destroyOnClose) rendered.value = false
+  await nextTick()
+
+  if (generation !== transitionGeneration || props.open) return
+  emit('closed', reason)
 }
 
-const handleCancel = (event: Event): void => {
-  event.preventDefault()
-  if (props.closeOnEsc) requestClose()
+function requestClose(
+  reason: Exclude<ODialogCloseReason, 'programmatic'>,
+  originalEvent?: Event,
+): void {
+  if (!props.open || phase.value === 'closing' || pendingReason.value !== undefined) return
+
+  const request: ODialogCloseRequest = originalEvent ? { reason, originalEvent } : { reason }
+  pendingReason.value = reason
+  // eslint-disable-next-line vue/custom-event-name-casing -- Public Vue events use template kebab-case.
+  emit('request-close', request)
+  emit('update:open', false)
+
+  void nextTick(() => {
+    if (props.open && pendingReason.value === reason) pendingReason.value = undefined
+  })
 }
 
-const handleBackdropClick = (event: MouseEvent): void => {
-  if (!props.closeOnMask || event.target !== event.currentTarget) return
-
+const isOutsideSurface = (event: PointerEvent): boolean => {
   const dialog = dialogElement.value
-  if (!dialog) return
-
+  if (!dialog || event.target !== event.currentTarget) return false
   const bounds = dialog.getBoundingClientRect()
-  const outsideSurface =
+  return (
     event.clientX < bounds.left ||
     event.clientX > bounds.right ||
     event.clientY < bounds.top ||
     event.clientY > bounds.bottom
-
-  if (outsideSurface) requestClose()
+  )
 }
 
-const handleKeydown = (event: KeyboardEvent): void => {
-  if (event.key !== 'Tab') return
+const handlePointerDown = (event: PointerEvent): void => {
+  pointerDownOutside = isOutsideSurface(event)
+}
 
-  const dialog = dialogElement.value
-  if (!dialog) return
+const handlePointerUp = (event: PointerEvent): void => {
+  const shouldRequest = pointerDownOutside && isOutsideSurface(event)
+  pointerDownOutside = false
+  if (props.closeOnMask && shouldRequest) requestClose('mask', event)
+}
 
-  const focusableElements = Array.from(
-    dialog.querySelectorAll<HTMLElement>(focusableSelector),
-  ).filter((element) => !element.hidden && !element.closest('[inert]'))
-  const firstElement = focusableElements[0]
-  const lastElement = focusableElements.at(-1)
-  if (!firstElement || !lastElement) return
-
-  const activeElement = document.activeElement
-  if (event.shiftKey && (activeElement === firstElement || !dialog.contains(activeElement))) {
-    event.preventDefault()
-    lastElement.focus()
-    return
-  }
-
-  if (!event.shiftKey && activeElement === lastElement) {
-    event.preventDefault()
-    firstElement.focus()
-  }
+const handleCancel = (event: Event): void => {
+  event.preventDefault()
+  if (props.closeOnEsc) requestClose('escape', event)
 }
 
 const handleNativeClose = (): void => {
-  if (!props.open) return
+  if (internalNativeClose || !props.open) return
 
-  requestClose()
-  void nextTick(syncOpenState)
+  if (pendingReason.value !== undefined) {
+    void nextTick(() => {
+      if (props.open) void beginOpen()
+    })
+    return
+  }
+
+  ++transitionGeneration
+  pendingReason.value = 'native'
+  // eslint-disable-next-line vue/custom-event-name-casing -- Public Vue events use template kebab-case.
+  emit('request-close', { reason: 'native' })
+  emit('update:open', false)
+
+  void nextTick(async () => {
+    if (props.open) {
+      pendingReason.value = undefined
+      await beginOpen()
+      return
+    }
+
+    const generation = ++transitionGeneration
+    pendingReason.value = undefined
+    phase.value = 'closing'
+    emit('close', 'native')
+    phase.value = 'closed'
+    if (props.destroyOnClose) rendered.value = false
+    await nextTick()
+    if (generation !== transitionGeneration || props.open) return
+    emit('closed', 'native')
+  })
 }
 
-onMounted(syncOpenState)
+onMounted(() => {
+  void warnAboutAccessibleName()
+  if (props.open) void beginOpen()
+})
 
 watch(
   () => props.open,
-  () => syncOpenState(),
+  (open) => {
+    if (open) void beginOpen()
+    else void beginClose()
+  },
   { flush: 'post' },
 )
 </script>
@@ -118,52 +252,69 @@ watch(
     v-bind="$attrs"
     ref="dialogElement"
     class="o-dialog"
+    :class="{ 'o-dialog--fullscreen': props.fullscreen }"
+    :data-state="phase"
+    :style="dialogStyle"
     :aria-label="labelledBy ? undefined : props.ariaLabel"
     :aria-labelledby="labelledBy"
     :aria-describedby="describedBy"
     @cancel="handleCancel"
-    @click="handleBackdropClick"
     @close="handleNativeClose"
-    @keydown="handleKeydown"
+    @pointerdown="handlePointerDown"
+    @pointerup="handlePointerUp"
   >
-    <header
-      v-if="props.title || slots.header || props.description || props.showClose"
-      class="o-dialog__header"
-    >
-      <div :id="slots.header ? titleId : undefined" class="o-dialog__header-content">
-        <slot name="header">
-          <div
-            v-if="props.title"
-            :id="titleId"
-            class="o-dialog__title"
-            role="heading"
-            aria-level="2"
-          >
-            {{ props.title }}
-          </div>
-          <p v-if="props.description" :id="descriptionId" class="o-dialog__description">
-            {{ props.description }}
-          </p>
-        </slot>
+    <template v-if="rendered">
+      <header
+        v-if="
+          props.title ||
+          slots.title ||
+          slots.header ||
+          props.description ||
+          slots.description ||
+          props.showClose
+        "
+        class="o-dialog__header"
+      >
+        <div class="o-dialog__header-content">
+          <slot v-if="slots.header" name="header" v-bind="slotProps" />
+          <template v-else>
+            <div
+              v-if="props.title || slots.title"
+              :id="titleId"
+              class="o-dialog__title"
+              role="heading"
+              aria-level="2"
+            >
+              <slot name="title" v-bind="slotProps">{{ props.title }}</slot>
+            </div>
+            <p
+              v-if="props.description || slots.description"
+              :id="descriptionId"
+              class="o-dialog__description"
+            >
+              <slot name="description" v-bind="slotProps">{{ props.description }}</slot>
+            </p>
+          </template>
+        </div>
+
+        <button
+          v-if="props.showClose"
+          class="o-dialog__close"
+          type="button"
+          :aria-label="props.closeAriaLabel"
+          @click="requestClose('close-button', $event)"
+        >
+          <slot name="closeIcon"><LuX aria-hidden="true" /></slot>
+        </button>
+      </header>
+
+      <div class="o-dialog__body">
+        <slot v-bind="slotProps" />
       </div>
 
-      <button
-        v-if="props.showClose"
-        class="o-dialog__close"
-        type="button"
-        :aria-label="props.closeAriaLabel"
-        @click="requestClose"
-      >
-        <LuX aria-hidden="true" />
-      </button>
-    </header>
-
-    <div class="o-dialog__body">
-      <slot />
-    </div>
-
-    <footer v-if="slots.footer" class="o-dialog__footer">
-      <slot name="footer" />
-    </footer>
+      <footer v-if="slots.footer" class="o-dialog__footer">
+        <slot name="footer" v-bind="slotProps" />
+      </footer>
+    </template>
   </dialog>
 </template>

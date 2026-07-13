@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import { createSSRApp, h, nextTick } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { ODialogCloseRequest } from '../../dialog'
 import {
   OFormDialog,
   oFormDialogProps,
@@ -10,6 +11,13 @@ import {
   type OFormDialogProps,
   type OFormDialogSlots,
 } from '../index'
+
+const flushDialog = async (): Promise<void> => {
+  for (let index = 0; index < 6; index += 1) {
+    await nextTick()
+    await Promise.resolve()
+  }
+}
 
 const showModal = vi.fn(function (this: HTMLDialogElement): void {
   this.setAttribute('open', '')
@@ -32,9 +40,14 @@ beforeEach(() => {
     configurable: true,
     value: closeDialog,
   })
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    callback(0)
+    return 1
+  })
 })
 
 afterEach(() => {
+  vi.unstubAllGlobals()
   if (showModalDescriptor) {
     Object.defineProperty(HTMLDialogElement.prototype, 'showModal', showModalDescriptor)
   } else {
@@ -65,6 +78,9 @@ describe('OFormDialog', () => {
     }
     const publicEmits: OFormDialogEmits = {
       'update:open': [false],
+      'request-close': [{ reason: 'slot' }],
+      close: ['slot'],
+      closed: ['slot'],
       submit: [new SubmitEvent('submit')],
       cancel: [new MouseEvent('click')],
     }
@@ -75,6 +91,10 @@ describe('OFormDialog', () => {
     expect(oFormDialogProps.open.default).toBe(false)
     expect(oFormDialogProps.submitLabel.default).toBe('Submit')
     expect(oFormDialogProps.cancelLabel.default).toBe('Cancel')
+    expect('width' in oFormDialogProps).toBe(false)
+    expect('fullscreen' in oFormDialogProps).toBe(false)
+    expect('destroyOnClose' in oFormDialogProps).toBe(false)
+    expect('initialFocus' in oFormDialogProps).toBe(false)
     expect(publicProps.submitDisabled).toBe(true)
     expect(publicEmits.submit[0]).toBeInstanceOf(SubmitEvent)
     expect(publicSlots.default).toBeTypeOf('function')
@@ -86,7 +106,7 @@ describe('OFormDialog', () => {
       props: { open: true, title: '编辑资料', submitLabel: '保存' },
       slots: { default: '<input name="displayName" />' },
     })
-    await nextTick()
+    await flushDialog()
 
     const form = wrapper.get<HTMLFormElement>('form.o-form-dialog__form')
     const submit = wrapper.get<HTMLButtonElement>('.o-form-dialog__submit')
@@ -146,12 +166,18 @@ describe('OFormDialog', () => {
     wrapper.unmount()
   })
 
-  it('requests cancellation while preserving a rejected controlled close', async () => {
+  it('emits cancellation before requesting a slot close and preserves rejection', async () => {
+    const events: string[] = []
     const wrapper = mount(OFormDialog, {
       attachTo: document.body,
-      props: { open: true, title: '编辑资料' },
+      props: {
+        open: true,
+        title: '编辑资料',
+        onCancel: () => events.push('cancel'),
+        onRequestClose: ({ reason }: ODialogCloseRequest) => events.push(`request:${reason}`),
+      },
     })
-    await nextTick()
+    await flushDialog()
 
     const dialog = wrapper.get<HTMLDialogElement>('dialog')
     const cancel = wrapper.get<HTMLButtonElement>('.o-form-dialog__cancel')
@@ -159,8 +185,11 @@ describe('OFormDialog', () => {
 
     await cancel.trigger('click')
 
+    expect(events).toEqual(['cancel', 'request:slot'])
     expect(wrapper.emitted('cancel')).toEqual([[expect.any(MouseEvent)]])
+    expect(wrapper.emitted('request-close')?.[0]?.[0]).toMatchObject({ reason: 'slot' })
     expect(wrapper.emitted('update:open')).toEqual([[false]])
+    expect(wrapper.emitted('close')).toBeUndefined()
     expect(dialog.element.open).toBe(true)
 
     wrapper.unmount()
