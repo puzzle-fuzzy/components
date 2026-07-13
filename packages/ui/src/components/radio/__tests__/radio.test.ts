@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { createSSRApp, defineComponent, h, nextTick, ref } from 'vue'
 import { renderToString } from '@vue/server-renderer'
 import { mount } from '@vue/test-utils'
@@ -18,6 +21,11 @@ import {
   type ORadioValue,
 } from '../index'
 
+const styleSource = readFileSync(
+  resolve('packages/ui/src/components/radio/style/index.less'),
+  'utf8',
+)
+
 const renderGroup = (modelValue: ORadioValue = 'email') =>
   h(
     ORadioGroup,
@@ -31,6 +39,36 @@ const renderGroup = (modelValue: ORadioValue = 'email') =>
   )
 
 describe('ORadio and ORadioGroup', () => {
+  it('uses compact geometry and accessible state-layer feedback', () => {
+    expect(styleSource).toContain('--omg-radio-accent: var(--omg-color-brand)')
+    expect(styleSource).toContain('--omg-radio-state-layer: var(--omg-color-brand-soft)')
+    expect(styleSource).toMatch(
+      /&--horizontal\s*\{[^}]*gap:\s*var\(--omg-space-2\) var\(--omg-space-4\)/su,
+    )
+    expect(styleSource).toMatch(
+      /&__indicator\s*\{[^}]*inline-size:\s*20px[^}]*block-size:\s*20px[^}]*border:\s*2px solid/su,
+    )
+    expect(styleSource).toMatch(
+      /\.o-radio__indicator::before\s*\{[^}]*inline-size:\s*36px[^}]*block-size:\s*36px[^}]*opacity:\s*var\(--omg-radio-state-opacity, 0\)/su,
+    )
+    expect(styleSource).toMatch(
+      /&__dot\s*\{[^}]*inline-size:\s*10px[^}]*block-size:\s*10px[^}]*background:\s*var\(--omg-radio-accent\)/su,
+    )
+    expect(styleSource).toMatch(
+      /&__label\s*\{[^}]*min-block-size:\s*var\(--omg-control-height-sm\)/su,
+    )
+    expect(styleSource).toMatch(
+      /&\.is-invalid\s*\{[^}]*--omg-radio-accent:\s*var\(--omg-color-danger\)[^}]*--omg-radio-state-layer:\s*var\(--omg-color-danger-soft\)/su,
+    )
+    expect(styleSource).toContain('&__input:focus-visible + &__label')
+    expect(styleSource).toContain('&:not(.is-disabled) &__label:active')
+    expect(styleSource).toContain('.o-radio:not(.is-disabled):hover')
+    expect(styleSource).toContain('@media (pointer: coarse)')
+    expect(styleSource).toContain('min-block-size: 44px')
+    expect(styleSource).toContain('@media (forced-colors: active)')
+    expect(styleSource).toContain('@media (prefers-reduced-motion: reduce)')
+  })
+
   it('keeps public vocabularies and types stable', () => {
     const radioProps: ORadioProps = {
       modelValue: 'one',

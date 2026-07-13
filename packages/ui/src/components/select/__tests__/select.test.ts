@@ -646,8 +646,11 @@ describe('OSelect behavior', () => {
 
 describe('OSelect styles', () => {
   it('keeps clear and indicator inside one stable trailing rail', () => {
-    expect(selectStyles).toContain('--omg-select-rail-size: 32px')
-    expect(selectStyles).toContain('padding-inline: var(--omg-space-3) 32px')
+    expect(selectStyles).toContain('--omg-select-rail-size: 28px')
+    expect(selectStyles).toContain('padding-inline: var(--omg-space-3) var(--omg-select-rail-size)')
+    expect(selectStyles).toContain(
+      'inset-inline-end: calc((var(--omg-select-rail-size) - 24px) / 2)',
+    )
     expect(selectStyles).toContain('inline-size: 24px')
     expect(selectStyles).toContain('block-size: 24px')
     expect(selectStyles).toContain('font-size: var(--omg-font-size-md)')

@@ -13,6 +13,7 @@
   --omg-button-shadow: var(--omg-shadow-sm);
   --omg-button-height: var(--omg-control-height-md);
   --omg-button-font-size: var(--omg-font-size-md);
+  --omg-button-icon-size: var(--omg-space-4);
   --omg-button-gap: var(--omg-space-2);
   --omg-button-padding-block: var(--omg-space-2);
   --omg-button-padding-inline: var(--omg-space-4);
@@ -23,7 +24,7 @@
   --omg-button-focus-ring-width: 3px;
   --omg-button-focus-ring-offset: 2px;
   --omg-button-active-offset: 1px;
-  --omg-button-spinner-size: 1em;
+  --omg-button-spinner-size: var(--omg-button-icon-size);
   --omg-button-spinner-duration: calc(var(--omg-duration-fast) * 4);
 
   position: relative;
@@ -158,6 +159,7 @@
   &--lg {
     --omg-button-height: var(--omg-control-height-lg);
     --omg-button-font-size: var(--omg-font-size-md);
+    --omg-button-icon-size: 18px;
     --omg-button-gap: var(--omg-space-2);
     --omg-button-padding-block: var(--omg-space-3);
     --omg-button-padding-inline: var(--omg-space-5);
@@ -178,6 +180,17 @@
   &__icon,
   &__spinner {
     flex: none;
+  }
+
+  &__icon {
+    inline-size: var(--omg-button-icon-size);
+    block-size: var(--omg-button-icon-size);
+  }
+
+  &__icon > svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
   }
 
   &__spinner {

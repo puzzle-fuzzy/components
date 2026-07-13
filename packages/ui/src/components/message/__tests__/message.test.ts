@@ -158,6 +158,41 @@ describe('OMessage', () => {
     expect(componentSource).toContain('LuXCircle')
     expect(componentSource).toContain('LuX')
     expect(styles).toMatch(/\.o-message\s*\{[^}]*border:\s*0/su)
+    expect(styles).toMatch(
+      /\.o-message\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*auto minmax\(0,\s*1fr\) auto;/su,
+    )
+    expect(styles).toContain('--omg-message-accent: var(--omg-color-brand)')
+    expect(styles).toContain('--omg-message-icon-background: var(--omg-color-brand-soft)')
+    expect(styles).toMatch(
+      /\.o-message__icon\s*\{[^}]*inline-size:\s*28px;[^}]*block-size:\s*28px;/su,
+    )
+    expect(styles).toMatch(
+      /\.o-message__icon\s*>\s*svg\s*\{[^}]*inline-size:\s*var\(--omg-space-4\);[^}]*block-size:\s*var\(--omg-space-4\);/su,
+    )
+    expect(styles).toMatch(
+      /\.o-message__content\s*\{[^}]*display:\s*grid;[^}]*min-block-size:\s*28px;[^}]*align-content:\s*center;[^}]*gap:\s*var\(--omg-space-1\);/su,
+    )
+    expect(styles).toMatch(
+      /\.o-message__close\s*\{[^}]*inline-size:\s*var\(--omg-space-6\);[^}]*block-size:\s*var\(--omg-space-6\);/su,
+    )
+    expect(styles).toMatch(
+      /\.o-message__close\s*>\s*svg\s*\{[^}]*inline-size:\s*var\(--omg-space-4\);[^}]*block-size:\s*var\(--omg-space-4\);/su,
+    )
+    expect(styles).toMatch(
+      /\.o-message--info\s*\{[^}]*--omg-message-accent:\s*var\(--omg-color-brand\);[^}]*--omg-message-icon-background:\s*var\(--omg-color-brand-soft\);/su,
+    )
+    expect(styles).toMatch(
+      /\.o-message--success\s*\{[^}]*--omg-message-accent:\s*var\(--omg-color-success\);[^}]*--omg-message-icon-background:\s*var\(--omg-color-success-soft\);/su,
+    )
+    expect(styles).toMatch(
+      /\.o-message--warning\s*\{[^}]*--omg-message-accent:\s*var\(--omg-color-warning\);[^}]*--omg-message-icon-background:\s*var\(--omg-color-warning-soft\);/su,
+    )
+    expect(styles).toMatch(
+      /\.o-message--error\s*\{[^}]*--omg-message-accent:\s*var\(--omg-color-danger\);[^}]*--omg-message-icon-background:\s*var\(--omg-color-danger-soft\);/su,
+    )
+    expect(styles).toMatch(
+      /@media\s*\(pointer:\s*coarse\)\s*\{[\s\S]*\.o-message__close::before\s*\{[^}]*inline-size:\s*44px;[^}]*block-size:\s*44px;/su,
+    )
     expect(styles).toMatch(/\.o-message-enter-from\s*\{[^}]*opacity:\s*0[^}]*translateX\(/su)
     expect(styles).toMatch(/\.o-message-leave-to\s*\{[^}]*opacity:\s*0[^}]*scale\(0\.9\)/su)
     expect(styles).not.toMatch(/\.o-message-leave-to\s*\{[^}]*translateX\(/su)

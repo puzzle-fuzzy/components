@@ -12,7 +12,7 @@ import DropdownBasic from '../../examples/dropdown/Basic.vue'
   <DropdownBasic />
 </DemoBlock>
 
-菜单默认使用 Teleport 挂载到 `body`，并在可视区域内自动翻转和偏移，因此不会被普通 `overflow` 容器裁剪。组件会把 trigger 的 OMG tokens、排版、主题、语言和书写方向同步到浮层；原生 dialog 等 top-layer 场景再通过挂载 props 显式调整。
+菜单默认使用 Teleport 挂载到 `body`，宽度至少与触发器一致，并在可视区域内自动翻转和偏移，因此不会被普通 `overflow` 容器裁剪。带指示图标的触发器使用紧凑的逻辑尾部轨道，LTR 与 RTL 下都不会产生偏大的右侧留白。组件会把 trigger 的 OMG tokens、排版、主题、语言和书写方向同步到浮层；原生 dialog 等 top-layer 场景再通过挂载 props 显式调整。
 
 ## 导入
 

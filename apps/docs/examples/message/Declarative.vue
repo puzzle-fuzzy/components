@@ -19,21 +19,18 @@ const restoreDeclarativeMessage = (): void => {
 
 <template>
   <div class="omg-message-surfaces">
-    <OMessage message="这是一条普通提示" status="info" />
     <OMessage message="内容已经保存" status="success" />
-    <OMessage message="请检查当前输入" status="warning" />
-    <OMessage message="暂时无法完成操作" status="error" />
 
     <OMessage status="info">
       <template #icon><LuBell aria-hidden="true" /></template>
-      <strong>自定义消息内容</strong>
-      <span>图标和正文均由插槽提供。</span>
+      <strong>新的协作消息</strong>
+      <span class="omg-message-surfaces-secondary">图标和多行正文均由插槽提供。</span>
     </OMessage>
 
     <OMessage
       v-if="closableVisible"
       message="关闭事件由使用方决定是否移除这条消息"
-      status="success"
+      status="warning"
       closable
       close-aria-label="关闭声明式消息"
       @close="closeDeclarativeMessage"
@@ -42,8 +39,8 @@ const restoreDeclarativeMessage = (): void => {
 
     <OMessage
       class="omg-message-surfaces-long"
-      message="声明式消息同样支持较长内容，并会在有限宽度内自然换行，不挤压状态图标或关闭控件。"
-      status="info"
+      message="较长的声明式消息会在有限宽度内自然换行；左侧状态底片保持固定尺寸，正文仍拥有完整的可用空间。"
+      status="error"
     />
 
     <span class="omg-message-surfaces-feedback" aria-live="polite">{{ closeFeedback }}</span>
@@ -69,6 +66,11 @@ const restoreDeclarativeMessage = (): void => {
 }
 
 .omg-message-surfaces-feedback {
+  color: var(--omg-color-text-muted);
+  font-size: var(--omg-font-size-sm);
+}
+
+.omg-message-surfaces-secondary {
   color: var(--omg-color-text-muted);
   font-size: var(--omg-font-size-sm);
 }

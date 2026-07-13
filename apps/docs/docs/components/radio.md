@@ -8,9 +8,18 @@ import RadioBasic from '../../examples/radio/Basic.vue'
 
 ## 基础用法
 
-<DemoBlock label="Radio and radio group">
+<DemoBlock label="Radio states and radio group">
   <RadioBasic />
 </DemoBlock>
+
+示例同时展示横向与纵向排列、禁用项、错误状态、长标签和深色主题。标签文本可以自然换行且不会挤压 20px 指示器；每项在桌面端至少为 32px 高，粗指针设备会扩展到至少 44px。
+
+## 视觉状态
+
+- 默认指示器使用 20px 圆环、2px 边界和 10px 选中圆点。
+- Hover、按下和键盘焦点通过圆环周围的状态层反馈，不会把整项变成卡片。
+- `invalid` 会让圆环、圆点和状态层统一使用错误色，避免同一选项混用品牌色与错误色。
+- 高对比度模式使用系统颜色恢复圆环、选中圆点和焦点轮廓；减弱动效模式会移除圆点与状态层过渡。
 
 ## 导入
 

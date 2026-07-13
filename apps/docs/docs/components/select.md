@@ -6,7 +6,7 @@ import SelectBasic from '../../examples/select/Basic.vue'
 
 `OSelect` 是一个非可编辑的单选控件，提供清晰的选中状态、可选清除、浮层定位和完整键盘导航。大型选项集合会按阈值使用 `vue-virtual-scroller`，小型集合仍保留直接渲染路径。
 
-默认 `soft` 外观采用浅色表面和透明的 1px 预留边界，focus / 打开时才显示品牌边界与 brand-soft 焦点层；`outline` 适合需要常显边界的场景。触发器右侧始终只保留一个 32px 尾部轨道：有已选值时，桌面端 hover / focus 会用 24px 清除动作替换箭头而不移动文字，粗指针环境则提供真实 44px 命中区域。
+默认 `soft` 外观采用浅色表面和透明的 1px 预留边界，focus / 打开时才显示品牌边界与 brand-soft 焦点层；`outline` 适合需要常显边界的场景。触发器尾部始终只保留一个紧凑的 28px 逻辑轨道：有已选值时，桌面端 hover / focus 会用 24px 清除动作替换箭头而不移动文字，粗指针环境则提供真实 44px 命中区域。
 
 ## 基础用法
 

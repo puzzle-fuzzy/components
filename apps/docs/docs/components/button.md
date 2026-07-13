@@ -23,7 +23,7 @@ import ButtonVariants from '../../examples/button/Variants.vue'
 
 ## 图标按钮
 
-`icon-only` 复用普通按钮的尺寸、外观和状态。图标仍放在 `icon` slot；默认 slot 文本会在视觉上隐藏并作为可访问名称保留，也可以直接传入原生 `aria-label` 或 `aria-labelledby`。
+`icon-only` 复用普通按钮的尺寸、外观和状态。图标仍放在 `icon` slot；组件会把直接传入的 SVG 统一为 `sm / md` 16px、`lg` 18px，避免图标库默认的 24px 尺寸撑高按钮。默认 slot 文本会在视觉上隐藏并作为可访问名称保留，也可以直接传入原生 `aria-label` 或 `aria-labelledby`。
 
 <DemoBlock label="Icon-only buttons">
   <ButtonIconButtons />

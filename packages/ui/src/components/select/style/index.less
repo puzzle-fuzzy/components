@@ -2,7 +2,7 @@
 
 .o-select {
   --omg-select-height: var(--omg-control-height-md);
-  --omg-select-rail-size: 32px;
+  --omg-select-rail-size: 28px;
   --omg-select-disabled-opacity: 0.56;
   --omg-field-background: var(--omg-color-surface-muted);
   --omg-field-border-color: transparent;
@@ -49,7 +49,7 @@
     align-items: center;
     box-sizing: border-box;
     margin: 0;
-    padding-inline: var(--omg-space-3) 32px;
+    padding-inline: var(--omg-space-3) var(--omg-select-rail-size);
     border: 1px solid var(--omg-field-border-color);
     border-radius: var(--omg-radius-md);
     appearance: none;
@@ -127,7 +127,7 @@
   &__clear {
     position: absolute;
     inset-block-start: 50%;
-    inset-inline-end: var(--omg-space-1);
+    inset-inline-end: calc((var(--omg-select-rail-size) - 24px) / 2);
     display: grid;
     inline-size: 24px;
     block-size: 24px;

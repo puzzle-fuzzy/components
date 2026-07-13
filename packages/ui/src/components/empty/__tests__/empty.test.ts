@@ -130,6 +130,18 @@ describe('OEmpty', () => {
   it('uses a borderless responsive composition without handwritten SVG', () => {
     expect(emptySource).not.toMatch(/<svg(?:\s|>)/u)
     expect(emptyStyles).toMatch(/\.o-empty\s*\{[\s\S]*?border:\s*0;/u)
+    expect(emptyStyles).toMatch(/\.o-empty\s*\{[^}]*inline-size:\s*100%/su)
+    expect(emptyStyles).toContain('.o-empty__header > .o-empty__title')
+    expect(emptyStyles).toMatch(/\.o-empty__header\s*>\s*\.o-empty__title\s*\{[^}]*margin:\s*0;/su)
+    expect(emptyStyles).toMatch(
+      /\.o-empty__header\s*>\s*\.o-empty__title\s*\{[^}]*font-size:\s*var\(--omg-font-size-lg\);/su,
+    )
+    expect(emptyStyles).toMatch(
+      /\.o-empty__header\s*>\s*\.o-empty__title\s*\{[^}]*letter-spacing:\s*normal;/su,
+    )
+    expect(emptyStyles).toMatch(
+      /\.o-empty__header\s*>\s*\.o-empty__title\s*\{[^}]*line-height:\s*1\.3;/su,
+    )
     expect(emptyStyles).toContain('overflow-wrap: anywhere')
     expect(emptyStyles).toContain('@container o-empty')
     expect(emptyStyles).toContain('padding-inline')

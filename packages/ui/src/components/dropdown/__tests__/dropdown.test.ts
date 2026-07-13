@@ -481,12 +481,18 @@ describe('ODropdown', () => {
     })
 
     expect(wrapper.get('.o-dropdown__trigger').attributes('aria-label')).toBe('Account actions')
+    expect(wrapper.get('.o-dropdown__trigger').classes()).not.toContain(
+      'o-dropdown__trigger--with-indicator',
+    )
     expect(wrapper.find('.o-dropdown__indicator').exists()).toBe(false)
   })
 
   it('uses the standardized Lucide icon for its default indicator', () => {
     const wrapper = mountDropdown()
 
+    expect(wrapper.get('.o-dropdown__trigger').classes()).toContain(
+      'o-dropdown__trigger--with-indicator',
+    )
     expect(wrapper.find('.o-dropdown__indicator').exists()).toBe(true)
     expect(wrapper.get('.o-dropdown__indicator').attributes('aria-hidden')).toBe('true')
     expect(componentSource).toContain("from 'vue-icons-plus/lu'")
@@ -591,6 +597,21 @@ describe('ODropdown', () => {
     expect(panelStyles).not.toMatch(/^\s*border\s*:/mu)
     expect(panelStyles).toContain('background: var(--omg-color-surface)')
     expect(panelStyles).toContain('box-shadow: var(--omg-shadow-sm)')
+  })
+
+  it('uses a compact logical trailing rail and matches the menu to the trigger', () => {
+    expect(componentSource).toContain('matchReferenceWidth: true')
+    expect(componentStyles).toContain('--omg-dropdown-rail-size: 28px')
+    expect(componentStyles).toContain(
+      'padding-inline: var(--omg-space-3) var(--omg-dropdown-rail-size)',
+    )
+    expect(componentStyles).toContain(
+      'inset-inline-end: calc((var(--omg-dropdown-rail-size) - var(--omg-space-4)) / 2)',
+    )
+    expect(componentStyles).not.toContain('min-inline-size: 160px')
+    expect(componentStyles).toMatch(
+      /@media \(hover: none\), \(pointer: coarse\)[\s\S]*--omg-dropdown-rail-size:\s*44px/u,
+    )
   })
 
   it('keeps panel and chevron motion restrained and reduced-motion safe', () => {

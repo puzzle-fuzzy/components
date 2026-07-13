@@ -133,6 +133,17 @@ describe('OCard', () => {
   it('uses a borderless responsive surface without handwritten SVG', () => {
     expect(cardSource).not.toMatch(/<svg(?:\s|>)/u)
     expect(cardStyles).toMatch(/\.o-card\s*\{[\s\S]*?border:\s*0;/u)
+    expect(cardStyles).toContain('.o-card__copy > .o-card__title')
+    expect(cardStyles).toMatch(/\.o-card__copy\s*>\s*\.o-card__title\s*\{[^}]*margin:\s*0;/su)
+    expect(cardStyles).toMatch(
+      /\.o-card__copy\s*>\s*\.o-card__title\s*\{[^}]*font-size:\s*var\(--omg-font-size-lg\);/su,
+    )
+    expect(cardStyles).toMatch(
+      /\.o-card__copy\s*>\s*\.o-card__title\s*\{[^}]*letter-spacing:\s*normal;/su,
+    )
+    expect(cardStyles).toMatch(
+      /\.o-card__copy\s*>\s*\.o-card__title\s*\{[^}]*line-height:\s*1\.3;/su,
+    )
     expect(cardStyles).toContain('overflow-wrap: anywhere')
     expect(cardStyles).toContain('@container o-card')
     expect(cardStyles).toContain('padding-inline')

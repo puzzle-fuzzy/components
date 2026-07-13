@@ -44,6 +44,31 @@ const contrastRatio = (first: string, second: string): number => {
 const readCssColor = (locator: Locator, property: 'backgroundColor' | 'color' | 'outlineColor') =>
   locator.evaluate((element, name) => getComputedStyle(element)[name], property)
 
+const readVerticalCenterOffset = (locator: Locator, selector: string): Promise<number> =>
+  locator.evaluate((element, childSelector) => {
+    const child = element.querySelector(childSelector)
+    if (!(child instanceof HTMLElement || child instanceof SVGElement)) {
+      throw new Error(`Expected ${childSelector} inside the measured control`)
+    }
+
+    const controlBounds = element.getBoundingClientRect()
+    const childBounds = child.getBoundingClientRect()
+    return childBounds.top + childBounds.height / 2 - (controlBounds.top + controlBounds.height / 2)
+  }, selector)
+
+const readHeadingGeometry = (locator: Locator) =>
+  locator.evaluate((element) => {
+    const styles = getComputedStyle(element)
+    return {
+      fontSize: Number.parseFloat(styles.fontSize),
+      letterSpacing: styles.letterSpacing,
+      lineHeight: Number.parseFloat(styles.lineHeight),
+      marginBlockEnd: Number.parseFloat(styles.marginBlockEnd),
+      marginBlockStart: Number.parseFloat(styles.marginBlockStart),
+      tagName: element.tagName,
+    }
+  })
+
 const readSurfaceSnapshot = (locator: Locator) =>
   locator.evaluate((element) => {
     const styles = getComputedStyle(element)
@@ -406,24 +431,50 @@ test('keeps compact controls independent from VitePress typography', async ({ pa
   expect(contentSnapshot.lineHeight / contentSnapshot.fontSize).toBeCloseTo(1.5, 2)
 })
 
-test('keeps icon-only buttons square and accessibly named at every size', async ({ page }) => {
+test('keeps Button icon geometry and Chinese and English content vertically centered', async ({
+  page,
+}) => {
   await page.goto('/components/button')
 
   const demo = page.getByRole('region', { name: 'Icon-only buttons' })
-  for (const [name, expectedSize] of [
-    ['新建', 32],
-    ['设置', 38],
-    ['删除', 46],
+  for (const [name, expectedSize, expectedIconSize] of [
+    ['新建', 32, 16],
+    ['设置', 38, 16],
+    ['删除', 46, 18],
   ] as const) {
     const button = demo.getByRole('button', { name, exact: true })
-    const bounds = await button.boundingBox()
+    const [bounds, iconBounds] = await Promise.all([
+      button.boundingBox(),
+      button.locator('.o-button__icon svg').boundingBox(),
+    ])
 
     expect(bounds).not.toBeNull()
+    expect(iconBounds).not.toBeNull()
     expect(bounds?.width).toBe(expectedSize)
     expect(bounds?.height).toBe(expectedSize)
+    expect(iconBounds?.width).toBe(expectedIconSize)
+    expect(iconBounds?.height).toBe(expectedIconSize)
   }
 
   await expect(demo.getByRole('button', { name: '正在保存', exact: true })).toBeDisabled()
+
+  const englishButton = page.getByRole('button', { name: 'Solid', exact: true })
+  expect(
+    Math.abs(await readVerticalCenterOffset(englishButton, '.o-button__content')),
+  ).toBeLessThan(1)
+
+  await page.goto('/components/dialog')
+  const chineseButton = page.getByRole('button', { name: '打开基础弹窗', exact: true })
+  await expect(chineseButton).toHaveClass(/\bo-button\b/u)
+  await expect(chineseButton).toHaveCSS('height', '32px')
+  expect(
+    Math.abs(await readVerticalCenterOffset(chineseButton, '.o-button__content')),
+  ).toBeLessThan(1)
+  const dialogIconBounds = await chineseButton.locator('.o-button__icon svg').boundingBox()
+  expect(dialogIconBounds).not.toBeNull()
+  expect(dialogIconBounds?.width).toBe(16)
+  expect(dialogIconBounds?.height).toBe(16)
+
   await expectNoSeriousAccessibilityViolations(page)
 })
 
@@ -554,6 +605,30 @@ test('supports dropdown pointer and keyboard interactions', async ({ page }) => 
   await expect(menu).toHaveCSS('opacity', '1')
   await expect(menu).toHaveCSS('border-left-width', '0px')
   await expect(disabledItem).toBeDisabled()
+  const dropdownGeometry = await trigger.evaluate((element) => {
+    const styles = getComputedStyle(element)
+    const bounds = element.getBoundingClientRect()
+    const indicatorBounds = element.querySelector('.o-dropdown__indicator')?.getBoundingClientRect()
+    if (!indicatorBounds) throw new Error('Expected the Dropdown indicator')
+
+    return {
+      indicatorEndCenter:
+        bounds.right -
+        Number.parseFloat(styles.borderRightWidth) -
+        (indicatorBounds.left + indicatorBounds.width / 2),
+      paddingEnd: Number.parseFloat(styles.paddingInlineEnd),
+      paddingStart: Number.parseFloat(styles.paddingInlineStart),
+    }
+  })
+  expect(dropdownGeometry).toEqual({
+    indicatorEndCenter: 14,
+    paddingEnd: 28,
+    paddingStart: 12,
+  })
+  const [triggerBounds, menuBounds] = await Promise.all([trigger.boundingBox(), menu.boundingBox()])
+  expect(triggerBounds).not.toBeNull()
+  expect(menuBounds).not.toBeNull()
+  expect(menuBounds!.width).toBeGreaterThanOrEqual(triggerBounds!.width)
   await expectNoSeriousAccessibilityViolations(page, ['.omg-docs-demo', '.o-dropdown__panel'])
 
   await trigger.press('ArrowDown')
@@ -577,6 +652,49 @@ test('supports dropdown pointer and keyboard interactions', async ({ page }) => 
   await page.keyboard.press('Escape')
   await expect(trigger).toHaveAttribute('aria-expanded', 'false')
   await expect(trigger).toBeFocused()
+
+  const emptyTrigger = page.getByRole('button', { name: '打开空菜单', exact: true })
+  await emptyTrigger.click()
+  const emptyMenu = page.getByRole('menu', { name: '打开空菜单' })
+  await expect(emptyMenu).toBeVisible()
+  await waitForAnimations(emptyMenu)
+  const [emptyTriggerBounds, emptyMenuBounds] = await Promise.all([
+    emptyTrigger.boundingBox(),
+    emptyMenu.boundingBox(),
+  ])
+  expect(emptyTriggerBounds).not.toBeNull()
+  expect(emptyMenuBounds).not.toBeNull()
+  expect(emptyMenuBounds!.width).toBeGreaterThanOrEqual(emptyTriggerBounds!.width)
+  expect(emptyMenuBounds!.width).toBeLessThan(160)
+  await page.keyboard.press('Escape')
+
+  const dropdown = trigger.locator('..')
+  await dropdown.evaluate((element) => {
+    element.setAttribute('dir', 'rtl')
+  })
+  const rtlGeometry = await trigger.evaluate((element) => {
+    const styles = getComputedStyle(element)
+    const bounds = element.getBoundingClientRect()
+    const indicatorBounds = element.querySelector('.o-dropdown__indicator')?.getBoundingClientRect()
+    if (!indicatorBounds) throw new Error('Expected the RTL Dropdown indicator')
+
+    return {
+      direction: styles.direction,
+      indicatorEndCenter:
+        indicatorBounds.left +
+        indicatorBounds.width / 2 -
+        bounds.left -
+        Number.parseFloat(styles.borderLeftWidth),
+      paddingEnd: Number.parseFloat(styles.paddingInlineEnd),
+      paddingStart: Number.parseFloat(styles.paddingInlineStart),
+    }
+  })
+  expect(rtlGeometry).toEqual({
+    direction: 'rtl',
+    indicatorEndCenter: 14,
+    paddingEnd: 28,
+    paddingStart: 12,
+  })
 })
 
 for (const openingCase of [
@@ -764,7 +882,13 @@ test('keeps Select text and one trailing action rail balanced', async ({ page })
       const styles = getComputedStyle(element)
       const triggerBounds = element.getBoundingClientRect()
       const valueBounds = element.querySelector('.o-select__value')?.getBoundingClientRect()
-      if (!valueBounds) throw new Error('Expected the selected Select value')
+      const indicatorBounds = element
+        .closest('.o-select')
+        ?.querySelector('.o-select__indicator')
+        ?.getBoundingClientRect()
+      if (!valueBounds || !indicatorBounds) {
+        throw new Error('Expected the selected Select value and indicator')
+      }
 
       const isRtl = styles.direction === 'rtl'
       const borderStart = Number.parseFloat(
@@ -775,6 +899,9 @@ test('keeps Select text and one trailing action rail balanced', async ({ page })
         : valueBounds.left - triggerBounds.left - borderStart
 
       return {
+        indicatorEndCenter: isRtl
+          ? indicatorBounds.left + indicatorBounds.width / 2 - triggerBounds.left
+          : triggerBounds.right - (indicatorBounds.left + indicatorBounds.width / 2),
         paddingEnd: Number.parseFloat(styles.paddingInlineEnd),
         paddingStart: Number.parseFloat(styles.paddingInlineStart),
         textStart,
@@ -785,7 +912,8 @@ test('keeps Select text and one trailing action rail balanced', async ({ page })
 
   const restGeometry = await readTriggerGeometry()
   expect(restGeometry.paddingStart).toBe(12)
-  expect(restGeometry.paddingEnd).toBe(32)
+  expect(restGeometry.paddingEnd).toBe(28)
+  expect(restGeometry.indicatorEndCenter).toBe(14)
   expect(restGeometry.textStart).toBeCloseTo(12, 1)
   expect(
     await select.evaluate((element) => {
@@ -802,16 +930,23 @@ test('keeps Select text and one trailing action rail balanced', async ({ page })
   await expect(clear).toHaveCSS('opacity', '1')
   await expect(indicator).toHaveCSS('opacity', '0')
   const hoverGeometry = await readTriggerGeometry()
-  expect(hoverGeometry.paddingEnd).toBe(32)
+  expect(hoverGeometry.paddingEnd).toBe(28)
   expect(hoverGeometry.valueLeft).toBeCloseTo(restGeometry.valueLeft, 2)
   expect(hoverGeometry.valueWidth).toBeCloseTo(restGeometry.valueWidth, 2)
+  const clearBounds = await clear.boundingBox()
+  const triggerHoverBounds = await trigger.boundingBox()
+  expect(clearBounds).not.toBeNull()
+  expect(triggerHoverBounds).not.toBeNull()
+  expect(
+    triggerHoverBounds!.x + triggerHoverBounds!.width - (clearBounds!.x + clearBounds!.width / 2),
+  ).toBeCloseTo(14, 1)
 
   await page.mouse.move(0, 0)
   await trigger.focus()
   await expect(clear).toHaveCSS('opacity', '1')
   await expect(indicator).toHaveCSS('opacity', '0')
   const focusGeometry = await readTriggerGeometry()
-  expect(focusGeometry.paddingEnd).toBe(32)
+  expect(focusGeometry.paddingEnd).toBe(28)
   expect(focusGeometry.valueLeft).toBeCloseTo(restGeometry.valueLeft, 2)
   expect(focusGeometry.valueWidth).toBeCloseTo(restGeometry.valueWidth, 2)
 
@@ -844,6 +979,7 @@ test('keeps Select text and one trailing action rail balanced', async ({ page })
   expect(triggerBounds).not.toBeNull()
   expect(panelBounds).not.toBeNull()
   expect(panelBounds!.x).toBeCloseTo(triggerBounds!.x, 0)
+  expect(panelBounds!.width).toBeGreaterThanOrEqual(triggerBounds!.width)
   await expectNoSeriousAccessibilityViolations(page, ['.omg-docs-demo', '.o-select__panel'])
 
   await trigger.press('Enter')
@@ -868,7 +1004,7 @@ test('keeps Select text and one trailing action rail balanced', async ({ page })
         triggerBounds.right - Number.parseFloat(styles.borderRightWidth) - valueBounds.right,
     }
   })
-  expect(rtlGeometry).toEqual({ paddingEnd: 32, paddingStart: 12, textStart: 12 })
+  expect(rtlGeometry).toEqual({ paddingEnd: 28, paddingStart: 12, textStart: 12 })
   await rtlTrigger.click()
   const rtlTriggerId = await rtlTrigger.getAttribute('id')
   expect(rtlTriggerId).not.toBeNull()
@@ -896,7 +1032,7 @@ test('keeps Select text and one trailing action rail balanced', async ({ page })
   await page.keyboard.press('Escape')
 })
 
-test('keeps Select text touch targets inside a narrow viewport', async ({ browser }) => {
+test('keeps Select and Dropdown tail rails inside a narrow touch viewport', async ({ browser }) => {
   const baseURL = test.info().project.use.baseURL
   if (typeof baseURL !== 'string') throw new Error('Expected the Playwright base URL')
 
@@ -923,6 +1059,7 @@ test('keeps Select text touch targets inside a narrow viewport', async ({ browse
     expect(triggerBounds!.height).toBeGreaterThanOrEqual(44)
     expect(clearBounds!.width).toBeGreaterThanOrEqual(44)
     expect(clearBounds!.height).toBeGreaterThanOrEqual(44)
+    await expect(trigger).toHaveCSS('padding-inline-end', '44px')
 
     const overflow = await select.evaluate((element) => {
       const bounds = element.getBoundingClientRect()
@@ -937,6 +1074,40 @@ test('keeps Select text touch targets inside a narrow viewport', async ({ browse
     expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth)
     expect(overflow.left).toBeGreaterThanOrEqual(0)
     expect(overflow.right).toBeLessThanOrEqual(overflow.viewportWidth)
+
+    await page.goto('/components/dropdown')
+    const dropdownTrigger = page.getByRole('button', { name: '打开操作菜单', exact: true })
+    await expect(dropdownTrigger).toHaveCSS('min-height', '44px')
+    await expect(dropdownTrigger).toHaveCSS('padding-inline-end', '44px')
+    const dropdownTouchGeometry = await dropdownTrigger.evaluate((element) => {
+      const styles = getComputedStyle(element)
+      const bounds = element.getBoundingClientRect()
+      const indicatorBounds = element
+        .querySelector('.o-dropdown__indicator')
+        ?.getBoundingClientRect()
+      if (!indicatorBounds) throw new Error('Expected the touch Dropdown indicator')
+
+      return {
+        height: bounds.height,
+        indicatorEndCenter:
+          bounds.right -
+          Number.parseFloat(styles.borderRightWidth) -
+          (indicatorBounds.left + indicatorBounds.width / 2),
+        left: bounds.left,
+        right: bounds.right,
+        viewportWidth: document.documentElement.clientWidth,
+      }
+    })
+    expect(dropdownTouchGeometry.height).toBeGreaterThanOrEqual(44)
+    expect(dropdownTouchGeometry.indicatorEndCenter).toBe(22)
+    expect(dropdownTouchGeometry.left).toBeGreaterThanOrEqual(0)
+    expect(dropdownTouchGeometry.right).toBeLessThanOrEqual(dropdownTouchGeometry.viewportWidth)
+
+    await page.goto('/components/radio')
+    const radioLabel = page.getByRole('radio', { name: '邮件' }).locator('..').locator('label')
+    const radioLabelBounds = await radioLabel.boundingBox()
+    expect(radioLabelBounds).not.toBeNull()
+    expect(radioLabelBounds!.height).toBeGreaterThanOrEqual(44)
   } finally {
     await context.close()
   }
@@ -1884,13 +2055,89 @@ test('keeps radio groups native, named, and keyboard-operable', async ({ page })
   await expect(disabled).toBeDisabled()
   expect(await email.getAttribute('name')).toBe(await message.getAttribute('name'))
 
+  const emailRoot = email.locator('..')
+  const messageRoot = message.locator('..')
+  const selectedGeometry = await emailRoot.locator('.o-radio__indicator').evaluate((element) => {
+    const styles = getComputedStyle(element)
+    const bounds = element.getBoundingClientRect()
+    const dot = element.querySelector('.o-radio__dot')
+    if (!dot) throw new Error('Expected the Radio selected dot')
+    const dotStyles = getComputedStyle(dot)
+    const dotBounds = dot.getBoundingClientRect()
+
+    return {
+      borderColor: styles.borderTopColor,
+      borderWidth: styles.borderTopWidth,
+      dotColor: dotStyles.backgroundColor,
+      dotHeight: dotBounds.height,
+      dotOpacity: dotStyles.opacity,
+      dotWidth: dotBounds.width,
+      height: bounds.height,
+      width: bounds.width,
+    }
+  })
+  expect(selectedGeometry).toEqual({
+    borderColor: selectedGeometry.dotColor,
+    borderWidth: '2px',
+    dotColor: selectedGeometry.dotColor,
+    dotHeight: 10,
+    dotOpacity: '1',
+    dotWidth: 10,
+    height: 20,
+    width: 20,
+  })
+  await expect(messageRoot.locator('.o-radio__dot')).toHaveCSS('opacity', '0')
+
   await email.focus()
+  const focusLayerState = await emailRoot
+    .locator('.o-radio__indicator')
+    .evaluate((element) =>
+      Number.parseFloat(getComputedStyle(element).getPropertyValue('--omg-radio-state-opacity')),
+    )
+  expect(focusLayerState).toBeCloseTo(0.88, 2)
   await email.press('ArrowRight')
   await expect(message).toBeChecked()
   await expect(message).toBeFocused()
+  await expect(messageRoot.locator('.o-radio__dot')).toHaveCSS('opacity', '1')
   await expect(page.getByText('当前通知方式：sms', { exact: true })).toBeVisible()
 
+  const darkIndicator = page
+    .locator('.radio-example-section-dark')
+    .getByRole('radio', { name: '跟随系统' })
+    .locator('..')
+    .locator('.o-radio__indicator')
+  const darkSurface = await darkIndicator.evaluate((element) => {
+    const probe = document.createElement('span')
+    probe.style.color = 'var(--omg-color-surface)'
+    element.append(probe)
+    const tokenColor = getComputedStyle(probe).color
+    probe.remove()
+    return { backgroundColor: getComputedStyle(element).backgroundColor, tokenColor }
+  })
+  expect(darkSurface.backgroundColor).toBe(darkSurface.tokenColor)
+
+  await channelGroup.evaluate((element) => element.setAttribute('dir', 'rtl'))
+  const rtlGeometry = await emailRoot.locator('.o-radio__label').evaluate((element) => {
+    const indicator = element.querySelector('.o-radio__indicator')?.getBoundingClientRect()
+    const text = element.querySelector('.o-radio__text')?.getBoundingClientRect()
+    if (!indicator || !text) throw new Error('Expected RTL Radio indicator and text')
+    return {
+      direction: getComputedStyle(element).direction,
+      indicatorCenter: indicator.left + indicator.width / 2,
+      textCenter: text.left + text.width / 2,
+    }
+  })
+  expect(rtlGeometry.direction).toBe('rtl')
+  expect(rtlGeometry.indicatorCenter).toBeGreaterThan(rtlGeometry.textCenter)
+
   await expectNoSeriousAccessibilityViolations(page)
+
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(messageRoot.locator('.o-radio__dot')).toHaveCSS('transition-duration', '0s')
+
+  await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'no-preference' })
+  await expect(messageRoot.locator('.o-radio__indicator')).toHaveCSS('forced-color-adjust', 'none')
+  await expect(messageRoot.locator('.o-radio__dot')).toHaveCSS('forced-color-adjust', 'none')
 })
 
 test('handles safe cancel and consumer-controlled confirmation in confirm dialogs', async ({
@@ -2262,6 +2509,32 @@ test('renders opaque top-right Message statuses, stacks, and scoped themes', asy
     ),
   )
   expect(new Set(statusIconMarkup).size).toBe(4)
+
+  const declarativeSuccess = declarativeDemo.locator('.o-message--success').first()
+  await expect(declarativeSuccess).toHaveCSS('display', 'grid')
+  const [iconTileBounds, iconBounds] = await Promise.all([
+    declarativeSuccess.locator('.o-message__icon').boundingBox(),
+    declarativeSuccess.locator('.o-message__icon svg').boundingBox(),
+  ])
+  expect(iconTileBounds).not.toBeNull()
+  expect(iconBounds).not.toBeNull()
+  expect(iconTileBounds?.width).toBe(28)
+  expect(iconTileBounds?.height).toBe(28)
+  expect(iconBounds?.width).toBe(16)
+  expect(iconBounds?.height).toBe(16)
+
+  const declarativeInfo = declarativeDemo.locator('.o-message--info').first()
+  await expect(declarativeInfo.locator('.o-message__content')).toHaveCSS('display', 'grid')
+  await expect(declarativeInfo.locator('.o-message__content')).toHaveCSS('row-gap', '4px')
+  const declarativeClose = declarativeDemo.getByRole('button', { name: '关闭声明式消息' })
+  const declarativeCloseBounds = await declarativeClose.boundingBox()
+  const declarativeCloseIconBounds = await declarativeClose.locator('svg').boundingBox()
+  expect(declarativeCloseBounds).not.toBeNull()
+  expect(declarativeCloseIconBounds).not.toBeNull()
+  expect(declarativeCloseBounds?.width).toBe(24)
+  expect(declarativeCloseBounds?.height).toBe(24)
+  expect(declarativeCloseIconBounds?.width).toBe(16)
+  expect(declarativeCloseIconBounds?.height).toBe(16)
 
   await page.getByRole('button', { name: '显示警告消息', exact: true }).click()
 
@@ -2767,7 +3040,15 @@ test('renders borderless Card composition, variants, dark theme, and compact wra
   const card = composition.locator('.o-card')
   await expect(card).toHaveAttribute('data-slot', 'card')
   await expect(card).toHaveCSS('border-top-width', '0px')
-  await expect(card.getByRole('heading', { level: 3, name: '个人组件计划' })).toBeVisible()
+  const cardTitle = card.getByRole('heading', { level: 3, name: '个人组件计划' })
+  await expect(cardTitle).toBeVisible()
+  const cardTitleGeometry = await readHeadingGeometry(cardTitle)
+  expect(cardTitleGeometry.tagName).toBe('H3')
+  expect(cardTitleGeometry.marginBlockStart).toBe(0)
+  expect(cardTitleGeometry.marginBlockEnd).toBe(0)
+  expect(cardTitleGeometry.letterSpacing).toBe('normal')
+  expect(cardTitleGeometry.fontSize).toBe(18)
+  expect(cardTitleGeometry.lineHeight / cardTitleGeometry.fontSize).toBeCloseTo(1.3, 2)
   await expect(card.getByRole('button', { name: '打开计划' })).toBeVisible()
   await expect(card.getByRole('button', { name: '继续编辑' })).toBeVisible()
 
@@ -2805,7 +3086,37 @@ test('renders Empty media and actions without inventing live-region semantics', 
   await expect(empty).toHaveCSS('border-top-width', '0px')
   await expect(empty).not.toHaveAttribute('role')
   await expect(empty).not.toHaveAttribute('aria-live')
-  await expect(empty.getByRole('heading', { level: 3, name: '还没有收藏' })).toBeVisible()
+  const emptyTitle = empty.getByRole('heading', { level: 3, name: '还没有收藏' })
+  await expect(emptyTitle).toBeVisible()
+  const emptyTitleGeometry = await readHeadingGeometry(emptyTitle)
+  expect(emptyTitleGeometry.tagName).toBe('H3')
+  expect(emptyTitleGeometry.marginBlockStart).toBe(0)
+  expect(emptyTitleGeometry.marginBlockEnd).toBe(0)
+  expect(emptyTitleGeometry.letterSpacing).toBe('normal')
+  expect(emptyTitleGeometry.fontSize).toBe(18)
+  expect(emptyTitleGeometry.lineHeight / emptyTitleGeometry.fontSize).toBeCloseTo(1.3, 2)
+  const emptyWidthGeometry = await empty.evaluate((element) => {
+    const parent = element.parentElement
+    const title = element.querySelector('.o-empty__title')
+    if (!parent || !title) throw new Error('Expected the Empty demo container and title')
+
+    const bounds = element.getBoundingClientRect()
+    const parentStyles = getComputedStyle(parent)
+    const titleBounds = title.getBoundingClientRect()
+    const titleLineHeight = Number.parseFloat(getComputedStyle(title).lineHeight)
+    return {
+      parentContentWidth:
+        parent.clientWidth -
+        Number.parseFloat(parentStyles.paddingInlineStart) -
+        Number.parseFloat(parentStyles.paddingInlineEnd),
+      titleLines: Math.round(titleBounds.height / titleLineHeight),
+      width: bounds.width,
+    }
+  })
+  expect(emptyWidthGeometry.width / emptyWidthGeometry.parentContentWidth).toBeGreaterThanOrEqual(
+    0.98,
+  )
+  expect(emptyWidthGeometry.titleLines).toBe(1)
   await expect(empty.locator('[data-slot="empty-media"] svg')).toBeVisible()
   await expect(empty.getByRole('button', { name: '浏览组件' })).toBeVisible()
 
@@ -2974,6 +3285,14 @@ test('supports Accordion keyboard state, reduced borders, and horizontal RTL', a
   const single = page.getByRole('region', { name: 'Accordion single and collapsible' })
   const first = single.getByRole('button', { name: '组件由哪些部分组成？' })
   const second = single.getByRole('button', { name: '可以完全受控吗？' })
+  const firstHeader = first.locator('..')
+  const firstHeaderGeometry = await readHeadingGeometry(firstHeader)
+  expect(firstHeaderGeometry.tagName).toBe('H3')
+  expect(firstHeaderGeometry.marginBlockStart).toBe(0)
+  expect(firstHeaderGeometry.marginBlockEnd).toBe(0)
+  expect(firstHeaderGeometry.letterSpacing).toBe('normal')
+  expect(firstHeaderGeometry.fontSize).toBe(14)
+  expect(firstHeaderGeometry.lineHeight / firstHeaderGeometry.fontSize).toBeCloseTo(1.4, 2)
   await expect(first).toHaveAttribute('aria-expanded', 'true')
   await first.focus()
   await page.keyboard.press('ArrowDown')

@@ -132,6 +132,9 @@ describe('OButton', () => {
   })
 
   it('keeps each button size on the compact control and typography scale', () => {
+    expect(buttonStyleSource).toContain('--omg-button-icon-size: var(--omg-space-4)')
+    expect(buttonStyleSource).toContain('--omg-button-spinner-size: var(--omg-button-icon-size)')
+    expect(buttonStyleSource).toMatch(/&__icon\s*>\s*svg[\s\S]*inline-size:\s*100%/u)
     expect(buttonStyleSource).toMatch(
       /&--sm\s*\{[^}]*--omg-button-height:\s*var\(--omg-control-height-sm\);[^}]*--omg-button-font-size:\s*var\(--omg-font-size-sm\);/su,
     )
@@ -141,6 +144,7 @@ describe('OButton', () => {
     expect(buttonStyleSource).toMatch(
       /&--lg\s*\{[^}]*--omg-button-height:\s*var\(--omg-control-height-lg\);[^}]*--omg-button-font-size:\s*var\(--omg-font-size-md\);/su,
     )
+    expect(buttonStyleSource).toMatch(/&--lg\s*\{[^}]*--omg-button-icon-size:\s*18px/su)
     expect(buttonStyleSource).toContain('font-size: var(--omg-button-font-size)')
   })
 

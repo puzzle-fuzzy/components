@@ -123,6 +123,7 @@ const close = async (restoreFocus: boolean): Promise<void> => {
 const floating = useFloatingPanel({
   isOpen: isMenuOpen,
   placement: computed(() => props.placement),
+  matchReferenceWidth: true,
   onDismiss: () => void close(false),
 })
 
@@ -291,6 +292,7 @@ watch(
       :id="triggerId"
       :ref="setTriggerElement"
       class="o-dropdown__trigger"
+      :class="{ 'o-dropdown__trigger--with-indicator': props.showIndicator }"
       type="button"
       :disabled="props.disabled"
       aria-haspopup="menu"

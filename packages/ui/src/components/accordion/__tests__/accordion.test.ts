@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { renderToString } from '@vue/server-renderer'
 import { mount } from '@vue/test-utils'
 import { createSSRApp, defineComponent, h, nextTick } from 'vue'
@@ -17,6 +20,11 @@ import {
   type OAccordionSlots,
   type OAccordionValue,
 } from '../index'
+
+const accordionStyles = readFileSync(
+  resolve(process.cwd(), 'packages/ui/src/components/accordion/style/index.less'),
+  'utf8',
+)
 
 const items = [
   { value: 'one', label: '第一项', content: '第一项内容' },
@@ -48,6 +56,22 @@ const mountAccordion = (props: Record<string, unknown> = {}) =>
   )
 
 describe('OAccordion', () => {
+  it('isolates its semantic header from host prose typography', () => {
+    expect(accordionStyles).toContain('.o-accordion__item > .o-accordion__header')
+    expect(accordionStyles).toMatch(
+      /\.o-accordion__item\s*>\s*\.o-accordion__header\s*\{[^}]*margin:\s*0;/su,
+    )
+    expect(accordionStyles).toMatch(
+      /\.o-accordion__item\s*>\s*\.o-accordion__header\s*\{[^}]*font-size:\s*var\(--omg-font-size-md\);/su,
+    )
+    expect(accordionStyles).toMatch(
+      /\.o-accordion__item\s*>\s*\.o-accordion__header\s*\{[^}]*letter-spacing:\s*normal;/su,
+    )
+    expect(accordionStyles).toMatch(
+      /\.o-accordion__item\s*>\s*\.o-accordion__header\s*\{[^}]*line-height:\s*1\.4;/su,
+    )
+  })
+
   it('keeps local vocabularies, defaults, and slot contracts typed', () => {
     const props: OAccordionProps = {
       type: 'multiple',
