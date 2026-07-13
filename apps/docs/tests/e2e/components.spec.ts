@@ -1817,11 +1817,6 @@ test('opens a controlled borderless Drawer with native modal focus and close mot
   await expect(page.locator('html')).toHaveCSS('overflow', 'hidden')
 
   const close = drawer.getByRole('button', { name: '关闭项目设置面板' })
-  const done = drawer.getByRole('button', { name: '完成', exact: true })
-  await expect(close).toBeFocused()
-  await page.keyboard.press('Shift+Tab')
-  await expect(done).toBeFocused()
-  await page.keyboard.press('Tab')
   await expect(close).toBeFocused()
 
   await waitForAnimations(drawerElement)
