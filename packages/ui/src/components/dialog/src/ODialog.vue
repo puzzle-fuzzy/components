@@ -58,7 +58,12 @@ const warnAboutAccessibleName = async (): Promise<void> => {
   await nextTick()
 
   const hasSource = Boolean(props.ariaLabel || props.title || slots.title || slots.header)
-  const customHeaderTarget = slots.header ? document.getElementById(titleId) : undefined
+  if (hasSource && slots.header && !rendered.value) return
+  const customHeaderTarget = slots.header
+    ? [...(dialogElement.value?.querySelectorAll<HTMLElement>('[id]') ?? [])].find(
+        ({ id }) => id === titleId,
+      )
+    : undefined
   const customHeaderIsNamed =
     !slots.header ||
     Boolean(customHeaderTarget && dialogElement.value?.contains(customHeaderTarget))

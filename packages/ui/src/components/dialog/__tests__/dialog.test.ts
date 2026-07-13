@@ -415,6 +415,21 @@ describe('ODialog', () => {
     expect(warn).toHaveBeenCalledOnce()
   })
 
+  it('defers custom-header target validation until lazy content is rendered', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const wrapper = mount(ODialog, {
+      slots: {
+        header: ({ titleId }: ODialogSlotProps) => h('h2', { id: titleId }, 'Deferred title'),
+      },
+    })
+    await flushDialog()
+    expect(warn).not.toHaveBeenCalled()
+
+    await wrapper.setProps({ open: true })
+    await flushDialog()
+    expect(warn).not.toHaveBeenCalled()
+  })
+
   it('uses borderless motion, body scrolling, fullscreen, and reduced-motion rules', () => {
     expect(dialogStyles).toMatch(/\.o-dialog\s*\{[^}]*--omg-dialog-inline-size:\s*520px/su)
     expect(dialogStyles).toMatch(/\.o-dialog\s*\{[^}]*border:\s*0/su)
