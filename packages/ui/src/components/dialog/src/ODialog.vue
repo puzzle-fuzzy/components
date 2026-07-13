@@ -134,6 +134,7 @@ const beginClose = async (): Promise<void> => {
   if (!dialog || props.open) return
 
   if (!dialog.open) {
+    if (pendingReason.value === 'native') return
     phase.value = 'closed'
     if (props.destroyOnClose) rendered.value = false
     return

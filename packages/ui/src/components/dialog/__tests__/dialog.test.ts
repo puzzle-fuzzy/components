@@ -350,13 +350,19 @@ describe('ODialog', () => {
   })
 
   it('finalizes an accepted unexpected native close once', async () => {
+    let contentWasPresentAtClose = false
     const wrapper = mount(ODialog, {
       attachTo: document.body,
       props: {
         open: true,
         title: 'Native',
+        destroyOnClose: true,
         'onUpdate:open': (open: boolean) => void wrapper.setProps({ open }),
+        onClose: () => {
+          contentWasPresentAtClose = document.querySelector('[data-native-content]') !== null
+        },
       },
+      slots: { default: '<span data-native-content>Native content</span>' },
     })
     await flushDialog()
     const dialog = wrapper.get<HTMLDialogElement>('dialog')
@@ -367,6 +373,8 @@ describe('ODialog', () => {
     expect(wrapper.emitted('request-close')?.[0]?.[0]).toEqual({ reason: 'native' })
     expect(wrapper.emitted('close')).toEqual([['native']])
     expect(wrapper.emitted('closed')).toEqual([['native']])
+    expect(contentWasPresentAtClose).toBe(true)
+    expect(wrapper.find('[data-native-content]').exists()).toBe(false)
   })
 
   it('keeps accessible IDs valid for default and custom slot structures', async () => {
