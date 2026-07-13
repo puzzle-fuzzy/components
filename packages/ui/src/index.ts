@@ -1,3 +1,6 @@
+export { OAlert, oAlertProps, oAlertStatuses } from './components/alert'
+export type { OAlertEmits, OAlertProps, OAlertSlots, OAlertStatus } from './components/alert'
+
 export {
   OAvatar,
   oAvatarProps,
@@ -216,6 +219,15 @@ export type {
 } from './components/reference-textarea'
 
 export {
+  OSkeleton,
+  normalizeOSkeletonDimension,
+  normalizeOSkeletonLines,
+  oSkeletonProps,
+  oSkeletonVariants,
+} from './components/skeleton'
+export type { OSkeletonProps, OSkeletonSlots, OSkeletonVariant } from './components/skeleton'
+
+export {
   OSelect,
   normalizeOSelectVirtualListHeight,
   normalizeOSelectVirtualThreshold,
@@ -233,6 +245,9 @@ export type {
   OSelectSlots,
   OSelectValue,
 } from './components/select'
+
+export { OSwitch, oSwitchProps, oSwitchSizes } from './components/switch'
+export type { OSwitchEmits, OSwitchProps, OSwitchSize, OSwitchSlots } from './components/switch'
 
 export { OTag, oTagProps, oTagSizes, oTagTones, oTagVariants } from './components/tag'
 export type {
@@ -266,6 +281,20 @@ export type {
   OTextareaEmits,
   OTextareaProps,
 } from './components/textarea'
+
+export {
+  OTooltip,
+  normalizeOTooltipDelay,
+  normalizeOTooltipOffset,
+  oTooltipPlacements,
+  oTooltipProps,
+} from './components/tooltip'
+export type {
+  OTooltipEmits,
+  OTooltipPlacement,
+  OTooltipProps,
+  OTooltipSlots,
+} from './components/tooltip'
 
 export {
   OUpload,

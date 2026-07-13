@@ -35,6 +35,7 @@ describe('@puzzle-fuzzy/ui package contract', () => {
     expect(manifest.peerDependencies).toEqual({ vue: '^3.5.0' })
 
     const componentSubpaths = [
+      './alert',
       './avatar',
       './avatar-dropdown',
       './avatar-flow',
@@ -55,10 +56,13 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       './progress',
       './radio',
       './reference-textarea',
+      './skeleton',
       './select',
+      './switch',
       './tag',
       './tabs',
       './textarea',
+      './tooltip',
       './upload',
       './widget',
     ]
@@ -75,6 +79,8 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/index.js',
       'dist/index.d.ts',
       'dist/styles.css',
+      'dist/components/alert/index.js',
+      'dist/components/alert/index.d.ts',
       'dist/components/avatar/index.js',
       'dist/components/avatar/index.d.ts',
       'dist/components/avatar-dropdown/index.js',
@@ -115,14 +121,20 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/components/radio/index.d.ts',
       'dist/components/reference-textarea/index.js',
       'dist/components/reference-textarea/index.d.ts',
+      'dist/components/skeleton/index.js',
+      'dist/components/skeleton/index.d.ts',
       'dist/components/select/index.js',
       'dist/components/select/index.d.ts',
+      'dist/components/switch/index.js',
+      'dist/components/switch/index.d.ts',
       'dist/components/tag/index.js',
       'dist/components/tag/index.d.ts',
       'dist/components/tabs/index.js',
       'dist/components/tabs/index.d.ts',
       'dist/components/textarea/index.js',
       'dist/components/textarea/index.d.ts',
+      'dist/components/tooltip/index.js',
+      'dist/components/tooltip/index.d.ts',
       'dist/components/upload/index.js',
       'dist/components/upload/index.d.ts',
       'dist/components/widget/index.js',
@@ -138,9 +150,13 @@ describe('@puzzle-fuzzy/ui package contract', () => {
     const publicStyles = await readFile(resolve(packageRoot, 'dist/styles.css'), 'utf8')
 
     expect(publicStyles).toContain('.vue-recycle-scroller')
+    expect(publicStyles).toContain('.o-alert')
     expect(publicStyles).toContain('.o-badge')
     expect(publicStyles).toContain('.o-progress')
+    expect(publicStyles).toContain('.o-skeleton')
+    expect(publicStyles).toContain('.o-switch')
     expect(publicStyles).toContain('.o-tag')
+    expect(publicStyles).toContain('.o-tooltip')
     await expect(access(resolve(packageRoot, 'dist/select.css'))).rejects.toThrow()
   })
 })

@@ -3,6 +3,7 @@ import { createSSRApp, h, nextTick, type VNode } from 'vue'
 import { describe, expect, test, vi } from 'vitest'
 
 import {
+  OAlert,
   OAvatar,
   OAvatarDropdown,
   OAvatarFlow,
@@ -24,10 +25,13 @@ import {
   ORadio,
   ORadioGroup,
   OReferenceTextarea,
+  OSkeleton,
   OSelect,
+  OSwitch,
   OTag,
   OTabs,
   OTextarea,
+  OTooltip,
   OUpload,
   OWidget,
   oMessage,
@@ -250,6 +254,31 @@ describe('server rendering', () => {
     expect(html).toContain('aria-label="8 unread"')
     expect(html).toContain('role="progressbar"')
     expect(html).toContain('aria-valuenow="42"')
+  })
+
+  test('renders Alert, Skeleton, Switch, and Tooltip without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h('div', [
+            h(OAlert, { status: 'warning', title: 'Review settings' }, () => 'Check values'),
+            h(OSkeleton, { variant: 'text', lines: 2, animated: false }),
+            h(OSwitch, { modelValue: true, label: 'Sync files', name: 'sync' }),
+            h(
+              OTooltip,
+              { content: 'Copy value', teleported: false },
+              { default: () => h('button', { type: 'button' }, 'Copy') },
+            ),
+          ]),
+      }),
+    )
+
+    expect(html).toContain('o-alert--warning')
+    expect(html).toContain('o-skeleton--text')
+    expect(html).toContain('role="switch"')
+    expect(html).toContain('name="sync"')
+    expect(html).toContain('>Copy<')
+    expect(html).not.toContain('role="tooltip"')
   })
 
   test('renders an accessibly named icon-only OButton without DOM globals', async () => {

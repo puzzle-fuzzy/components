@@ -14,6 +14,7 @@ export default defineConfig({
       entry: {
         index: fromPackageRoot('src/index.ts'),
         styles: fromPackageRoot('src/styles/index.less'),
+        'components/alert/index': fromPackageRoot('src/components/alert/index.ts'),
         'components/avatar/index': fromPackageRoot('src/components/avatar/index.ts'),
         'components/avatar-dropdown/index': fromPackageRoot(
           'src/components/avatar-dropdown/index.ts',
@@ -40,10 +41,13 @@ export default defineConfig({
         'components/reference-textarea/index': fromPackageRoot(
           'src/components/reference-textarea/index.ts',
         ),
+        'components/skeleton/index': fromPackageRoot('src/components/skeleton/index.ts'),
         'components/select/index': fromPackageRoot('src/components/select/index.ts'),
+        'components/switch/index': fromPackageRoot('src/components/switch/index.ts'),
         'components/tag/index': fromPackageRoot('src/components/tag/index.ts'),
         'components/tabs/index': fromPackageRoot('src/components/tabs/index.ts'),
         'components/textarea/index': fromPackageRoot('src/components/textarea/index.ts'),
+        'components/tooltip/index': fromPackageRoot('src/components/tooltip/index.ts'),
         'components/upload/index': fromPackageRoot('src/components/upload/index.ts'),
         'components/widget/index': fromPackageRoot('src/components/widget/index.ts'),
       },

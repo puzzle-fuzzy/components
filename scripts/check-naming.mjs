@@ -10,6 +10,7 @@ const docsComponentsRoot = resolve(repositoryRoot, 'apps/docs/docs/components')
 const docsExamplesRoot = resolve(repositoryRoot, 'apps/docs/examples')
 const docsE2ePath = resolve(repositoryRoot, 'apps/docs/tests/e2e/components.spec.ts')
 const expectedComponents = [
+  'alert',
   'avatar',
   'avatar-dropdown',
   'avatar-flow',
@@ -30,10 +31,13 @@ const expectedComponents = [
   'progress',
   'radio',
   'reference-textarea',
+  'skeleton',
   'select',
+  'switch',
   'tag',
   'tabs',
   'textarea',
+  'tooltip',
   'upload',
   'widget',
 ]
