@@ -35,6 +35,10 @@
       "types": "./dist/components/alert/index.d.ts",
       "import": "./dist/components/alert/index.js"
     },
+    "./aspect-ratio": {
+      "types": "./dist/components/aspect-ratio/index.d.ts",
+      "import": "./dist/components/aspect-ratio/index.js"
+    },
     "./avatar": {
       "types": "./dist/components/avatar/index.d.ts",
       "import": "./dist/components/avatar/index.js"
@@ -58,6 +62,14 @@
     "./button": {
       "types": "./dist/components/button/index.d.ts",
       "import": "./dist/components/button/index.js"
+    },
+    "./button-group": {
+      "types": "./dist/components/button-group/index.d.ts",
+      "import": "./dist/components/button-group/index.js"
+    },
+    "./card": {
+      "types": "./dist/components/card/index.d.ts",
+      "import": "./dist/components/card/index.js"
     },
     "./checkbox": {
       "types": "./dist/components/checkbox/index.d.ts",
@@ -87,6 +99,10 @@
       "types": "./dist/components/dropdown/index.d.ts",
       "import": "./dist/components/dropdown/index.js"
     },
+    "./empty": {
+      "types": "./dist/components/empty/index.d.ts",
+      "import": "./dist/components/empty/index.js"
+    },
     "./form-dialog": {
       "types": "./dist/components/form-dialog/index.d.ts",
       "import": "./dist/components/form-dialog/index.js"
@@ -98,6 +114,10 @@
     "./input": {
       "types": "./dist/components/input/index.d.ts",
       "import": "./dist/components/input/index.js"
+    },
+    "./kbd": {
+      "types": "./dist/components/kbd/index.d.ts",
+      "import": "./dist/components/kbd/index.js"
     },
     "./message": {
       "types": "./dist/components/message/index.d.ts",
@@ -118,6 +138,10 @@
     "./skeleton": {
       "types": "./dist/components/skeleton/index.d.ts",
       "import": "./dist/components/skeleton/index.js"
+    },
+    "./spinner": {
+      "types": "./dist/components/spinner/index.d.ts",
+      "import": "./dist/components/spinner/index.js"
     },
     "./select": {
       "types": "./dist/components/select/index.d.ts",

@@ -4,12 +4,17 @@ import { describe, expect, test, vi } from 'vitest'
 
 import {
   OAlert,
+  OAspectRatio,
   OAvatar,
   OAvatarDropdown,
   OAvatarFlow,
   OAvatarGroup,
   OBadge,
   OButton,
+  OButtonGroup,
+  OButtonGroupSeparator,
+  OButtonGroupText,
+  OCard,
   OCheckbox,
   OCodeInput,
   OConfirmDialog,
@@ -17,15 +22,19 @@ import {
   ODivider,
   ODrawer,
   ODropdown,
+  OEmpty,
   OFormDialog,
   OImage,
   OInput,
+  OKbd,
+  OKbdGroup,
   OMessage,
   OProgress,
   ORadio,
   ORadioGroup,
   OReferenceTextarea,
   OSkeleton,
+  OSpinner,
   OSelect,
   OSwitch,
   OTag,
@@ -279,6 +288,53 @@ describe('server rendering', () => {
     expect(html).toContain('name="sync"')
     expect(html).toContain('>Copy<')
     expect(html).not.toContain('role="tooltip"')
+  })
+
+  test('renders the first foundation families without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h('div', [
+            h(OAspectRatio, { ratio: 4 / 3 }, () => h('img', { alt: 'Preview' })),
+            h(OButtonGroup, { ariaLabel: 'Document actions' }, () => [
+              h(OButton, null, () => 'Previous'),
+              h(OButtonGroupSeparator),
+              h(OButtonGroupText, null, () => '2 of 4'),
+              h(OButton, null, () => 'Next'),
+            ]),
+            h(
+              OCard,
+              { title: 'Workspace', description: 'Personal component surface' },
+              {
+                default: () => 'Card body',
+                footer: () => h(OButton, null, () => 'Open'),
+              },
+            ),
+            h(
+              OEmpty,
+              { title: 'No results', description: 'Try another query' },
+              { actions: () => h(OButton, null, () => 'Reset') },
+            ),
+            h(OKbdGroup, { ariaLabel: 'Save shortcut' }, () => [
+              h(OKbd, null, () => 'Ctrl'),
+              '+',
+              h(OKbd, null, () => 'S'),
+            ]),
+            h(OSpinner, { label: 'Loading workspace' }),
+          ]),
+      }),
+    )
+
+    expect(html).toContain('data-slot="aspect-ratio"')
+    expect(html).toContain('--omg-aspect-ratio:1.3333333333333333')
+    expect(html).toContain('role="group"')
+    expect(html).toContain('data-slot="button-group-separator"')
+    expect(html).toContain('data-slot="card"')
+    expect(html).toContain('Workspace')
+    expect(html).toContain('data-slot="empty"')
+    expect(html).toContain('No results')
+    expect(html).toContain('<kbd')
+    expect(html).toContain('aria-label="Loading workspace"')
   })
 
   test('renders an accessibly named icon-only OButton without DOM globals', async () => {

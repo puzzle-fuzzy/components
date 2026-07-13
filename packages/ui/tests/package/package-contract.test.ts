@@ -36,12 +36,15 @@ describe('@puzzle-fuzzy/ui package contract', () => {
 
     const componentSubpaths = [
       './alert',
+      './aspect-ratio',
       './avatar',
       './avatar-dropdown',
       './avatar-flow',
       './avatar-group',
       './badge',
       './button',
+      './button-group',
+      './card',
       './checkbox',
       './code-input',
       './confirm-dialog',
@@ -49,14 +52,17 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       './divider',
       './drawer',
       './dropdown',
+      './empty',
       './form-dialog',
       './image',
       './input',
+      './kbd',
       './message',
       './progress',
       './radio',
       './reference-textarea',
       './skeleton',
+      './spinner',
       './select',
       './switch',
       './tag',
@@ -81,6 +87,8 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/styles.css',
       'dist/components/alert/index.js',
       'dist/components/alert/index.d.ts',
+      'dist/components/aspect-ratio/index.js',
+      'dist/components/aspect-ratio/index.d.ts',
       'dist/components/avatar/index.js',
       'dist/components/avatar/index.d.ts',
       'dist/components/avatar-dropdown/index.js',
@@ -93,6 +101,10 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/components/badge/index.d.ts',
       'dist/components/button/index.js',
       'dist/components/button/index.d.ts',
+      'dist/components/button-group/index.js',
+      'dist/components/button-group/index.d.ts',
+      'dist/components/card/index.js',
+      'dist/components/card/index.d.ts',
       'dist/components/checkbox/index.js',
       'dist/components/checkbox/index.d.ts',
       'dist/components/code-input/index.js',
@@ -107,12 +119,16 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/components/drawer/index.d.ts',
       'dist/components/dropdown/index.js',
       'dist/components/dropdown/index.d.ts',
+      'dist/components/empty/index.js',
+      'dist/components/empty/index.d.ts',
       'dist/components/form-dialog/index.js',
       'dist/components/form-dialog/index.d.ts',
       'dist/components/image/index.js',
       'dist/components/image/index.d.ts',
       'dist/components/input/index.js',
       'dist/components/input/index.d.ts',
+      'dist/components/kbd/index.js',
+      'dist/components/kbd/index.d.ts',
       'dist/components/message/index.js',
       'dist/components/message/index.d.ts',
       'dist/components/progress/index.js',
@@ -123,6 +139,8 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/components/reference-textarea/index.d.ts',
       'dist/components/skeleton/index.js',
       'dist/components/skeleton/index.d.ts',
+      'dist/components/spinner/index.js',
+      'dist/components/spinner/index.d.ts',
       'dist/components/select/index.js',
       'dist/components/select/index.d.ts',
       'dist/components/switch/index.js',
@@ -151,9 +169,15 @@ describe('@puzzle-fuzzy/ui package contract', () => {
 
     expect(publicStyles).toContain('.vue-recycle-scroller')
     expect(publicStyles).toContain('.o-alert')
+    expect(publicStyles).toContain('.o-aspect-ratio')
     expect(publicStyles).toContain('.o-badge')
+    expect(publicStyles).toContain('.o-button-group')
+    expect(publicStyles).toContain('.o-card')
+    expect(publicStyles).toContain('.o-empty')
+    expect(publicStyles).toContain('.o-kbd')
     expect(publicStyles).toContain('.o-progress')
     expect(publicStyles).toContain('.o-skeleton')
+    expect(publicStyles).toContain('.o-spinner')
     expect(publicStyles).toContain('.o-switch')
     expect(publicStyles).toContain('.o-tag')
     expect(publicStyles).toContain('.o-tooltip')

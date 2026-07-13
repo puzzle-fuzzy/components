@@ -2,6 +2,14 @@ export { OAlert, oAlertProps, oAlertStatuses } from './components/alert'
 export type { OAlertEmits, OAlertProps, OAlertSlots, OAlertStatus } from './components/alert'
 
 export {
+  DEFAULT_O_ASPECT_RATIO,
+  normalizeOAspectRatio,
+  OAspectRatio,
+  oAspectRatioProps,
+} from './components/aspect-ratio'
+export type { OAspectRatioProps, OAspectRatioSlots } from './components/aspect-ratio'
+
+export {
   OAvatar,
   oAvatarProps,
   oAvatarShapes,
@@ -66,6 +74,32 @@ export type {
   OButtonTone,
   OButtonVariant,
 } from './components/button'
+
+export {
+  OButtonGroup,
+  oButtonGroupOrientations,
+  oButtonGroupProps,
+  OButtonGroupSeparator,
+  OButtonGroupText,
+  oButtonGroupTextProps,
+} from './components/button-group'
+export type {
+  OButtonGroupOrientation,
+  OButtonGroupProps,
+  OButtonGroupSlots,
+  OButtonGroupTextProps,
+  OButtonGroupTextSlots,
+  OButtonGroupTextTag,
+} from './components/button-group'
+
+export { OCard, oCardProps, oCardSizes, oCardTitleLevels, oCardVariants } from './components/card'
+export type {
+  OCardProps,
+  OCardSize,
+  OCardSlots,
+  OCardTitleLevel,
+  OCardVariant,
+} from './components/card'
 
 export { OCheckbox, oCheckboxProps } from './components/checkbox'
 export type { OCheckboxEmits, OCheckboxProps, OCheckboxSlots } from './components/checkbox'
@@ -143,6 +177,21 @@ export type {
   ODropdownValue,
 } from './components/dropdown'
 
+export {
+  OEmpty,
+  oEmptyMediaVariants,
+  oEmptyProps,
+  oEmptySizes,
+  oEmptyTitleLevels,
+} from './components/empty'
+export type {
+  OEmptyMediaVariant,
+  OEmptyProps,
+  OEmptySize,
+  OEmptySlots,
+  OEmptyTitleLevel,
+} from './components/empty'
+
 export { OFormDialog, oFormDialogProps } from './components/form-dialog'
 export type { OFormDialogEmits, OFormDialogProps, OFormDialogSlots } from './components/form-dialog'
 
@@ -157,6 +206,15 @@ export type {
   OInputSlots,
   OInputType,
 } from './components/input'
+
+export { OKbd, OKbdGroup, oKbdGroupProps, oKbdProps, oKbdSizes } from './components/kbd'
+export type {
+  OKbdGroupProps,
+  OKbdGroupSlots,
+  OKbdProps,
+  OKbdSize,
+  OKbdSlots,
+} from './components/kbd'
 
 export {
   OMessage,
@@ -226,6 +284,9 @@ export {
   oSkeletonVariants,
 } from './components/skeleton'
 export type { OSkeletonProps, OSkeletonSlots, OSkeletonVariant } from './components/skeleton'
+
+export { OSpinner, oSpinnerProps, oSpinnerSizes } from './components/spinner'
+export type { OSpinnerProps, OSpinnerSize, OSpinnerSlots } from './components/spinner'
 
 export {
   OSelect,
