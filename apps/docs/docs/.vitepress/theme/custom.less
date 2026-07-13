@@ -1,3 +1,8 @@
+html,
+body {
+  overflow-x: clip;
+}
+
 .omg-docs-demo {
   margin: 16px 0 28px;
   overflow: hidden;
@@ -37,9 +42,25 @@
   width: 100%;
 }
 
+.vp-doc div[class*='language-'] {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.vp-doc div[class*='language-'] > pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 @media (width <= 640px) {
   .omg-docs-demo__content {
     align-items: stretch;
     padding: 16px;
+  }
+
+  .vp-doc table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
   }
 }

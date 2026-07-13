@@ -2,13 +2,16 @@
 
 OMG UI 是一个仅面向 Vue 3 的个人组件库，发布包为 `@puzzle-fuzzy/ui`。
 
-当前提供 26 个组件族、27 个 Vue 组件：
+当前提供 30 个组件族、31 个 Vue 组件：
 
-- 基础与展示：Button、Tag、Badge、Progress、Divider、Image、Avatar、Avatar Group、Avatar Flow。
-- 数据输入：Input、Textarea、Reference Textarea、Checkbox、Radio、Radio Group、Code Input、Select、Upload、Widget。
-- 浮层与导航：Message、Dropdown、Avatar Dropdown、Tabs、Drawer、Dialog、Confirm Dialog、Form Dialog。
+- 基础：Button、Tag、Badge、Divider、Image、Avatar、Avatar Group。
+- 表单：Input、Textarea、Checkbox、Radio、Radio Group、Switch、Code Input、Select、Upload。
+- 导航：Tabs。
+- 反馈：Alert、Message、Progress、Skeleton。
+- 浮层：Tooltip、Dropdown、Avatar Dropdown、Drawer、Dialog、Confirm Dialog、Form Dialog。
+- 个人组件：Avatar Flow、Reference Textarea、Widget。
 
-内置图标统一来自 `vue-icons-plus/lu`。长列表只在 Select 达到阈值后使用 `vue-virtual-scroller`；Textarea 保留原生编辑滚动，Upload 保留完整可访问的原生文件列表。组件只负责 UI、交互与受控状态，不包含请求、上传传输、验证或其他业务逻辑。
+内置图标统一来自 `vue-icons-plus/lu`。Alert、Tooltip、Skeleton 和普通浮层使用语义表面、间距或必要阴影，不叠加装饰性边框。Tooltip 只承载非交互描述，交互浮层留给未来独立的 Popover。长列表只在 Select 达到阈值后使用 `vue-virtual-scroller`；Textarea 保留原生编辑滚动，Upload 保留完整可访问的原生文件列表。组件只负责 UI、交互与受控状态，不包含请求、上传传输、验证或其他业务逻辑。
 
 ## 开发
 

@@ -1915,3 +1915,226 @@ test('supports Drawer logical placement, scrolling, locked dismissal, and reduce
   await compactDrawer.locator('.o-dialog__close').click()
   await expect(compactDrawer).toBeHidden()
 })
+
+test('renders native Switch states, form behavior, RTL motion, and guarded interaction', async ({
+  page,
+}) => {
+  await page.goto('/components/switch')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Switch 开关' })).toBeVisible()
+  const basic = page.getByRole('region', { name: 'Switch sizes labels and native behavior' })
+  const compact = basic.getByRole('switch', { name: /紧凑开关/u })
+  await expect(compact).toHaveAttribute('aria-checked', 'false')
+  await basic.getByText('紧凑开关', { exact: true }).click()
+  await expect(compact).toHaveAttribute('aria-checked', 'true')
+
+  await basic.getByText('接收每周摘要', { exact: true }).click()
+  await basic.getByRole('button', { name: '提交表单', exact: true }).click()
+  await expect(basic.getByText('表单值：weekly', { exact: true })).toBeVisible()
+
+  const states = page.getByRole('region', {
+    name: 'Switch readonly loading invalid dark and RTL',
+  })
+  const rejected = states.getByRole('switch', { name: /受控拒绝更新/u })
+  await states.getByText('受控拒绝更新', { exact: true }).click()
+  await expect(rejected).toHaveAttribute('aria-checked', 'false')
+
+  const readonly = states.getByRole('switch', { name: /只读状态/u })
+  await expect(readonly).toHaveAttribute('aria-readonly', 'true')
+  await states.getByText('只读状态', { exact: true }).click()
+  await expect(readonly).toHaveAttribute('aria-checked', 'true')
+  await expect(states.getByRole('switch', { name: '禁用状态', exact: true })).toBeDisabled()
+  await expect(states.getByRole('switch', { name: /加载状态/u })).toHaveAttribute(
+    'aria-disabled',
+    'true',
+  )
+  await expect(states.getByRole('switch', { name: /需要检查/u })).toHaveAttribute(
+    'aria-invalid',
+    'true',
+  )
+
+  const rtl = states.getByRole('region', { name: 'Switch dark RTL state' })
+  const rtlSwitch = rtl.getByRole('switch', { name: /从逻辑起点滑动/u })
+  await expect(rtl).toHaveCSS('background-color', 'rgb(20, 24, 33)')
+  expect(
+    await rtlSwitch
+      .locator('xpath=following-sibling::*[contains(@class,"o-switch__label")]')
+      .locator('.o-switch__thumb')
+      .evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).e),
+  ).toBeLessThan(0)
+
+  const borderWidths = await page.locator('.o-switch__track').evaluateAll((elements) =>
+    elements.map((element) => {
+      const styles = getComputedStyle(element)
+      return [
+        styles.borderTopWidth,
+        styles.borderRightWidth,
+        styles.borderBottomWidth,
+        styles.borderLeftWidth,
+      ]
+    }),
+  )
+  expect(borderWidths.every((widths) => widths.every((width) => width === '0px'))).toBe(true)
+  await expectNoSeriousAccessibilityViolations(page)
+
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(states.locator('.o-switch__spinner')).toHaveCSS('animation-name', 'none')
+  await expect(states.locator('.o-switch__track').first()).toHaveCSS('transition-duration', '0s')
+})
+
+test('renders accessible Tooltip placement, timing, Teleport context, and reduced motion', async ({
+  page,
+}) => {
+  await page.goto('/components/tooltip')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Tooltip 文字提示' })).toBeVisible()
+  const basic = page.getByRole('region', { name: 'Tooltip placements and icon-button help' })
+  const topTrigger = basic.getByRole('button', { name: '查看 top 位置提示', exact: true })
+  await topTrigger.hover()
+  const topTooltip = page.getByRole('tooltip', { name: '首选位置：top', exact: true })
+  await expect(topTooltip).toBeVisible()
+  const topTooltipId = await topTooltip.getAttribute('id')
+  expect(topTooltipId).not.toBeNull()
+  await expect(topTrigger).toHaveAttribute('aria-describedby', topTooltipId!)
+  await expect(topTooltip).toHaveCSS('border-top-width', '0px')
+  expect((await topTooltip.boundingBox())?.width ?? 241).toBeLessThanOrEqual(240)
+  await page.keyboard.press('Escape')
+  await expect(topTooltip).toBeHidden()
+
+  const rightTrigger = basic.getByRole('button', { name: '查看 right 位置提示', exact: true })
+  await rightTrigger.focus()
+  const rightTooltip = page.getByRole('tooltip', { name: '首选位置：right', exact: true })
+  await expect(rightTooltip).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(rightTooltip).toBeHidden()
+
+  const longTrigger = basic.getByRole('button', { name: '长文字提示', exact: true })
+  await longTrigger.hover()
+  const longTooltip = page.getByRole('tooltip', { name: /这是一段会限制/u })
+  await expect(longTooltip).toBeVisible()
+  expect((await longTooltip.boundingBox())?.width ?? 241).toBeLessThanOrEqual(240)
+  await page.keyboard.press('Escape')
+
+  const behavior = page.getByRole('region', {
+    name: 'Tooltip controlled timing dark and compact behavior',
+  })
+  await behavior.getByRole('button', { name: '打开提示', exact: true }).click()
+  await expect(page.getByRole('tooltip', { name: '这是由使用方接受的受控提示' })).toBeVisible()
+  await behavior.getByRole('button', { name: '关闭提示', exact: true }).click()
+
+  await page.setViewportSize({ width: 320, height: 640 })
+  const edgeTrigger = behavior.getByRole('button', { name: '查看边缘提示', exact: true })
+  await edgeTrigger.scrollIntoViewIfNeeded()
+  await edgeTrigger.hover()
+  const edgeTooltip = page.getByRole('tooltip', { name: /深色长提示会保持在视口内/u })
+  await expect(edgeTooltip).toBeVisible()
+  await expect(edgeTooltip).toHaveAttribute('data-omg-theme', 'dark')
+  await expect(edgeTooltip).toHaveAttribute('dir', 'rtl')
+  const edgeBounds = await edgeTooltip.boundingBox()
+  expect(edgeBounds?.x ?? -1).toBeGreaterThanOrEqual(0)
+  expect((edgeBounds?.x ?? 321) + (edgeBounds?.width ?? 0)).toBeLessThanOrEqual(320)
+  await expectNoSeriousAccessibilityViolations(page)
+
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.keyboard.press('Escape')
+  await edgeTrigger.focus()
+  await expect(edgeTooltip).toBeVisible()
+  await expect(edgeTooltip).toHaveCSS('transition-duration', '0s')
+})
+
+test('renders borderless Alert statuses, slots, controlled close, and compact wrapping', async ({
+  page,
+}) => {
+  await page.goto('/components/alert')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Alert 提示' })).toBeVisible()
+  const basic = page.getByRole('region', { name: 'Alert statuses content and actions' })
+  for (const status of ['info', 'success', 'warning', 'error'] as const) {
+    await expect(basic.locator(`.o-alert--${status}`).first()).toBeVisible()
+  }
+  await expect(basic.getByRole('button', { name: '查看详情', exact: true })).toBeVisible()
+  await expect(basic.getByRole('button', { name: '检查输入', exact: true })).toBeVisible()
+  await expect(basic.locator('.o-alert__icon svg')).toHaveCount(4)
+  await expect(basic.locator('.o-alert').first()).not.toHaveAttribute('role')
+
+  const alertBorders = await page.locator('.o-alert').evaluateAll((alerts) =>
+    alerts.map((alert) => {
+      const styles = getComputedStyle(alert)
+      return [
+        styles.borderTopWidth,
+        styles.borderRightWidth,
+        styles.borderBottomWidth,
+        styles.borderLeftWidth,
+      ]
+    }),
+  )
+  expect(alertBorders.every((widths) => widths.every((width) => width === '0px'))).toBe(true)
+
+  const closable = page.getByRole('region', {
+    name: 'Alert controlled close long content and dark theme',
+  })
+  await closable.getByRole('button', { name: '关闭长提示', exact: true }).click()
+  await expect(closable.getByText('长提示已由使用方移除', { exact: true })).toBeVisible()
+  await closable.getByRole('button', { name: '恢复提示', exact: true }).click()
+  await expect(closable.getByRole('button', { name: '关闭长提示', exact: true })).toBeVisible()
+
+  const dark = closable.getByRole('region', { name: 'Alert dark theme' })
+  await expect(dark).toHaveCSS('background-color', 'rgb(20, 24, 33)')
+  await dark.getByRole('button', { name: '关闭深色成功提示', exact: true }).click()
+  await expect(dark.getByText('深色提示已关闭', { exact: true })).toBeVisible()
+
+  await page.setViewportSize({ width: 320, height: 640 })
+  const longAlert = closable.locator('.o-alert--warning')
+  await longAlert.scrollIntoViewIfNeeded()
+  const copyBounds = await longAlert.locator('.o-alert__copy').boundingBox()
+  const actionBounds = await longAlert.locator('.o-alert__action').boundingBox()
+  expect(actionBounds?.y ?? 0).toBeGreaterThan(copyBounds?.y ?? 0)
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('renders atomic Skeleton variants, composed loading state, content switch, and motion fallback', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto('/components/skeleton')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Skeleton 骨架屏' })).toBeVisible()
+  const basic = page.getByRole('region', {
+    name: 'Skeleton variants dimensions and composition',
+  })
+  await expect(basic.locator('.o-skeleton--circle')).toHaveCount(2)
+  await expect(basic.locator('.o-skeleton--rect')).toHaveCount(2)
+  await expect(
+    basic.locator('.o-skeleton--text').first().locator('.o-skeleton__shape'),
+  ).toHaveCount(3)
+  await expect(basic.locator('.o-skeleton--circle').first()).toHaveCSS('width', '48px')
+  await expect(basic.locator('.o-skeleton--rect').first()).toHaveCSS('height', '96px')
+  await expect(basic.locator('.o-skeleton__shape').first()).toHaveCSS('border-top-width', '0px')
+
+  const content = page.getByRole('region', {
+    name: 'Skeleton loading-to-content and reduced motion',
+  })
+  const togglePanel = content.locator('section').filter({ hasText: '占位与真实内容切换' })
+  await expect(togglePanel).toHaveAttribute('aria-busy', 'true')
+  await expect(togglePanel.getByText('内容已经准备好', { exact: true })).toHaveCount(0)
+  await togglePanel.getByRole('button', { name: '显示内容', exact: true }).click()
+  await expect(togglePanel).toHaveAttribute('aria-busy', 'false')
+  await expect(togglePanel.getByText('内容已经准备好', { exact: true })).toBeVisible()
+  await expect(togglePanel.locator('.o-skeleton')).toHaveCount(0)
+  await togglePanel.getByRole('button', { name: '重新载入', exact: true }).click()
+  await expect(togglePanel.locator('.o-skeleton')).toBeVisible()
+
+  const staticPanel = content.locator('section').filter({ hasText: 'animated=false' })
+  await expect(staticPanel.locator('.o-skeleton')).not.toHaveClass(/o-skeleton--animated/u)
+  await expect(staticPanel.locator('.o-skeleton__shape').first()).toHaveCSS(
+    'animation-name',
+    'none',
+  )
+  await expectNoSeriousAccessibilityViolations(page)
+
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(basic.locator('.o-skeleton--animated .o-skeleton__shape').first()).toHaveCSS(
+    'animation-name',
+    'none',
+  )
+})

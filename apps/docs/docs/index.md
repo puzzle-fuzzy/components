@@ -23,8 +23,10 @@ features:
     details: Select 长列表按阈值虚拟化；文本编辑和交互列表保留完整原生滚动。
   - title: One icon source
     details: 所有内置图标统一来自 vue-icons-plus/lu，不复制 SVG、不混用图标库。
+  - title: Quiet surfaces
+    details: Alert、Tooltip 与 Skeleton 依靠语义表面和必要阴影建立层级，不消费装饰性边框。
   - title: Package verified
     details: 文档、SSR 与临时消费项目共同验证真实 npm 成品包。
 ---
 
-OMG UI 当前包含 26 个组件族。表单、浮层、展示、选择、上传、消息与身份组件使用同一套 `O*` API、`.o-*` 类名和 `--omg-*` 主题变量。
+OMG UI 当前包含 30 个组件族、31 个公开 Vue 组件。基础、表单、导航、反馈、浮层与个人组件使用同一套 `O*` API、`.o-*` 类名和 `--omg-*` 主题变量。
