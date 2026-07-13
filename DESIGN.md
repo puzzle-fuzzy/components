@@ -119,6 +119,9 @@ components:
     typography: '{typography.body}'
     rounded: '{rounded.lg}'
     padding: '20px'
+    width: '520px'
+    enterDuration: '220ms'
+    exitDuration: '160ms'
   drawer-surface:
     backgroundColor: '{colors.light-surface}'
     textColor: '{colors.light-ink}'
@@ -157,6 +160,24 @@ components:
     typography: '{typography.body}'
     rounded: '{rounded.md}'
     padding: '4px'
+  tag-control:
+    backgroundColor: '#1d4ed81f'
+    textColor: '{colors.focused-blue}'
+    typography: '{typography.label}'
+    rounded: '{rounded.full}'
+    height: '30px'
+  badge-marker:
+    backgroundColor: '{colors.danger}'
+    textColor: '#ffffff'
+    typography: '{typography.label}'
+    rounded: '{rounded.full}'
+    minWidth: '18px'
+    height: '18px'
+  progress-track:
+    backgroundColor: '{colors.light-surface-muted}'
+    fillColor: '{colors.focused-blue}'
+    rounded: '{rounded.full}'
+    height: '8px'
   upload-dropzone:
     backgroundColor: '{colors.light-surface-muted}'
     textColor: '{colors.light-ink}'
@@ -290,11 +311,13 @@ All native and virtual viewports share a quiet tokenized scrollbar treatment. Vi
 
 ## Motion
 
+- **Dialog entry:** 220ms ease-out fade with a restrained `translateY(8px) scale(0.98)` arrival; the accepted surface settles at `transform: none`.
+- **Dialog exit:** 160ms fade and scale before the native top layer closes. A close request is not an exit until the controlled `open` value is accepted as `false`.
 - **Message entry:** 260ms ease-out fade and physical right-side translation.
 - **Message exit:** 180ms top-right-origin scale to 0.9 and fade, with no rightward return; remaining rows reflow with transform-only FLIP movement.
 - **Drawer entry:** 260ms directional translation from logical start/end with backdrop fade.
 - **Drawer exit:** at most 180ms, preserving native `display` and `overlay` until the discrete transition completes.
-- **Reduced motion:** Message cleans up without enter/leave/move transitions; Drawer closes immediately without active transitions.
+- **Reduced motion:** Dialog, Message, Drawer, and Progress remove non-essential transitions or animation while preserving the same state and lifecycle semantics.
 
 Motion explains arrival, departure, and spatial ownership. It never uses bounce, elastic overshoot, animated layout dimensions, or a settled Drawer transform that would change fixed-position descendants.
 
@@ -349,6 +372,15 @@ Motion explains arrival, departure, and spatial ownership. It never uses bounce,
 - **Border treatment:** the glass surface has no outer border. The circular icon container uses a quiet tonal fill without a ring.
 - **Semantics:** title and value remain text; a default chart is decorative unless `chartAriaLabel` supplies its accessible meaning. Data retrieval and business interpretation stay outside.
 
+### Tag, Badge, and Progress
+
+- **Tag surfaces:** `soft` uses a tone-specific semantic tint with its own contrast-safe foreground; `solid` uses the semantic tone and matching on-tone foreground. Neutral, brand, success, warning, and danger retain the same compact pill geometry.
+- **Tag close intent:** a closable Tag provides a named native button with a 24px visual target and a 44px coarse-pointer hit area. Activating it emits close intent only; the consumer owns collection removal, restoration, and persistence.
+- **Badge placement:** when wrapping content, the marker is anchored to logical top-end and mirrors its transform in RTL. The marker remains borderless and uses a compact shadow only where it overlaps content.
+- **Badge semantics:** an unnamed dot is decorative and hidden from assistive technology; adding `ariaLabel` makes the dot a named `img`. Counts and text are consumer values, with only presentation rules such as `max`, zero visibility, and `hidden` handled by Badge.
+- **Progress rendering:** determinate fill always occupies the track geometrically and renders its supplied percentage through `scaleX`, avoiding width animation and layout work. Transform origin follows LTR/RTL.
+- **Progress motion and meaning:** indeterminate progress uses a translating segment, but reduced motion shows a static segment. `value`, `status`, and label meaning are consumer-provided; Progress does not infer upload, task, request, or completion state and never converts `100` to success automatically.
+
 ### Message and Drawer
 
 - **Message surface:** an opaque, borderless 360px-maximum surface fixed 16px from the physical top-right. Light uses `#fff`; dark uses exact `#2d2d2d`. Info, success, warning, and error remain distinguishable through Lucide icons and accessible roles rather than color alone.
@@ -359,7 +391,9 @@ Motion explains arrival, departure, and spatial ownership. It never uses bounce,
 
 ### Dialog, Image, Tabs, and Upload
 
-- **Dialog:** uses the native `<dialog>` top layer for modal focus, background inertness, Escape ordering, and scroll behavior. Its borderless surface keeps a 12px radius and uses the dedicated dialog shadow.
+- **Dialog:** uses the native `<dialog>` top layer for modal focus, focus containment and restoration, background inertness, Escape ordering, and scroll behavior. It does not implement a competing manual focus trap; `initialFocus` and native `autofocus` only select the first target.
+- **Dialog controlled lifecycle:** close controls emit a reasoned request and `update:open`; `close` and `closed` occur only after the consumer accepts `open=false`. Entry uses `open/opened` around the 220ms arrival, while accepted exit uses `close/closed` around the 160ms departure.
+- **Dialog sizing and mounting:** `width` accepts a positive pixel number or CSS inline-size string, `fullscreen` owns the viewport and safe-area padding, and body overflow remains internally scrollable. Content mounts lazily on first open, stays mounted by default to preserve local state, and unmounts only after exit when `destroyOnClose` is enabled.
 - **Confirm Dialog:** composes Dialog and Button. Confirm emits intent without closing; cancel requests a controlled close. Danger tone adds a standard warning icon while keeping the safe cancel action as initial focus.
 - **Form Dialog:** connects an SSR-safe native form to its footer submit button. Native validation runs before the raw `SubmitEvent` is emitted; serialization, error mapping, and persistence stay outside.
 - **Image:** a native image remains non-interactive unless preview is enabled. A named button opens the component's own Teleport preview layer, keeping the remote-approved dark, close-button-free presentation without coupling Image to Dialog.
@@ -386,6 +420,7 @@ Motion explains arrival, departure, and spatial ownership. It never uses bounce,
 - **Do** share internal foundations when they reduce real duplication; keep a component self-contained when public composition adds coupling without a user-facing benefit.
 - **Do** spend borders on form boundaries, state, focus, and real separation; prefer surface, spacing, or one shadow for ordinary layers.
 - **Do** keep Message and Drawer surfaces opaque and borderless, and verify their real enter/leave behavior with reduced-motion alternatives.
+- **Do** treat Tag removal, Badge values, and Progress value/status as controlled consumer state; components may format or display that state but never interpret its business origin.
 
 ### Don't:
 
@@ -399,3 +434,4 @@ Motion explains arrival, departure, and spatial ownership. It never uses bounce,
 - **Don't** override `--vp-c-brand-*` or allow VitePress theme values to become component tokens.
 - **Don't** preserve pre-release compatibility aliases, private branches, CommonJS, or UMD entries.
 - **Don't** add borders to Dialog, Drawer, or Message surfaces, decorative card shadows, unrequested oversized radii, or color-only status signals; protected personal components such as Widget may keep their deliberate geometry.
+- **Don't** turn Progress into an upload/task controller, remove Tag data after a close click, or derive Badge counts from application records inside the component library.

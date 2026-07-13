@@ -328,6 +328,21 @@
         "purpose": "Confident deceleration without bounce or elastic overshoot."
       },
       {
+        "name": "dialog-enter",
+        "value": "220ms cubic-bezier(0.25, 1, 0.5, 1)",
+        "purpose": "Native top-layer Dialog fade, six-to-eight-pixel lift, and restrained scale settlement."
+      },
+      {
+        "name": "dialog-leave",
+        "value": "160ms cubic-bezier(0.25, 1, 0.5, 1)",
+        "purpose": "Accepted Dialog close lifecycle while the native top layer remains present."
+      },
+      {
+        "name": "progress-indeterminate",
+        "value": "1350ms cubic-bezier(0.2, 0, 0, 1) infinite",
+        "purpose": "Logical inline travel for unknown progress; reduced motion replaces it with a static partial fill."
+      },
+      {
         "name": "message-enter",
         "value": "260ms cubic-bezier(0.22, 1, 0.36, 1)",
         "purpose": "Physical right-side Message translation and fade-in."
@@ -444,9 +459,9 @@
       "name": "Native Modal Dialog",
       "kind": "custom",
       "refersTo": "dialog-surface",
-      "description": "A borderless native top-layer modal with explicit naming, close action, and dedicated semantic elevation.",
+      "description": "A borderless native top-layer modal with controlled request/accepted lifecycle, explicit naming, lazy content policy, configurable width or fullscreen geometry, and restrained motion.",
       "html": "<dialog class=\"ds-dialog\" open aria-labelledby=\"ds-dialog-title\"><h2 id=\"ds-dialog-title\">Review details</h2><button type=\"button\" aria-label=\"Close dialog\">×</button><p>Dialog content</p></dialog>",
-      "css": ".ds-dialog { width: min(520px, calc(100% - 32px)); padding: 20px; border: 0; border-radius: 12px; background: var(--omg-color-surface, #fff); color: var(--omg-color-text, #273040); box-shadow: var(--omg-shadow-dialog, 0 24px 64px rgb(15 23 42 / 24%), 0 8px 24px rgb(15 23 42 / 14%)); font: inherit; } .ds-dialog::backdrop { background: var(--omg-color-overlay, rgb(0 0 0 / 62%)); }"
+      "css": ".ds-dialog { width: min(var(--omg-dialog-inline-size, 520px), calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 20px; overflow: auto; border: 0; border-radius: 12px; opacity: 0; background: var(--omg-color-surface, #fff); color: var(--omg-color-text, #273040); box-shadow: var(--omg-shadow-dialog, 0 24px 64px rgb(15 23 42 / 24%), 0 8px 24px rgb(15 23 42 / 14%)); font: inherit; transform: translateY(6px) scale(.98); transition: opacity 160ms cubic-bezier(.25, 1, .5, 1), transform 160ms cubic-bezier(.25, 1, .5, 1); } .ds-dialog[open] { opacity: 1; transform: none; transition-duration: 220ms; } .ds-dialog::backdrop { background: var(--omg-color-overlay, rgb(0 0 0 / 62%)); } @media (prefers-reduced-motion: reduce) { .ds-dialog { transition: none; } }"
     },
     {
       "name": "Logical Side Drawer",
@@ -503,6 +518,30 @@
       "description": "A fixed personal data widget with borderless frosted depth, four compact quadrants, and an optionally named mini visualization.",
       "html": "<article class=\"ds-widget\"><span class=\"ds-widget-icon\" aria-hidden=\"true\"></span><span class=\"ds-widget-title\">Spend</span><strong class=\"ds-widget-value\">85<small> yuan</small></strong><span class=\"ds-widget-chart\" role=\"img\" aria-label=\"Seven-day spend trend\"></span></article>",
       "css": ".ds-widget { position: relative; display: grid; width: 160px; height: 130px; box-sizing: border-box; grid-template: minmax(0, 1fr) minmax(0, 1fr) / minmax(0, 1fr) minmax(0, 1fr); padding: 16px; border: 0; border-radius: 35px; background: color-mix(in srgb, var(--omg-color-surface, #fff) 55%, transparent); backdrop-filter: blur(20px); color: var(--omg-color-text, #273040); } .ds-widget-icon { width: 42px; height: 42px; place-self: start; border-radius: 50%; background: color-mix(in srgb, currentcolor 6%, transparent); } .ds-widget-title { min-width: 0; place-self: start end; overflow: hidden; color: var(--omg-color-text-muted, #475467); font: inherit; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; } .ds-widget-value { min-width: 0; place-self: end start; font: inherit; font-size: 22px; font-weight: 650; } .ds-widget-value small { color: var(--omg-color-text-muted, #475467); font-size: 12px; } .ds-widget-chart { width: 100%; height: 36px; place-self: end; border-radius: 8px; background: linear-gradient(160deg, transparent 45%, var(--omg-color-brand, #1d4ed8) 47% 51%, transparent 53%); }"
+    },
+    {
+      "name": "Semantic Tag",
+      "kind": "custom",
+      "refersTo": "tag",
+      "description": "A compact borderless label with independent accessible soft-tone contrast, solid tones, optional icon, and consumer-controlled close intent.",
+      "html": "<span class=\"ds-tag\"><span aria-hidden=\"true\">✓</span>Ready<button type=\"button\" aria-label=\"Remove Ready tag\">×</button></span>",
+      "css": ".ds-tag { display: inline-flex; height: 30px; max-width: 100%; align-items: center; gap: 4px; padding: 0 10px; border: 0; border-radius: 999px; background: var(--omg-color-success-soft, rgb(6 118 71 / 12%)); color: var(--omg-color-success-soft-text, #067647); font: inherit; font-size: 12px; font-weight: 650; white-space: nowrap; } .ds-tag button { width: 24px; height: 24px; padding: 0; border: 0; border-radius: 999px; background: transparent; color: inherit; }"
+    },
+    {
+      "name": "Logical Badge",
+      "kind": "custom",
+      "refersTo": "badge",
+      "description": "A standalone or logical top-end count, text, or dot marker with explicit accessible semantics and no live-region business behavior.",
+      "html": "<span class=\"ds-badge\"><button type=\"button\">Inbox</button><sup aria-label=\"120 unread messages\">99+</sup></span>",
+      "css": ".ds-badge { position: relative; display: inline-flex; } .ds-badge sup { position: absolute; inset-block-start: 0; inset-inline-end: 0; display: inline-flex; min-width: 18px; height: 18px; align-items: center; justify-content: center; padding: 0 5px; border: 0; border-radius: 999px; background: var(--omg-color-danger, #d92d20); color: var(--omg-color-on-danger, #fff); box-shadow: var(--omg-shadow-sm, 0 1px 2px rgb(15 23 42 / 10%)); font: inherit; font-size: 10px; font-weight: 750; transform: translate(50%, -50%); }"
+    },
+    {
+      "name": "Linear Progress",
+      "kind": "custom",
+      "refersTo": "progress",
+      "description": "A borderless determinate or indeterminate progressbar with explicit status, logical RTL origin, visible naming, and a static reduced-motion fallback.",
+      "html": "<div class=\"ds-progress\" role=\"progressbar\" aria-label=\"Build progress\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"68\"><span></span></div>",
+      "css": ".ds-progress { width: 100%; height: 8px; overflow: hidden; border: 0; border-radius: 999px; background: var(--omg-color-neutral-soft, rgb(32 34 38 / 8%)); } .ds-progress span { display: block; width: 100%; height: 100%; border-radius: inherit; background: var(--omg-color-brand, #1d4ed8); transform: scaleX(.68); transform-origin: left center; transition: transform 240ms cubic-bezier(.2, 0, 0, 1); } .ds-progress:dir(rtl) span { transform-origin: right center; } @media (prefers-reduced-motion: reduce) { .ds-progress span { transition: none; } }"
     },
     {
       "name": "Semantic Divider",
