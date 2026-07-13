@@ -47,6 +47,10 @@
       "types": "./dist/components/avatar-group/index.d.ts",
       "import": "./dist/components/avatar-group/index.js"
     },
+    "./badge": {
+      "types": "./dist/components/badge/index.d.ts",
+      "import": "./dist/components/badge/index.js"
+    },
     "./button": {
       "types": "./dist/components/button/index.d.ts",
       "import": "./dist/components/button/index.js"
@@ -95,6 +99,10 @@
       "types": "./dist/components/message/index.d.ts",
       "import": "./dist/components/message/index.js"
     },
+    "./progress": {
+      "types": "./dist/components/progress/index.d.ts",
+      "import": "./dist/components/progress/index.js"
+    },
     "./radio": {
       "types": "./dist/components/radio/index.d.ts",
       "import": "./dist/components/radio/index.js"
@@ -106,6 +114,10 @@
     "./select": {
       "types": "./dist/components/select/index.d.ts",
       "import": "./dist/components/select/index.js"
+    },
+    "./tag": {
+      "types": "./dist/components/tag/index.d.ts",
+      "import": "./dist/components/tag/index.js"
     },
     "./tabs": {
       "types": "./dist/components/tabs/index.d.ts",

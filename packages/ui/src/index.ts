@@ -38,6 +38,15 @@ export type {
 } from './components/avatar-group'
 
 export {
+  OBadge,
+  formatOBadgeValue,
+  normalizeOBadgeMax,
+  oBadgeProps,
+  oBadgeTones,
+} from './components/badge'
+export type { OBadgeProps, OBadgeSlots, OBadgeTone } from './components/badge'
+
+export {
   OButton,
   oButtonNativeTypes,
   oButtonProps,
@@ -83,8 +92,21 @@ export type {
   OConfirmDialogTone,
 } from './components/confirm-dialog'
 
-export { ODialog, oDialogProps } from './components/dialog'
-export type { ODialogEmits, ODialogProps, ODialogSlots } from './components/dialog'
+export {
+  ODialog,
+  normalizeODialogWidth,
+  oDialogCloseReasons,
+  oDialogProps,
+} from './components/dialog'
+export type {
+  ODialogCloseReason,
+  ODialogCloseRequest,
+  ODialogEmits,
+  ODialogProps,
+  ODialogSlotProps,
+  ODialogSlots,
+  ODialogWidth,
+} from './components/dialog'
 
 export {
   ODivider,
@@ -151,6 +173,21 @@ export type {
 } from './components/message'
 
 export {
+  OProgress,
+  normalizeOProgressValue,
+  oProgressProps,
+  oProgressSizes,
+  oProgressStatuses,
+} from './components/progress'
+export type {
+  OProgressLabelSlotProps,
+  OProgressProps,
+  OProgressSize,
+  OProgressSlots,
+  OProgressStatus,
+} from './components/progress'
+
+export {
   ORadio,
   ORadioGroup,
   oRadioGroupOrientations,
@@ -196,6 +233,16 @@ export type {
   OSelectSlots,
   OSelectValue,
 } from './components/select'
+
+export { OTag, oTagProps, oTagSizes, oTagTones, oTagVariants } from './components/tag'
+export type {
+  OTagEmits,
+  OTagProps,
+  OTagSize,
+  OTagSlots,
+  OTagTone,
+  OTagVariant,
+} from './components/tag'
 
 export { OTabs, oTabsProps, oTabsVariants } from './components/tabs'
 export type {

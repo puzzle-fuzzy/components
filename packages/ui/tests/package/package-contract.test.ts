@@ -39,6 +39,7 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       './avatar-dropdown',
       './avatar-flow',
       './avatar-group',
+      './badge',
       './button',
       './checkbox',
       './code-input',
@@ -51,9 +52,11 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       './image',
       './input',
       './message',
+      './progress',
       './radio',
       './reference-textarea',
       './select',
+      './tag',
       './tabs',
       './textarea',
       './upload',
@@ -80,6 +83,8 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/components/avatar-group/index.d.ts',
       'dist/components/avatar-flow/index.js',
       'dist/components/avatar-flow/index.d.ts',
+      'dist/components/badge/index.js',
+      'dist/components/badge/index.d.ts',
       'dist/components/button/index.js',
       'dist/components/button/index.d.ts',
       'dist/components/checkbox/index.js',
@@ -104,12 +109,16 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/components/input/index.d.ts',
       'dist/components/message/index.js',
       'dist/components/message/index.d.ts',
+      'dist/components/progress/index.js',
+      'dist/components/progress/index.d.ts',
       'dist/components/radio/index.js',
       'dist/components/radio/index.d.ts',
       'dist/components/reference-textarea/index.js',
       'dist/components/reference-textarea/index.d.ts',
       'dist/components/select/index.js',
       'dist/components/select/index.d.ts',
+      'dist/components/tag/index.js',
+      'dist/components/tag/index.d.ts',
       'dist/components/tabs/index.js',
       'dist/components/tabs/index.d.ts',
       'dist/components/textarea/index.js',
@@ -129,6 +138,9 @@ describe('@puzzle-fuzzy/ui package contract', () => {
     const publicStyles = await readFile(resolve(packageRoot, 'dist/styles.css'), 'utf8')
 
     expect(publicStyles).toContain('.vue-recycle-scroller')
+    expect(publicStyles).toContain('.o-badge')
+    expect(publicStyles).toContain('.o-progress')
+    expect(publicStyles).toContain('.o-tag')
     await expect(access(resolve(packageRoot, 'dist/select.css'))).rejects.toThrow()
   })
 })

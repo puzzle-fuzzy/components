@@ -7,6 +7,7 @@ import {
   OAvatarDropdown,
   OAvatarFlow,
   OAvatarGroup,
+  OBadge,
   OButton,
   OCheckbox,
   OCodeInput,
@@ -19,10 +20,12 @@ import {
   OImage,
   OInput,
   OMessage,
+  OProgress,
   ORadio,
   ORadioGroup,
   OReferenceTextarea,
   OSelect,
+  OTag,
   OTabs,
   OTextarea,
   OUpload,
@@ -231,6 +234,24 @@ describe('server rendering', () => {
     expect(html).toContain('type="button"')
   })
 
+  test('renders Tag, Badge, and Progress without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h('div', [
+            h(OTag, { tone: 'success', closable: true }, () => 'Ready'),
+            h(OBadge, { value: 8, ariaLabel: '8 unread' }, () => h(OButton, null, () => 'Inbox')),
+            h(OProgress, { value: 42, ariaLabel: 'Build progress', showLabel: true }),
+          ]),
+      }),
+    )
+
+    expect(html).toContain('o-tag--success')
+    expect(html).toContain('aria-label="8 unread"')
+    expect(html).toContain('role="progressbar"')
+    expect(html).toContain('aria-valuenow="42"')
+  })
+
   test('renders an accessibly named icon-only OButton without DOM globals', async () => {
     const html = await renderToString(
       createSSRApp({
@@ -324,7 +345,7 @@ describe('server rendering', () => {
           h(
             OConfirmDialog,
             {
-              open: false,
+              open: true,
               title: 'Delete record',
               tone: 'danger',
               confirmLabel: 'Delete',
@@ -349,7 +370,7 @@ describe('server rendering', () => {
         render: () =>
           h(
             OFormDialog,
-            { open: false, title: 'Edit profile', submitLabel: 'Save' },
+            { open: true, title: 'Edit profile', submitLabel: 'Save' },
             {
               default: () =>
                 h(OInput, {
@@ -466,6 +487,7 @@ describe('server rendering', () => {
     expect(html).toContain('<dialog')
     expect(html).toContain('class="o-dialog')
     expect(html).not.toContain(' open')
+    expect(html).not.toContain('正文')
   })
 
   test('renders stable ODrawer markup without opening native top layer on the server', async () => {
