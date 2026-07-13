@@ -1,3 +1,4 @@
+/* eslint-disable vue/one-component-per-file */
 import { renderToString } from '@vue/server-renderer'
 import { computed, createSSRApp, defineComponent, h, ref } from 'vue'
 import { mount } from '@vue/test-utils'
@@ -76,6 +77,79 @@ const Host = defineComponent({
 })
 
 describe('useFloatingPanel', () => {
+  it('accepts orthogonal placements and a reactive distance without changing defaults', async () => {
+    const OrthogonalHost = defineComponent({
+      setup() {
+        const distance = ref(8)
+        const open = ref(true)
+        const floating = useFloatingPanel({
+          isOpen: computed(() => open.value),
+          offset: computed(() => distance.value),
+          placement: computed(() => 'top-end' as const),
+          onDismiss: () => undefined,
+        })
+
+        return { distance, floating }
+      },
+      render() {
+        return h('div', [
+          h('button', { ref: this.floating.setReferenceElement }, 'trigger'),
+          h('div', { ref: this.floating.setFloatingElement, 'data-floating': '' }, 'panel'),
+        ])
+      },
+    })
+
+    const wrapper = mount(OrthogonalHost)
+    await wrapper.vm.$nextTick()
+
+    expect(mocks.computePosition).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      expect.any(HTMLElement),
+      expect.objectContaining({ placement: 'top-end' }),
+    )
+    expect(mocks.offset).toHaveBeenCalledWith(8)
+
+    wrapper.vm.distance = 12
+    await wrapper.vm.$nextTick()
+    expect(mocks.offset).toHaveBeenLastCalledWith(12)
+    wrapper.unmount()
+  })
+
+  it('resolves a Vue component reference through its root element', async () => {
+    const Trigger = defineComponent({
+      inheritAttrs: false,
+      setup(_, { attrs }) {
+        return () => h('button', attrs, 'component trigger')
+      },
+    })
+    const ComponentHost = defineComponent({
+      setup() {
+        const floating = useFloatingPanel({
+          isOpen: computed(() => true),
+          placement: computed(() => 'top' as const),
+          onDismiss: () => undefined,
+        })
+        return { floating }
+      },
+      render() {
+        return h('div', [
+          h(Trigger, { ref: this.floating.setReferenceElement }),
+          h('div', { ref: this.floating.setFloatingElement, 'data-floating': '' }, 'panel'),
+        ])
+      },
+    })
+
+    const wrapper = mount(ComponentHost)
+    await vi.waitFor(() => {
+      expect(mocks.computePosition).toHaveBeenCalledWith(
+        expect.objectContaining({ tagName: 'BUTTON' }),
+        expect.any(HTMLElement),
+        expect.objectContaining({ placement: 'top' }),
+      )
+    })
+    wrapper.unmount()
+  })
+
   it('starts only while open and cleans up when closed', async () => {
     const wrapper = mount(Host)
     expect(mocks.autoUpdate).not.toHaveBeenCalled()

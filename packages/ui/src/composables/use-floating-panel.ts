@@ -2,7 +2,7 @@ import {
   autoUpdate,
   computePosition,
   flip,
-  offset,
+  offset as floatingOffset,
   shift,
   size,
   type Placement,
@@ -16,11 +16,24 @@ import {
   type CSSProperties,
 } from 'vue'
 
-export type OFloatingPlacement = 'bottom-start' | 'bottom-end'
+export type OFloatingPlacement =
+  | 'top'
+  | 'top-start'
+  | 'top-end'
+  | 'right'
+  | 'right-start'
+  | 'right-end'
+  | 'bottom'
+  | 'bottom-start'
+  | 'bottom-end'
+  | 'left'
+  | 'left-start'
+  | 'left-end'
 
 export interface UseFloatingPanelOptions {
   readonly isOpen: ComputedRef<boolean>
   readonly placement: ComputedRef<OFloatingPlacement>
+  readonly offset?: ComputedRef<number>
   readonly matchReferenceWidth?: boolean
   readonly onDismiss: () => void
 }
@@ -167,6 +180,7 @@ export const useFloatingPanel = (options: UseFloatingPanelOptions) => {
   const y = shallowRef(0)
   const ready = shallowRef(false)
   const resolvedPlacement = shallowRef<Placement>(options.placement.value)
+  const resolvedOffset = computed(() => options.offset?.value ?? 6)
 
   const update = async (): Promise<void> => {
     const reference = referenceElement.value
@@ -177,7 +191,7 @@ export const useFloatingPanel = (options: UseFloatingPanelOptions) => {
       placement: options.placement.value,
       strategy: 'fixed',
       middleware: [
-        offset(6),
+        floatingOffset(resolvedOffset.value),
         flip({ padding: 8 }),
         shift({ padding: 8 }),
         size({
@@ -209,7 +223,7 @@ export const useFloatingPanel = (options: UseFloatingPanelOptions) => {
   }
 
   watch(
-    [options.isOpen, referenceElement, floatingElement, options.placement],
+    [options.isOpen, referenceElement, floatingElement, options.placement, resolvedOffset],
     ([open, reference, floating], _previous, onCleanup) => {
       ready.value = false
       availableHeight.value = undefined
@@ -243,11 +257,20 @@ export const useFloatingPanel = (options: UseFloatingPanelOptions) => {
     visibility: ready.value ? undefined : 'hidden',
   }))
 
+  const resolveElement = (
+    element: Element | ComponentPublicInstance | null,
+  ): HTMLElement | null => {
+    if (typeof HTMLElement === 'undefined') return null
+    if (element instanceof HTMLElement) return element
+
+    const rootElement = (element as ComponentPublicInstance | null)?.$el as unknown
+    return rootElement instanceof HTMLElement ? rootElement : null
+  }
   const setReferenceElement = (element: Element | ComponentPublicInstance | null): void => {
-    referenceElement.value = element instanceof HTMLElement ? element : null
+    referenceElement.value = resolveElement(element)
   }
   const setFloatingElement = (element: Element | ComponentPublicInstance | null): void => {
-    floatingElement.value = element instanceof HTMLElement ? element : null
+    floatingElement.value = resolveElement(element)
   }
 
   return {

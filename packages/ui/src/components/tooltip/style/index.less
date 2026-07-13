@@ -1,0 +1,57 @@
+.o-tooltip {
+  position: fixed;
+  z-index: calc(var(--omg-z-index-dropdown) + 1);
+  box-sizing: border-box;
+  max-inline-size: 240px;
+  padding: 6px var(--omg-space-2);
+  border: 0;
+  border-radius: var(--omg-radius-sm);
+  background: var(--omg-color-neutral);
+  box-shadow: var(--omg-shadow-sm);
+  color: var(--omg-color-on-neutral);
+  font-size: var(--omg-font-size-sm);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.o-tooltip-enter-active,
+.o-tooltip-leave-active {
+  transition:
+    opacity var(--omg-duration-fast) var(--omg-easing-standard),
+    transform var(--omg-duration-fast) var(--omg-easing-standard);
+}
+
+.o-tooltip-enter-from,
+.o-tooltip-leave-to {
+  opacity: 0;
+  transform: var(--omg-tooltip-enter-transform, translateY(2px));
+}
+
+.o-tooltip[data-placement^='top'] {
+  --omg-tooltip-enter-transform: translateY(2px);
+}
+
+.o-tooltip[data-placement^='right'] {
+  --omg-tooltip-enter-transform: translateX(-2px);
+}
+
+.o-tooltip[data-placement^='bottom'] {
+  --omg-tooltip-enter-transform: translateY(-2px);
+}
+
+.o-tooltip[data-placement^='left'] {
+  --omg-tooltip-enter-transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .o-tooltip-enter-active,
+  .o-tooltip-leave-active {
+    transition: none;
+  }
+
+  .o-tooltip-enter-from,
+  .o-tooltip-leave-to {
+    transform: none;
+  }
+}
