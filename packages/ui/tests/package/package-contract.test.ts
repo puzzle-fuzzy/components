@@ -24,7 +24,7 @@ describe('@puzzle-fuzzy/ui package contract', () => {
     expect(manifest.name).toBe('@puzzle-fuzzy/ui')
     expect(manifest.version).toBe('0.1.0')
     expect(manifest.private).toBe(false)
-    expect(manifest.license).toBe('UNLICENSED')
+    expect(manifest.license).toBe('MIT')
     expect(manifest.main).toBeUndefined()
     expect(manifest.exports['.']?.require).toBeUndefined()
     expect(manifest.dependencies).toEqual({

@@ -124,6 +124,9 @@ try {
   if (forbiddenFile) {
     throw new Error('Forbidden file in package tarball: ' + forbiddenFile)
   }
+  if (!packedFiles.includes('package/LICENSE')) {
+    throw new Error('Package tarball must include the MIT license')
+  }
 
   const consumerRoot = resolve(temporaryRoot, 'consumer')
   const sourceRoot = resolve(consumerRoot, 'src')

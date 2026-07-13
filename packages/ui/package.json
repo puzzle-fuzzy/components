@@ -20,7 +20,7 @@
   },
   "private": false,
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "files": [
     "dist"
   ],
