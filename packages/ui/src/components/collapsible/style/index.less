@@ -1,0 +1,78 @@
+.o-collapsible {
+  min-inline-size: 0;
+  color: var(--omg-color-text);
+}
+
+.o-collapsible__trigger {
+  max-inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  appearance: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: start;
+
+  &:focus-visible {
+    border-radius: var(--omg-radius-sm);
+    outline: 2px solid var(--omg-color-focus-ring);
+    outline-offset: 3px;
+  }
+
+  &:disabled,
+  &[data-disabled] {
+    cursor: not-allowed;
+    opacity: 0.56;
+  }
+}
+
+.o-collapsible__content {
+  min-inline-size: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+
+  &[data-state='open'] {
+    animation: o-collapsible-open var(--omg-duration-normal) var(--omg-easing-standard);
+  }
+
+  &[data-state='closed'] {
+    animation: o-collapsible-close var(--omg-duration-fast) var(--omg-easing-standard);
+  }
+}
+
+.o-collapsible__content-inner {
+  min-inline-size: 0;
+  padding-block-start: var(--omg-space-3);
+}
+
+@keyframes o-collapsible-open {
+  from {
+    block-size: 0;
+    opacity: 0;
+  }
+
+  to {
+    block-size: var(--omg-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes o-collapsible-close {
+  from {
+    block-size: var(--omg-collapsible-content-height);
+    opacity: 1;
+  }
+
+  to {
+    block-size: 0;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .o-collapsible__content[data-state] {
+    animation-duration: 0ms;
+  }
+}
