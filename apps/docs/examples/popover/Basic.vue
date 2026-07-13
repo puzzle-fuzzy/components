@@ -5,6 +5,10 @@ import { LuBell, LuCheck } from 'vue-icons-plus/lu'
 import { ref } from 'vue'
 
 const lastAction = ref('尚未处理')
+const markAllRead = (close: () => void): void => {
+  lastAction.value = '已全部标记为已读'
+  close()
+}
 </script>
 
 <template>
@@ -23,14 +27,7 @@ const lastAction = ref('尚未处理')
             <strong>3 条新通知</strong>
             <p>Popover 可以容纳按钮、链接和简短的交互内容。</p>
           </div>
-          <OButton
-            size="sm"
-            variant="soft"
-            @click="
-              lastAction = '已全部标记为已读'
-              close()
-            "
-          >
+          <OButton size="sm" variant="soft" @click="markAllRead(close)">
             <template #icon><LuCheck aria-hidden="true" /></template>
             全部已读
           </OButton>

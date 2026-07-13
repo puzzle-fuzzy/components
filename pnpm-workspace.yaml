@@ -3,14 +3,17 @@ packages:
   - packages/*
 
 allowBuilds:
-  # VitePress 1.x installs esbuild; allow only its native binary setup.
+  # VitePress 1.x installs esbuild; allow its native binary setup.
   esbuild: true
+  # Reka UI uses VueUse, whose vue-demi postinstall selects the active Vue major.
+  vue-demi: true
 
 catalog:
   '@floating-ui/dom': ^1.8.0
   '@vitejs/plugin-vue': ^6.0.7
   '@vue/server-renderer': ^3.5.39
   less: ^4.6.7
+  reka-ui: ^2.10.1
   typescript: ~6.0.3
   vite: ^8.1.1
   vue: ^3.5.39

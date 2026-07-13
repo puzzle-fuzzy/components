@@ -1,8 +1,28 @@
-import { access, readFile } from 'node:fs/promises'
+import { access, readdir, readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { describe, expect, test } from 'vitest'
 
 const packageRoot = resolve(import.meta.dirname, '../..')
+const componentManifest = JSON.parse(
+  await readFile(resolve(packageRoot, 'component-manifest.json'), 'utf8'),
+) as {
+  groups: Array<{ components: Array<{ slug: string }> }>
+}
+const componentSlugs = componentManifest.groups.flatMap((group) =>
+  group.components.map(({ slug }) => slug),
+)
+
+const collectFiles = async (directory: string): Promise<string[]> => {
+  const entries = await readdir(directory, { withFileTypes: true })
+  const files = await Promise.all(
+    entries.map((entry) => {
+      const path = resolve(directory, entry.name)
+      return entry.isDirectory() ? collectFiles(path) : [path]
+    }),
+  )
+
+  return files.flat()
+}
 
 interface PackageManifest {
   name: string
@@ -29,49 +49,13 @@ describe('@puzzle-fuzzy/ui package contract', () => {
     expect(manifest.exports['.']?.require).toBeUndefined()
     expect(manifest.dependencies).toEqual({
       '@floating-ui/dom': 'catalog:',
+      'reka-ui': 'catalog:',
       'vue-icons-plus': 'catalog:',
       'vue-virtual-scroller': 'catalog:',
     })
     expect(manifest.peerDependencies).toEqual({ vue: '^3.5.0' })
 
-    const componentSubpaths = [
-      './alert',
-      './aspect-ratio',
-      './avatar',
-      './avatar-dropdown',
-      './avatar-flow',
-      './avatar-group',
-      './badge',
-      './button',
-      './button-group',
-      './card',
-      './checkbox',
-      './code-input',
-      './confirm-dialog',
-      './dialog',
-      './divider',
-      './drawer',
-      './dropdown',
-      './empty',
-      './form-dialog',
-      './image',
-      './input',
-      './kbd',
-      './message',
-      './progress',
-      './radio',
-      './reference-textarea',
-      './skeleton',
-      './spinner',
-      './select',
-      './switch',
-      './tag',
-      './tabs',
-      './textarea',
-      './tooltip',
-      './upload',
-      './widget',
-    ]
+    const componentSubpaths = componentSlugs.map((slug) => './' + slug)
 
     for (const subpath of componentSubpaths) {
       expect(manifest.exports[subpath]?.types).toMatch(/^\.\/dist\/.+\.d\.ts$/u)
@@ -85,78 +69,10 @@ describe('@puzzle-fuzzy/ui package contract', () => {
       'dist/index.js',
       'dist/index.d.ts',
       'dist/styles.css',
-      'dist/components/alert/index.js',
-      'dist/components/alert/index.d.ts',
-      'dist/components/aspect-ratio/index.js',
-      'dist/components/aspect-ratio/index.d.ts',
-      'dist/components/avatar/index.js',
-      'dist/components/avatar/index.d.ts',
-      'dist/components/avatar-dropdown/index.js',
-      'dist/components/avatar-dropdown/index.d.ts',
-      'dist/components/avatar-group/index.js',
-      'dist/components/avatar-group/index.d.ts',
-      'dist/components/avatar-flow/index.js',
-      'dist/components/avatar-flow/index.d.ts',
-      'dist/components/badge/index.js',
-      'dist/components/badge/index.d.ts',
-      'dist/components/button/index.js',
-      'dist/components/button/index.d.ts',
-      'dist/components/button-group/index.js',
-      'dist/components/button-group/index.d.ts',
-      'dist/components/card/index.js',
-      'dist/components/card/index.d.ts',
-      'dist/components/checkbox/index.js',
-      'dist/components/checkbox/index.d.ts',
-      'dist/components/code-input/index.js',
-      'dist/components/code-input/index.d.ts',
-      'dist/components/confirm-dialog/index.js',
-      'dist/components/confirm-dialog/index.d.ts',
-      'dist/components/dialog/index.js',
-      'dist/components/dialog/index.d.ts',
-      'dist/components/divider/index.js',
-      'dist/components/divider/index.d.ts',
-      'dist/components/drawer/index.js',
-      'dist/components/drawer/index.d.ts',
-      'dist/components/dropdown/index.js',
-      'dist/components/dropdown/index.d.ts',
-      'dist/components/empty/index.js',
-      'dist/components/empty/index.d.ts',
-      'dist/components/form-dialog/index.js',
-      'dist/components/form-dialog/index.d.ts',
-      'dist/components/image/index.js',
-      'dist/components/image/index.d.ts',
-      'dist/components/input/index.js',
-      'dist/components/input/index.d.ts',
-      'dist/components/kbd/index.js',
-      'dist/components/kbd/index.d.ts',
-      'dist/components/message/index.js',
-      'dist/components/message/index.d.ts',
-      'dist/components/progress/index.js',
-      'dist/components/progress/index.d.ts',
-      'dist/components/radio/index.js',
-      'dist/components/radio/index.d.ts',
-      'dist/components/reference-textarea/index.js',
-      'dist/components/reference-textarea/index.d.ts',
-      'dist/components/skeleton/index.js',
-      'dist/components/skeleton/index.d.ts',
-      'dist/components/spinner/index.js',
-      'dist/components/spinner/index.d.ts',
-      'dist/components/select/index.js',
-      'dist/components/select/index.d.ts',
-      'dist/components/switch/index.js',
-      'dist/components/switch/index.d.ts',
-      'dist/components/tag/index.js',
-      'dist/components/tag/index.d.ts',
-      'dist/components/tabs/index.js',
-      'dist/components/tabs/index.d.ts',
-      'dist/components/textarea/index.js',
-      'dist/components/textarea/index.d.ts',
-      'dist/components/tooltip/index.js',
-      'dist/components/tooltip/index.d.ts',
-      'dist/components/upload/index.js',
-      'dist/components/upload/index.d.ts',
-      'dist/components/widget/index.js',
-      'dist/components/widget/index.d.ts',
+      ...componentSlugs.flatMap((slug) => [
+        `dist/components/${slug}/index.js`,
+        `dist/components/${slug}/index.d.ts`,
+      ]),
     ]
 
     await expect(
@@ -169,12 +85,18 @@ describe('@puzzle-fuzzy/ui package contract', () => {
 
     expect(publicStyles).toContain('.vue-recycle-scroller')
     expect(publicStyles).toContain('.o-alert')
+    expect(publicStyles).toContain('.o-accordion')
     expect(publicStyles).toContain('.o-aspect-ratio')
     expect(publicStyles).toContain('.o-badge')
     expect(publicStyles).toContain('.o-button-group')
     expect(publicStyles).toContain('.o-card')
+    expect(publicStyles).toContain('.o-collapsible')
     expect(publicStyles).toContain('.o-empty')
+    expect(publicStyles).toContain('.o-field')
+    expect(publicStyles).toContain('.o-input-group')
     expect(publicStyles).toContain('.o-kbd')
+    expect(publicStyles).toContain('.o-label')
+    expect(publicStyles).toContain('.o-popover')
     expect(publicStyles).toContain('.o-progress')
     expect(publicStyles).toContain('.o-skeleton')
     expect(publicStyles).toContain('.o-spinner')
@@ -182,5 +104,32 @@ describe('@puzzle-fuzzy/ui package contract', () => {
     expect(publicStyles).toContain('.o-tag')
     expect(publicStyles).toContain('.o-tooltip')
     await expect(access(resolve(packageRoot, 'dist/select.css'))).rejects.toThrow()
+  })
+
+  test('keeps Reka UI behind the OMG public type boundary', async () => {
+    const declarationFiles = (await collectFiles(resolve(packageRoot, 'dist'))).filter((path) =>
+      path.endsWith('.d.ts'),
+    )
+    const declarationSources = await Promise.all(
+      declarationFiles.map((path) => readFile(path, 'utf8')),
+    )
+
+    expect(declarationSources.some((source) => source.includes('reka-ui'))).toBe(false)
+
+    const interactionChunks = await Promise.all(
+      ['accordion', 'collapsible', 'popover'].map(async (slug) => {
+        const entry = await readFile(
+          resolve(packageRoot, `dist/components/${slug}/index.js`),
+          'utf8',
+        )
+        const chunk = entry.match(/from\s*["']\.\.\/\.\.\/([^"']+\.js)["']/u)?.[1]
+        if (!chunk) throw new Error(`Missing implementation chunk for ${slug}`)
+        return readFile(resolve(packageRoot, 'dist', chunk), 'utf8')
+      }),
+    )
+    expect(interactionChunks.every((source) => /from\s*["']reka-ui["']/u.test(source))).toBe(true)
+    expect(
+      interactionChunks.some((source) => source.includes('createContext("AccordionRoot")')),
+    ).toBe(false)
   })
 })

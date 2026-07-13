@@ -47,10 +47,13 @@
   Assert a real label, `for`, disabled/required data states, attrs/listeners, required marker `aria-hidden=true`, and click association with input/checkbox.
 
   ```ts
-  const wrapper = mount({
-    components: { OLabel },
-    template: '<div><OLabel for="name" required>Name</OLabel><input id="name"></div>',
-  }, { attachTo: document.body })
+  const wrapper = mount(
+    {
+      components: { OLabel },
+      template: '<div><OLabel for="name" required>Name</OLabel><input id="name"></div>',
+    },
+    { attachTo: document.body },
+  )
   expect(wrapper.get('label').attributes('for')).toBe('name')
   expect(wrapper.get('[data-slot="label-required"]').attributes('aria-hidden')).toBe('true')
   ```
@@ -213,4 +216,3 @@
   Run `pnpm --filter @puzzle-fuzzy/ui typecheck && pnpm exec vitest run packages/ui/src/components/label packages/ui/src/components/field packages/ui/src/components/input-group`.
 
   Expected: typecheck and focused suites pass. Do not edit central config, package exports, sidebar, overview, SSR aggregate, package tests, or E2E in this task.
-

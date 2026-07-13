@@ -13,7 +13,7 @@
   transition: border-color var(--omg-duration-fast) var(--omg-easing-standard);
 }
 
-.o-input-group:hover:not([data-disabled='true']) {
+.o-input-group:where(:hover:not([data-disabled='true'])) {
   border-color: var(--omg-color-brand-border);
 }
 

@@ -1,7 +1,15 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
+import { readFileSync } from 'node:fs'
 import { build } from 'vite'
+
+const componentManifest = JSON.parse(
+  readFileSync(new URL('../../../../packages/ui/component-manifest.json', import.meta.url), 'utf8'),
+) as {
+  groups: Array<{ components: Array<{ slug: string; label: string }> }>
+}
+const componentRoutes = componentManifest.groups.flatMap((group) => group.components)
 
 type Rgb = readonly [number, number, number]
 
@@ -104,6 +112,17 @@ const expectNoSeriousAccessibilityViolations = async (
 
   expect(violations).toEqual([])
 }
+
+test('serves every component route declared by the manifest', async ({ page }) => {
+  test.setTimeout(120_000)
+  for (const { slug } of componentRoutes) {
+    await test.step(slug, async () => {
+      const response = await page.goto('/components/' + slug)
+      expect(response?.ok()).toBe(true)
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    })
+  }
+})
 
 interface TransitionFrameSnapshot {
   readonly opacity: string
@@ -2304,5 +2323,120 @@ test('composes Button Group actions, controls, orientation, RTL, and child focus
   const rtl = controls.getByRole('region', { name: 'Button Group RTL state' })
   await expect(rtl).toHaveAttribute('dir', 'rtl')
   await expect(rtl.getByRole('group', { name: 'RTL 搜索组件' })).toBeVisible()
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('associates Label and Field semantics without adding decorative borders', async ({ page }) => {
+  test.setTimeout(60_000)
+  await page.goto('/components/label')
+  const labelBasic = page.getByRole('region', { name: 'Label native control association' })
+  await labelBasic.getByText('组件库名称').click()
+  await expect(labelBasic.getByRole('textbox', { name: '组件库名称' })).toBeFocused()
+  const labelStates = page.getByRole('region', { name: 'Label required and disabled states' })
+  await expect(labelStates.locator('[data-slot="label-required"]')).toHaveAttribute(
+    'aria-hidden',
+    'true',
+  )
+  await expectNoSeriousAccessibilityViolations(page)
+
+  await page.goto('/components/field')
+  const controls = page.getByRole('region', { name: 'Field controls and native semantics' })
+  await controls.locator('label[for="field-package-name"]').click()
+  await expect(controls.getByRole('textbox', { name: /显示名称/u })).toBeFocused()
+  await expect(controls.locator('fieldset')).toHaveCSS('border-top-width', '0px')
+
+  const errors = page.getByRole('region', {
+    name: 'Field errors deduplication and custom slot',
+  })
+  await expect(errors.getByRole('alert').first().locator('li')).toHaveCount(2)
+  await expect(errors.getByRole('alert').nth(1)).toContainText('令牌已经过期')
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('keeps Input Group to one border and preserves addon focus behavior', async ({ page }) => {
+  await page.goto('/components/input-group')
+  const inline = page.getByRole('region', { name: 'Input Group inline addons' })
+  const searchGroup = inline.getByRole('group', { name: '搜索组件' })
+  const searchInput = searchGroup.getByRole('textbox', { name: '组件名称' })
+  await searchGroup.locator('[data-slot="input-group-addon"]').first().click()
+  await expect(searchInput).toBeFocused()
+  await expect(searchGroup).toHaveCSS('border-top-width', '1px')
+  await expect(searchGroup.locator('.o-input__control')).toHaveCSS('border-top-width', '0px')
+  await expect(searchGroup).toHaveCSS('outline-style', 'none')
+
+  const block = page.getByRole('region', { name: 'Input Group block addons and button' })
+  await block.getByRole('button', { name: '打开' }).click()
+  await expect(block).toContainText('已打开 components/field')
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('supports Accordion keyboard state, reduced borders, and horizontal RTL', async ({ page }) => {
+  await page.goto('/components/accordion')
+  const single = page.getByRole('region', { name: 'Accordion single and collapsible' })
+  const first = single.getByRole('button', { name: '组件由哪些部分组成？' })
+  const second = single.getByRole('button', { name: '可以完全受控吗？' })
+  await expect(first).toHaveAttribute('aria-expanded', 'true')
+  await first.focus()
+  await page.keyboard.press('ArrowDown')
+  await expect(second).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(second).toHaveAttribute('aria-expanded', 'true')
+  await expect(single.locator('[data-slot="accordion-item"]').first()).toHaveCSS(
+    'border-top-width',
+    '0px',
+  )
+
+  const horizontal = page.getByRole('region', { name: 'Accordion horizontal RTL and asChild' })
+  const rtlAccordion = horizontal.getByLabel('RTL 水平手风琴')
+  await expect(rtlAccordion).toHaveAttribute('data-orientation', 'horizontal')
+  const rtlFirst = rtlAccordion.getByRole('button', { name: '第一项' })
+  const rtlSecond = rtlAccordion.getByRole('button', { name: '第二项' })
+  await rtlFirst.focus()
+  await page.keyboard.press('ArrowLeft')
+  await expect(rtlSecond).toBeFocused()
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('keeps Collapsible lightweight, semantic, and composable with OButton', async ({ page }) => {
+  await page.goto('/components/collapsible')
+  const basic = page.getByRole('region', { name: 'Collapsible basic and button composition' })
+  const nativeTrigger = basic.getByRole('button', { name: '查看基础配置' })
+  await expect(nativeTrigger).toHaveAttribute('aria-expanded', 'true')
+  await nativeTrigger.click()
+  await expect(nativeTrigger).toHaveAttribute('aria-expanded', 'false')
+  await expect(basic.getByText('主题：跟随系统')).toBeHidden()
+
+  const composedTrigger = basic.getByRole('button', { name: '查看构建信息' })
+  await expect(composedTrigger.locator('button')).toHaveCount(0)
+  await composedTrigger.click()
+  await expect(composedTrigger).toHaveAttribute('aria-expanded', 'true')
+  await expect(basic.getByText('TypeScript 6')).toBeVisible()
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('opens a borderless Popover, restores focus, and supports modal focus', async ({ page }) => {
+  await page.goto('/components/popover')
+  const basic = page.getByRole('region', { name: 'Popover basic as-child composition' })
+  const trigger = basic.getByRole('button', { name: '打开通知摘要' })
+  await trigger.click()
+  const content = page.getByRole('dialog').filter({ hasText: '3 条新通知' })
+  await expect(content).toBeVisible()
+  await expect(content).toHaveCSS('border-top-width', '0px')
+  await expect(content).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+  await page.keyboard.press('Escape')
+  await expect(content).toBeHidden()
+  await expect(trigger).toBeFocused()
+
+  await trigger.click()
+  await content.getByRole('button', { name: '全部已读' }).click()
+  await expect(basic).toContainText('已全部标记为已读')
+  await expect(content).toBeHidden()
+
+  const modal = page.getByRole('region', { name: 'Popover modal focus behavior' })
+  const modalTrigger = modal.getByRole('button', { name: '打开 modal Popover' })
+  await modalTrigger.click()
+  await expect(page.getByRole('textbox', { name: '访问说明' })).toBeFocused()
+  await page.getByRole('button', { name: '完成' }).click()
+  await expect(modalTrigger).toBeFocused()
   await expectNoSeriousAccessibilityViolations(page)
 })

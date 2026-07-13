@@ -3,6 +3,10 @@ import { createSSRApp, h, nextTick, type VNode } from 'vue'
 import { describe, expect, test, vi } from 'vitest'
 
 import {
+  OAccordion,
+  OAccordionContent,
+  OAccordionItem,
+  OAccordionTrigger,
   OAlert,
   OAspectRatio,
   OAvatar,
@@ -16,6 +20,9 @@ import {
   OButtonGroupText,
   OCard,
   OCheckbox,
+  OCollapsible,
+  OCollapsibleContent,
+  OCollapsibleTrigger,
   OCodeInput,
   OConfirmDialog,
   ODialog,
@@ -23,12 +30,27 @@ import {
   ODrawer,
   ODropdown,
   OEmpty,
+  OField,
+  OFieldContent,
+  OFieldDescription,
+  OFieldError,
+  OFieldLabel,
+  OFieldLegend,
+  OFieldSet,
+  OFieldTitle,
   OFormDialog,
   OImage,
   OInput,
+  OInputGroup,
+  OInputGroupAddon,
+  OInputGroupInput,
   OKbd,
   OKbdGroup,
+  OLabel,
   OMessage,
+  OPopover,
+  OPopoverContent,
+  OPopoverTrigger,
   OProgress,
   ORadio,
   ORadioGroup,
@@ -830,5 +852,74 @@ describe('server rendering', () => {
     expect(html).toContain('aria-label="近 4 天花费趋势"')
     expect(gradientIds).toHaveLength(2)
     expect(new Set(gradientIds).size).toBe(2)
+  })
+
+  test('renders composition form and disclosure families without DOM globals', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h('main', [
+            h(OLabel, { for: 'account' }, () => 'Account label'),
+            h(OField, { orientation: 'horizontal', required: true }, () => [
+              h(OFieldLabel, { for: 'account' }, () => 'Account'),
+              h(OFieldContent, null, () => [
+                h(OFieldTitle, null, () => 'Profile account'),
+                h(OFieldDescription, null, () => 'Use a public handle.'),
+                h(OInputGroup, null, () => [
+                  h(OInputGroupAddon, null, () => '@'),
+                  h(OInputGroupInput, { id: 'account', modelValue: 'omg-ui' }),
+                ]),
+                h(OFieldError, { errors: ['Already used'] }),
+              ]),
+            ]),
+            h(OFieldSet, { disabled: true }, () => [
+              h(OFieldLegend, null, () => 'Disabled settings'),
+            ]),
+            h(OAccordion, { defaultValue: 'details' }, () => [
+              h(OAccordionItem, { value: 'details' }, () => [
+                h(OAccordionTrigger, null, () => 'Details'),
+                h(OAccordionContent, null, () => 'Accordion body'),
+              ]),
+            ]),
+            h(OCollapsible, { defaultOpen: true }, () => [
+              h(OCollapsibleTrigger, null, () => 'More'),
+              h(OCollapsibleContent, null, () => 'Collapsible body'),
+            ]),
+            h(OPopover, { defaultOpen: true }, () => [
+              h(OPopoverTrigger, null, () => 'Open profile'),
+              h(OPopoverContent, { teleported: false }, () => 'Popover body'),
+            ]),
+          ]),
+      }),
+    )
+
+    expect(html).toContain('for="account"')
+    expect(html).toContain('data-orientation="horizontal"')
+    expect(html).toContain('role="alert"')
+    expect(html).toContain('<fieldset class="o-field-set"')
+    expect(html).toContain(' disabled')
+    expect(html).toContain('aria-expanded="true"')
+    expect(html).toContain('Accordion body')
+    expect(html).toContain('Collapsible body')
+    expect(html).toContain('Popover body')
+  })
+
+  test('renders an initially open teleported OPopover placeholder without throwing', async () => {
+    const serverContext: SSRContext = {}
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h(OPopover, { defaultOpen: true }, () => [
+            h(OPopoverTrigger, null, () => 'Open'),
+            h(OPopoverContent, null, () => 'Teleported popover body'),
+          ]),
+      }),
+      serverContext,
+    )
+    expect(html).toContain('aria-expanded="true"')
+    expect(html).not.toContain('Teleported popover body')
+    expect(Object.values(serverContext.teleports ?? {}).join('')).not.toContain(
+      'Teleported popover body',
+    )
   })
 })

@@ -141,11 +141,7 @@ Field compound 允许调用方显式组织复杂结构。ID 与 `aria-describedb
 ### Root 与布局
 
 ```ts
-export type OInputGroupAddonAlign =
-  | 'inline-start'
-  | 'inline-end'
-  | 'block-start'
-  | 'block-end'
+export type OInputGroupAddonAlign = 'inline-start' | 'inline-end' | 'block-start' | 'block-end'
 ```
 
 - Root 是唯一边框拥有者；内部 input、textarea 和 button 不再各画一圈边框。

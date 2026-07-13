@@ -10,7 +10,7 @@ const name = ref('OMG UI')
   <div class="label-example">
     <OLabel for="label-name">组件库名称</OLabel>
     <OInput id="label-name" v-model="name" autocomplete="organization" />
-    <span class="label-example__value" aria-live="polite">当前名称：{{ name }}</span>
+    <span class="label-example-value" aria-live="polite">当前名称：{{ name }}</span>
   </div>
 </template>
 
@@ -21,7 +21,7 @@ const name = ref('OMG UI')
   gap: var(--omg-space-2);
 }
 
-.label-example__value {
+.label-example-value {
   color: var(--omg-color-text-muted);
   font-size: var(--omg-font-size-sm);
 }

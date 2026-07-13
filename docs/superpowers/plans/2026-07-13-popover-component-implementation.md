@@ -141,4 +141,3 @@
   Run `pnpm exec vitest run packages/ui/src/components/popover packages/ui/src/composables && pnpm --filter @puzzle-fuzzy/ui typecheck`.
 
   Expected: PASS. Leave central integration to the main agent.
-

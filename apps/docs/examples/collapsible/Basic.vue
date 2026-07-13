@@ -45,7 +45,7 @@ import {
 }
 
 .collapsible-copy {
-  color: var(--omg-color-text-muted);
+  color: var(--omg-color-text);
   line-height: 1.7;
 }
 </style>

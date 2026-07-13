@@ -42,10 +42,10 @@ onBeforeUnmount(() => context.setTriggerElement(null))
 
 <template>
   <PopoverTrigger
+    :id="context.triggerId"
     v-bind="$attrs"
     ref="primitive"
     data-slot="popover-trigger"
-    :id="context.triggerId"
     :aria-controls="context.contentId"
     :as="props.as"
     :as-child="props.asChild"

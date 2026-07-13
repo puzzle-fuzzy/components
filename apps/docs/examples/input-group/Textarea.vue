@@ -35,7 +35,7 @@ const submitted = ref(false)
         </OInputGroupButton>
       </OInputGroupAddon>
     </OInputGroup>
-    <span class="input-group-textarea__feedback" aria-live="polite">
+    <span class="input-group-textarea-feedback" aria-live="polite">
       {{ submitted ? '已使用当前摘要' : '等待确认' }}
     </span>
   </div>
@@ -48,7 +48,7 @@ const submitted = ref(false)
   gap: var(--omg-space-2);
 }
 
-.input-group-textarea__feedback {
+.input-group-textarea-feedback {
   color: var(--omg-color-text-muted);
   font-size: var(--omg-font-size-sm);
 }

@@ -52,7 +52,10 @@
   ```ts
   const wrapper = mount(OCollapsible, {
     props: { open: false },
-    slots: { default: '<OCollapsibleTrigger>Toggle</OCollapsibleTrigger><OCollapsibleContent>Body</OCollapsibleContent>' },
+    slots: {
+      default:
+        '<OCollapsibleTrigger>Toggle</OCollapsibleTrigger><OCollapsibleContent>Body</OCollapsibleContent>',
+    },
     global: { components: { OCollapsibleTrigger, OCollapsibleContent } },
   })
   await wrapper.get('button').trigger('click')
@@ -152,4 +155,3 @@
   Run `pnpm exec vitest run packages/ui/src/components/accordion packages/ui/src/components/collapsible && pnpm --filter @puzzle-fuzzy/ui typecheck`.
 
   Expected: PASS. Leave all central integration files to the main agent.
-

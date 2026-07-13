@@ -8,7 +8,7 @@ const email = ref('')
 
 <template>
   <div class="label-states">
-    <div class="label-states__field">
+    <div class="label-states-field">
       <OLabel for="label-email" required>通知邮箱</OLabel>
       <OInput
         id="label-email"
@@ -19,7 +19,7 @@ const email = ref('')
       />
     </div>
 
-    <div class="label-states__field">
+    <div class="label-states-field">
       <OLabel for="label-disabled" disabled>只读来源</OLabel>
       <OInput id="label-disabled" disabled model-value="系统同步" />
     </div>
@@ -33,7 +33,7 @@ const email = ref('')
   gap: var(--omg-space-5);
 }
 
-.label-states__field {
+.label-states-field {
   display: grid;
   gap: var(--omg-space-2);
 }

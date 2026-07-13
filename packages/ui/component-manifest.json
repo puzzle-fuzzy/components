@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "groups": [
+    {
+      "id": "foundation",
+      "label": "基础",
+      "components": [
+        { "slug": "button", "label": "Button 按钮" },
+        { "slug": "button-group", "label": "Button Group 按钮组" },
+        { "slug": "card", "label": "Card 卡片" },
+        { "slug": "tag", "label": "Tag 标签" },
+        { "slug": "badge", "label": "Badge 徽标" },
+        { "slug": "kbd", "label": "Kbd 键盘按键" },
+        { "slug": "divider", "label": "Divider 分割线" },
+        { "slug": "aspect-ratio", "label": "Aspect Ratio 宽高比" },
+        { "slug": "image", "label": "Image 图片" },
+        { "slug": "avatar", "label": "Avatar 头像" },
+        { "slug": "avatar-group", "label": "Avatar Group 头像组" }
+      ]
+    },
+    {
+      "id": "form",
+      "label": "表单",
+      "components": [
+        { "slug": "label", "label": "Label 标签" },
+        { "slug": "field", "label": "Field 表单字段" },
+        { "slug": "input-group", "label": "Input Group 输入组合" },
+        { "slug": "input", "label": "Input 输入框" },
+        { "slug": "textarea", "label": "Textarea 多行输入" },
+        { "slug": "checkbox", "label": "Checkbox 复选框" },
+        { "slug": "radio", "label": "Radio 单选框" },
+        { "slug": "switch", "label": "Switch 开关" },
+        { "slug": "code-input", "label": "Code Input 验证码输入" },
+        { "slug": "select", "label": "Select 选择器" },
+        { "slug": "upload", "label": "Upload 文件上传" }
+      ]
+    },
+    {
+      "id": "navigation",
+      "label": "导航",
+      "components": [
+        { "slug": "tabs", "label": "Tabs 标签页" },
+        { "slug": "accordion", "label": "Accordion 手风琴" },
+        { "slug": "collapsible", "label": "Collapsible 折叠区域" }
+      ]
+    },
+    {
+      "id": "feedback",
+      "label": "反馈",
+      "components": [
+        { "slug": "alert", "label": "Alert 提示" },
+        { "slug": "empty", "label": "Empty 空状态" },
+        { "slug": "message", "label": "Message 消息" },
+        { "slug": "progress", "label": "Progress 进度" },
+        { "slug": "skeleton", "label": "Skeleton 骨架屏" },
+        { "slug": "spinner", "label": "Spinner 加载指示" }
+      ]
+    },
+    {
+      "id": "floating",
+      "label": "浮层",
+      "components": [
+        { "slug": "tooltip", "label": "Tooltip 文字提示" },
+        { "slug": "dropdown", "label": "Dropdown 下拉菜单" },
+        { "slug": "popover", "label": "Popover 弹出层" },
+        { "slug": "avatar-dropdown", "label": "Avatar Dropdown 头像下拉" },
+        { "slug": "drawer", "label": "Drawer 侧边面板" },
+        { "slug": "dialog", "label": "Dialog 对话框" },
+        { "slug": "confirm-dialog", "label": "Confirm Dialog 确认弹窗" },
+        { "slug": "form-dialog", "label": "Form Dialog 表单弹窗" }
+      ]
+    },
+    {
+      "id": "personal",
+      "label": "个人组件",
+      "components": [
+        { "slug": "avatar-flow", "label": "Avatar Flow 头像流" },
+        { "slug": "reference-textarea", "label": "Reference Textarea 引用输入" },
+        { "slug": "widget", "label": "Widget 小组件" }
+      ]
+    }
+  ]
+}

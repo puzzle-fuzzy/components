@@ -3,7 +3,9 @@
   "compilerOptions": {
     "composite": true,
     "paths": {
-      "@puzzle-fuzzy/ui": ["../../packages/ui/src/index.ts"]
+      "@puzzle-fuzzy/ui": ["../../packages/ui/src/index.ts"],
+      "@puzzle-fuzzy/ui/*": ["../../packages/ui/src/components/*/index.ts"],
+      "@puzzle-fuzzy/ui/styles.css": ["../../packages/ui/src/styles/index.less"]
     },
     "tsBuildInfoFile": "../../node_modules/.cache/typescript/docs.tsbuildinfo",
     "types": ["node", "vitepress/client"]

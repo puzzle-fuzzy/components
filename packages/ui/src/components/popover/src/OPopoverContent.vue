@@ -2,6 +2,7 @@
 import { PopoverContent, PopoverPortal } from 'reka-ui'
 import {
   computed,
+  defineComponent,
   mergeProps,
   nextTick,
   onMounted,
@@ -36,11 +37,21 @@ const context = useOPopoverContext('OPopoverContent')
 const primitive = shallowRef<Element | ComponentPublicInstance | null>(null)
 const contentElement = shallowRef<HTMLElement | null>(null)
 const mirroredDirection = shallowRef<'ltr' | 'rtl'>()
-const delegatedPortalProps = computed(() => ({
-  to: props.teleportTo,
-  disabled: !props.teleported,
-  ...(props.forceMount ? { forceMount: true as const } : {}),
-}))
+const OPopoverInlineContent = defineComponent({
+  name: 'OPopoverInlineContent',
+  setup(_props, { slots }) {
+    return () => slots.default?.()
+  },
+})
+const contentWrapper = computed(() => (props.teleported ? PopoverPortal : OPopoverInlineContent))
+const contentWrapperProps = computed(() =>
+  props.teleported
+    ? {
+        to: props.teleportTo,
+        ...(props.forceMount ? { forceMount: true as const } : {}),
+      }
+    : {},
+)
 const delegatedContentProps = computed(() => ({
   as: props.as,
   asChild: props.asChild,
@@ -93,13 +104,13 @@ watch(
 </script>
 
 <template>
-  <PopoverPortal v-bind="delegatedPortalProps">
+  <component :is="contentWrapper" v-bind="contentWrapperProps">
     <PopoverContent
+      :id="context.contentId"
       v-bind="contentBindings"
       ref="primitive"
       class="o-popover__content"
       data-slot="popover-content"
-      :id="context.contentId"
       :aria-labelledby="context.triggerId"
       @escape-key-down="emit('escapeKeyDown', $event)"
       @pointer-down-outside="emit('pointerDownOutside', $event)"
@@ -110,5 +121,5 @@ watch(
     >
       <slot />
     </PopoverContent>
-  </PopoverPortal>
+  </component>
 </template>

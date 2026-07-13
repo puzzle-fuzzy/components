@@ -1,52 +1,29 @@
 import { access, readdir, readFile } from 'node:fs/promises'
 import { relative, resolve } from 'node:path'
+import {
+  flattenComponentManifest,
+  pushExactSetErrors,
+  readComponentManifest,
+} from './component-manifest.mjs'
 
 const repositoryRoot = resolve(import.meta.dirname, '..')
 const componentsRoot = resolve(repositoryRoot, 'packages/ui/src/components')
+const uiSourceRoot = resolve(repositoryRoot, 'packages/ui/src')
 const docsThemePath = resolve(repositoryRoot, 'apps/docs/docs/.vitepress/theme/custom.less')
 const docsConfigPath = resolve(repositoryRoot, 'apps/docs/docs/.vitepress/config.mts')
 const docsOverviewPath = resolve(repositoryRoot, 'apps/docs/docs/components/index.md')
 const docsComponentsRoot = resolve(repositoryRoot, 'apps/docs/docs/components')
 const docsExamplesRoot = resolve(repositoryRoot, 'apps/docs/examples')
 const docsE2ePath = resolve(repositoryRoot, 'apps/docs/tests/e2e/components.spec.ts')
-const expectedComponents = [
-  'alert',
-  'aspect-ratio',
-  'avatar',
-  'avatar-dropdown',
-  'avatar-flow',
-  'avatar-group',
-  'badge',
-  'button',
-  'button-group',
-  'card',
-  'checkbox',
-  'code-input',
-  'confirm-dialog',
-  'dialog',
-  'divider',
-  'drawer',
-  'dropdown',
-  'empty',
-  'form-dialog',
-  'image',
-  'input',
-  'kbd',
-  'message',
-  'progress',
-  'radio',
-  'reference-textarea',
-  'skeleton',
-  'spinner',
-  'select',
-  'switch',
-  'tag',
-  'tabs',
-  'textarea',
-  'tooltip',
-  'upload',
-  'widget',
-]
+const packagePath = resolve(repositoryRoot, 'packages/ui/package.json')
+const rootIndexPath = resolve(repositoryRoot, 'packages/ui/src/index.ts')
+const stylesIndexPath = resolve(repositoryRoot, 'packages/ui/src/styles/index.less')
+const viteConfigPath = resolve(repositoryRoot, 'packages/ui/vite.config.ts')
+
+const manifest = await readComponentManifest(repositoryRoot)
+const components = flattenComponentManifest(manifest)
+const expectedComponents = components.map(({ slug }) => slug)
+const errors = []
 
 const toComponentName = (directory) =>
   'O' +
@@ -55,9 +32,6 @@ const toComponentName = (directory) =>
     .map((part) => part[0].toUpperCase() + part.slice(1))
     .join('')
 
-const errors = []
-
-const uiSourceRoot = resolve(repositoryRoot, 'packages/ui/src')
 const forbiddenIconPackages = ['lucide-vue-next', '@heroicons', '@fortawesome', '@iconify']
 
 const collectFiles = async (directory) => {
@@ -71,6 +45,9 @@ const collectFiles = async (directory) => {
 
   return files.flat()
 }
+
+const collectMatches = (source, expression) =>
+  [...source.matchAll(expression)].map((match) => match[1]).filter(Boolean)
 
 for (const root of [uiSourceRoot, docsExamplesRoot]) {
   for (const file of await collectFiles(root)) {
@@ -109,12 +86,31 @@ for (const root of [uiSourceRoot, docsExamplesRoot]) {
   }
 }
 
-const docsTheme = await readFile(docsThemePath, 'utf8')
-const docsConfig = await readFile(docsConfigPath, 'utf8')
-const docsOverview = await readFile(docsOverviewPath, 'utf8')
-const docsE2e = await readFile(docsE2ePath, 'utf8')
+const [docsTheme, docsConfig, docsOverview, docsE2e, rootIndex, stylesIndex, viteConfig] =
+  await Promise.all(
+    [
+      docsThemePath,
+      docsConfigPath,
+      docsOverviewPath,
+      docsE2ePath,
+      rootIndexPath,
+      stylesIndexPath,
+      viteConfigPath,
+    ].map((path) => readFile(path, 'utf8')),
+  )
+const packageJson = JSON.parse(await readFile(packagePath, 'utf8'))
+
 if (/--vp-c-brand-[\w-]+\s*:/u.test(docsTheme)) {
   errors.push('docs theme must not override VitePress brand variables')
+}
+if (!docsConfig.includes('component-manifest.json')) {
+  errors.push('VitePress config must derive component navigation from component-manifest.json')
+}
+if (!docsE2e.includes('component-manifest.json') || !docsE2e.includes('componentRoutes')) {
+  errors.push('Playwright route smoke must derive routes from component-manifest.json')
+}
+if (!viteConfig.includes('component-manifest.json') || !viteConfig.includes('componentEntries')) {
+  errors.push('Vite config must derive component entries from component-manifest.json')
 }
 
 for (const directory of expectedComponents) {
@@ -141,28 +137,6 @@ for (const directory of expectedComponents) {
     errors.push(directory + ': missing docs page')
   }
 
-  const sourceAlias = 'find: /^@puzzle-fuzzy\\/ui\\/' + directory + '$/'
-  if (!docsConfig.includes(sourceAlias)) {
-    errors.push(directory + ': missing VitePress source alias')
-  }
-  if (!docsConfig.includes("link: '/components/" + directory + "'")) {
-    errors.push(directory + ': missing VitePress sidebar entry')
-  }
-  if (!docsOverview.includes('](/components/' + directory + ')')) {
-    errors.push(directory + ': missing component overview link')
-  }
-  if (!docsE2e.includes("page.goto('/components/" + directory + "')")) {
-    errors.push(directory + ': missing Playwright route visit')
-  }
-
-  if (directory === 'drawer' || directory === 'message') {
-    try {
-      await access(resolve(docsExamplesRoot, directory, 'Basic.vue'))
-    } catch {
-      errors.push(directory + ': missing Basic.vue capability example')
-    }
-  }
-
   try {
     const entry = await readFile(resolve(componentsRoot, directory, 'index.ts'), 'utf8')
     if (entry.includes('export *')) {
@@ -173,11 +147,31 @@ for (const directory of expectedComponents) {
   }
 }
 
-const rootEntries = await readdir(componentsRoot, { withFileTypes: true })
-for (const entry of rootEntries) {
-  if (!entry.isDirectory() || !expectedComponents.includes(entry.name)) {
-    errors.push('components root contains unsupported entry: ' + entry.name)
-  }
+const rootEntries = (await readdir(componentsRoot, { withFileTypes: true }))
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name)
+const docsPages = (await readdir(docsComponentsRoot, { withFileTypes: true }))
+  .filter((entry) => entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'index.md')
+  .map((entry) => entry.name.slice(0, -3))
+const packageSubpaths = Object.keys(packageJson.exports)
+  .filter((key) => key !== '.' && key !== './styles.css')
+  .map((key) => key.slice(2))
+const rootExportComponents = collectMatches(rootIndex, /from\s+['"]\.\/components\/([^'"]+)['"]/gu)
+const styleComponents = collectMatches(
+  stylesIndex,
+  /@import\s+['"]\.\.\/components\/([^/'"]+)\/style\/index\.less['"]/gu,
+)
+const overviewComponents = collectMatches(docsOverview, /\]\(\/components\/([^)]+)\)/gu)
+
+for (const [label, actual] of [
+  ['component directories', rootEntries],
+  ['component docs pages', docsPages],
+  ['package component exports', packageSubpaths],
+  ['root component exports', rootExportComponents],
+  ['component style imports', styleComponents],
+  ['component overview links', overviewComponents],
+]) {
+  pushExactSetErrors(errors, label, actual, expectedComponents)
 }
 
 if (errors.length > 0) {
