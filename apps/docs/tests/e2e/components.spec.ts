@@ -2138,3 +2138,171 @@ test('renders atomic Skeleton variants, composed loading state, content switch, 
     'none',
   )
 })
+
+test('renders borderless Card composition, variants, dark theme, and compact wrapping', async ({
+  page,
+}) => {
+  await page.goto('/components/card')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Card 卡片' })).toBeVisible()
+  const composition = page.getByRole('region', { name: 'Card composition and actions' })
+  const card = composition.locator('.o-card')
+  await expect(card).toHaveAttribute('data-slot', 'card')
+  await expect(card).toHaveCSS('border-top-width', '0px')
+  await expect(card.getByRole('heading', { level: 3, name: '个人组件计划' })).toBeVisible()
+  await expect(card.getByRole('button', { name: '打开计划' })).toBeVisible()
+  await expect(card.getByRole('button', { name: '继续编辑' })).toBeVisible()
+
+  const header = card.locator('[data-slot="card-header"]')
+  const action = card.locator('[data-slot="card-action"]')
+  const headerBounds = await header.boundingBox()
+  const actionBounds = await action.boundingBox()
+  expect(actionBounds?.y ?? -1).toBeGreaterThanOrEqual(headerBounds?.y ?? 0)
+
+  const variants = page.getByRole('region', { name: 'Card variants dark and compact' })
+  await expect(variants.locator('.o-card--surface').first()).toBeVisible()
+  await expect(variants.locator('.o-card--muted')).toBeVisible()
+  await expect(variants.locator('.o-card--ghost')).toBeVisible()
+  await expect(variants.getByRole('region', { name: 'Card dark theme' })).toHaveCSS(
+    'background-color',
+    'rgb(36, 41, 54)',
+  )
+
+  await page.setViewportSize({ width: 320, height: 640 })
+  const darkCard = variants.getByRole('region', { name: 'Card dark theme' }).locator('.o-card')
+  await darkCard.scrollIntoViewIfNeeded()
+  expect((await darkCard.boundingBox())?.width ?? 321).toBeLessThanOrEqual(288)
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('renders Empty media and actions without inventing live-region semantics', async ({
+  page,
+}) => {
+  await page.goto('/components/empty')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Empty 空状态' })).toBeVisible()
+  const basic = page.getByRole('region', { name: 'Empty media and actions' })
+  const empty = basic.locator('.o-empty')
+  await expect(empty).toHaveAttribute('data-slot', 'empty')
+  await expect(empty).toHaveCSS('border-top-width', '0px')
+  await expect(empty).not.toHaveAttribute('role')
+  await expect(empty).not.toHaveAttribute('aria-live')
+  await expect(empty.getByRole('heading', { level: 3, name: '还没有收藏' })).toBeVisible()
+  await expect(empty.locator('[data-slot="empty-media"] svg')).toBeVisible()
+  await expect(empty.getByRole('button', { name: '浏览组件' })).toBeVisible()
+
+  const states = page.getByRole('region', { name: 'Empty UI-only states and dark theme' })
+  const dark = states.getByRole('region', { name: 'Empty dark theme' })
+  await expect(dark).toHaveCSS('background-color', 'rgb(20, 24, 33)')
+  await page.setViewportSize({ width: 320, height: 640 })
+  await dark.scrollIntoViewIfNeeded()
+  expect((await dark.locator('.o-empty').boundingBox())?.width ?? 321).toBeLessThanOrEqual(288)
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('keeps Aspect Ratio dimensions responsive without adding visual policy', async ({ page }) => {
+  await page.goto('/components/aspect-ratio')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Aspect Ratio 宽高比' })).toBeVisible()
+  const media = page.getByRole('region', { name: 'Aspect Ratio media' })
+  const wide = media.locator('.o-aspect-ratio')
+  const wideBounds = await wide.boundingBox()
+  expect((wideBounds?.width ?? 0) / (wideBounds?.height ?? 1)).toBeCloseTo(16 / 9, 1)
+  await expect(wide).toHaveCSS('border-top-width', '0px')
+  await expect(wide).toHaveCSS('overflow', 'visible')
+
+  const responsive = page.getByRole('region', { name: 'Aspect Ratio responsive shapes' })
+  const ratios = responsive.locator('.o-aspect-ratio')
+  const squareBounds = await ratios.nth(0).boundingBox()
+  const landscapeBounds = await ratios.nth(1).boundingBox()
+  expect((squareBounds?.width ?? 0) / (squareBounds?.height ?? 1)).toBeCloseTo(1, 1)
+  expect((landscapeBounds?.width ?? 0) / (landscapeBounds?.height ?? 1)).toBeCloseTo(4 / 3, 1)
+
+  await page.setViewportSize({ width: 320, height: 640 })
+  const compactBounds = await ratios.nth(0).boundingBox()
+  expect(compactBounds?.width ?? 321).toBeLessThanOrEqual(288)
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('renders semantic Kbd keys, named groups, and Tooltip composition', async ({ page }) => {
+  await page.goto('/components/kbd')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Kbd 键盘按键' })).toBeVisible()
+  const basic = page.getByRole('region', { name: 'Kbd keys and groups' })
+  await expect(basic.locator('kbd.o-kbd')).toHaveCount(3)
+  await expect(basic.getByRole('group', { name: 'Control 加 S' })).toBeVisible()
+  await expect(basic.locator('.o-kbd').first()).toHaveCSS('border-top-width', '0px')
+
+  const composition = page.getByRole('region', { name: 'Kbd Tooltip composition' })
+  const trigger = composition.getByRole('button', { name: '打开命令面板' })
+  await trigger.focus()
+  const tooltip = page.getByRole('tooltip', { name: /打开命令面板/u })
+  await expect(tooltip).toBeVisible()
+  await expect(tooltip.getByRole('group', { name: 'Control 加 K' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(tooltip).toBeHidden()
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('renders accessible and decorative Spinner modes with a reduced-motion fallback', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto('/components/spinner')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Spinner 加载指示' })).toBeVisible()
+  const basic = page.getByRole('region', { name: 'Spinner sizes and status' })
+  await expect(basic.getByRole('status')).toHaveCount(3)
+  await expect(basic.getByRole('status', { name: '正在同步默认任务' })).toHaveCSS('width', '18px')
+  await expect(basic.locator('.o-spinner__icon').first()).not.toHaveCSS('animation-name', 'none')
+
+  const contexts = page.getByRole('region', { name: 'Spinner contexts dark and motion' })
+  const decorative = contexts.getByRole('button', { name: '正在保存' }).locator('.o-spinner')
+  await expect(decorative).toHaveAttribute('aria-hidden', 'true')
+  await expect(decorative).not.toHaveAttribute('role')
+  await expect(contexts.getByRole('status', { name: '正在加载个人组件' })).toBeVisible()
+  await expect(contexts.getByRole('region', { name: 'Spinner dark theme' })).toHaveCSS(
+    'background-color',
+    'rgb(36, 41, 54)',
+  )
+  await expectNoSeriousAccessibilityViolations(page)
+
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(basic.locator('.o-spinner__icon').first()).toHaveCSS('animation-name', 'none')
+})
+
+test('composes Button Group actions, controls, orientation, RTL, and child focus safely', async ({
+  page,
+}) => {
+  await page.goto('/components/button-group')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Button Group 按钮组' })).toBeVisible()
+  const actions = page.getByRole('region', { name: 'Button Group actions and orientation' })
+  const horizontal = actions.getByRole('group', { name: '文档操作' })
+  const vertical = actions.getByRole('group', { name: '垂直视图选择' })
+  await expect(horizontal).toHaveAttribute('data-orientation', 'horizontal')
+  await expect(vertical).toHaveAttribute('data-orientation', 'vertical')
+  await expect(horizontal.locator('[data-slot="button-group-separator"]')).toHaveAttribute(
+    'aria-hidden',
+    'true',
+  )
+  await expect(horizontal).toHaveCSS('overflow', 'visible')
+
+  const controls = page.getByRole('region', { name: 'Button Group controls and RTL' })
+  const input = controls.getByRole('textbox', { name: '搜索关键词', exact: true })
+  await input.focus()
+  await expect(input).toBeFocused()
+  await expect(input.locator('xpath=ancestor::*[@data-slot="button-group"]')).toHaveCSS(
+    'overflow',
+    'visible',
+  )
+  await controls.getByRole('combobox', { name: '搜索范围', exact: true }).click()
+  await page.getByRole('option', { name: '组件' }).click()
+  await controls.getByRole('button', { name: '筛选操作' }).click()
+  await page.getByRole('menuitem', { name: '保存筛选' }).click()
+
+  const rtl = controls.getByRole('region', { name: 'Button Group RTL state' })
+  await expect(rtl).toHaveAttribute('dir', 'rtl')
+  await expect(rtl.getByRole('group', { name: 'RTL 搜索组件' })).toBeVisible()
+  await expectNoSeriousAccessibilityViolations(page)
+})

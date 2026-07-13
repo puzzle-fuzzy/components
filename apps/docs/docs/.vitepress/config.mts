@@ -16,8 +16,20 @@ const sourceAliases = useSource
         replacement: fromRepository('packages/ui/src/components/alert/index.ts'),
       },
       {
+        find: /^@puzzle-fuzzy\/ui\/aspect-ratio$/,
+        replacement: fromRepository('packages/ui/src/components/aspect-ratio/index.ts'),
+      },
+      {
         find: /^@puzzle-fuzzy\/ui\/button$/,
         replacement: fromRepository('packages/ui/src/components/button/index.ts'),
+      },
+      {
+        find: /^@puzzle-fuzzy\/ui\/button-group$/,
+        replacement: fromRepository('packages/ui/src/components/button-group/index.ts'),
+      },
+      {
+        find: /^@puzzle-fuzzy\/ui\/card$/,
+        replacement: fromRepository('packages/ui/src/components/card/index.ts'),
       },
       {
         find: /^@puzzle-fuzzy\/ui\/checkbox$/,
@@ -68,6 +80,10 @@ const sourceAliases = useSource
         replacement: fromRepository('packages/ui/src/components/dropdown/index.ts'),
       },
       {
+        find: /^@puzzle-fuzzy\/ui\/empty$/,
+        replacement: fromRepository('packages/ui/src/components/empty/index.ts'),
+      },
+      {
         find: /^@puzzle-fuzzy\/ui\/form-dialog$/,
         replacement: fromRepository('packages/ui/src/components/form-dialog/index.ts'),
       },
@@ -78,6 +94,10 @@ const sourceAliases = useSource
       {
         find: /^@puzzle-fuzzy\/ui\/input$/,
         replacement: fromRepository('packages/ui/src/components/input/index.ts'),
+      },
+      {
+        find: /^@puzzle-fuzzy\/ui\/kbd$/,
+        replacement: fromRepository('packages/ui/src/components/kbd/index.ts'),
       },
       {
         find: /^@puzzle-fuzzy\/ui\/message$/,
@@ -102,6 +122,10 @@ const sourceAliases = useSource
       {
         find: /^@puzzle-fuzzy\/ui\/skeleton$/,
         replacement: fromRepository('packages/ui/src/components/skeleton/index.ts'),
+      },
+      {
+        find: /^@puzzle-fuzzy\/ui\/spinner$/,
+        replacement: fromRepository('packages/ui/src/components/spinner/index.ts'),
       },
       {
         find: /^@puzzle-fuzzy\/ui\/switch$/,
@@ -162,9 +186,13 @@ export default defineConfig({
         text: '基础',
         items: [
           { text: 'Button 按钮', link: '/components/button' },
+          { text: 'Button Group 按钮组', link: '/components/button-group' },
+          { text: 'Card 卡片', link: '/components/card' },
           { text: 'Tag 标签', link: '/components/tag' },
           { text: 'Badge 徽标', link: '/components/badge' },
+          { text: 'Kbd 键盘按键', link: '/components/kbd' },
           { text: 'Divider 分割线', link: '/components/divider' },
+          { text: 'Aspect Ratio 宽高比', link: '/components/aspect-ratio' },
           { text: 'Image 图片', link: '/components/image' },
           { text: 'Avatar 头像', link: '/components/avatar' },
           { text: 'Avatar Group 头像组', link: '/components/avatar-group' },
@@ -191,9 +219,11 @@ export default defineConfig({
         text: '反馈',
         items: [
           { text: 'Alert 提示', link: '/components/alert' },
+          { text: 'Empty 空状态', link: '/components/empty' },
           { text: 'Message 消息', link: '/components/message' },
           { text: 'Progress 进度', link: '/components/progress' },
           { text: 'Skeleton 骨架屏', link: '/components/skeleton' },
+          { text: 'Spinner 加载指示', link: '/components/spinner' },
         ],
       },
       {
