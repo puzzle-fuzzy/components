@@ -45,6 +45,51 @@ const readSurfaceSnapshot = (locator: Locator) =>
     }
   })
 
+const readEffectiveTextColors = (
+  locator: Locator,
+): Promise<{ readonly background: string; readonly foreground: string }> =>
+  locator.evaluate((element) => {
+    type Rgba = [red: number, green: number, blue: number, alpha: number]
+
+    const parseColor = (value: string): Rgba => {
+      const channels = value.match(/\d+(?:\.\d+)?/gu)?.map(Number)
+      if (!channels || channels.length < 3) throw new Error('Expected a computed RGB color')
+
+      return [channels[0]!, channels[1]!, channels[2]!, channels[3] ?? 1]
+    }
+    const composite = (foreground: Rgba, background: Rgba): Rgba => {
+      const alpha = foreground[3] + background[3] * (1 - foreground[3])
+      if (alpha === 0) return [0, 0, 0, 0]
+
+      return [
+        (foreground[0] * foreground[3] + background[0] * background[3] * (1 - foreground[3])) /
+          alpha,
+        (foreground[1] * foreground[3] + background[1] * background[3] * (1 - foreground[3])) /
+          alpha,
+        (foreground[2] * foreground[3] + background[2] * background[3] * (1 - foreground[3])) /
+          alpha,
+        alpha,
+      ]
+    }
+    const toRgb = ([red, green, blue]: Rgba): string =>
+      `rgb(${String(Math.round(red))}, ${String(Math.round(green))}, ${String(Math.round(blue))})`
+
+    const ancestors: Element[] = []
+    let current: Element | null = element
+    while (current) {
+      ancestors.unshift(current)
+      current = current.parentElement
+    }
+
+    let background: Rgba = [255, 255, 255, 1]
+    for (const ancestor of ancestors) {
+      background = composite(parseColor(getComputedStyle(ancestor).backgroundColor), background)
+    }
+    const foreground = composite(parseColor(getComputedStyle(element).color), background)
+
+    return { background: toRgb(background), foreground: toRgb(foreground) }
+  })
+
 const expectNoSeriousAccessibilityViolations = async (
   page: Page,
   includes: readonly string[] = ['.omg-docs-demo'],
@@ -824,33 +869,430 @@ test('renders horizontal and vertical divider semantics', async ({ page }) => {
   await expectNoSeriousAccessibilityViolations(page)
 })
 
-test('opens and closes dialog from the docs example', async ({ page }) => {
+test('reports the controlled Dialog lifecycle, close reason, and native focus return', async ({
+  page,
+}) => {
   await page.goto('/components/dialog')
 
   await expect(page.getByRole('heading', { level: 1, name: 'Dialog 对话框' })).toBeVisible()
-  const trigger = page.getByRole('button', { name: '打开弹窗' })
-  await trigger.click()
+  const demo = page.getByRole('region', { name: 'Dialog controlled lifecycle' })
+  const trigger = demo.getByRole('button', { name: '打开基础弹窗', exact: true })
+  const feedback = demo.locator('.omg-dialog-basic-event')
 
-  const dialog = page.getByRole('dialog', { name: '收到文本' })
+  await trigger.click()
+  const dialog = page.getByRole('dialog', { name: '工作区设置' })
   await expect(dialog).toBeVisible()
-  await expect(dialog).toContainText('这是一段可以复制')
-  await expect(page.getByRole('button', { name: '关闭收到文本弹窗' })).toBeFocused()
-  await page.keyboard.press('Shift+Tab')
-  await expect(dialog.getByRole('button', { name: '确认' })).toBeFocused()
-  await page.keyboard.press('Tab')
-  await expect(page.getByRole('button', { name: '关闭收到文本弹窗' })).toBeFocused()
-  await expectNoSeriousAccessibilityViolations(page, ['.o-dialog'])
+  await expect(dialog).toHaveAttribute('data-state', 'open')
+  await expect(feedback).toHaveText('完成打开')
+  await expect(dialog.getByRole('button', { name: '关闭工作区设置弹窗' })).toBeFocused()
+  await expectNoSeriousAccessibilityViolations(page, ['dialog.o-dialog[open]'])
 
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
+  await expect(feedback).toHaveText('完成关闭：escape')
   await expect(trigger).toBeFocused()
 
   await trigger.click()
   await expect(dialog).toBeVisible()
-  await page.mouse.click(4, 4)
+  await dialog.getByRole('button', { name: '取消', exact: true }).click()
   await expect(dialog).toBeHidden()
+  await expect(feedback).toHaveText('完成关闭：slot')
+  await expect(trigger).toBeFocused()
+})
+
+test('keeps Dialog surfaces borderless across widths, fullscreen, and a 320x640 viewport', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 720 })
+  await page.goto('/components/dialog')
+
+  const sizes = page.getByRole('region', { name: 'Dialog widths and fullscreen surfaces' })
+  await sizes.getByRole('button', { name: '打开紧凑弹窗', exact: true }).click()
+  const compact = page.getByRole('dialog', { name: '紧凑提示' })
+  await expect(compact).toBeVisible()
+  await expect(compact).toHaveAttribute('data-state', 'open')
+  await expect(compact).toHaveCSS('border-top-width', '0px')
+  await expect(compact).toHaveCSS('border-right-width', '0px')
+  await expect(compact).toHaveCSS('border-bottom-width', '0px')
+  await expect(compact).toHaveCSS('border-left-width', '0px')
+  let bounds = await compact.boundingBox()
+  expect(Math.round(bounds?.width ?? 0)).toBe(360)
+  await compact.getByRole('button', { name: '知道了', exact: true }).click()
+  await expect(compact).toBeHidden()
+
+  await sizes.getByRole('button', { name: '打开宽内容弹窗', exact: true }).click()
+  const wide = page.getByRole('dialog', { name: '宽内容画布' })
+  await expect(wide).toBeVisible()
+  await expect(wide).toHaveAttribute('data-state', 'open')
+  bounds = await wide.boundingBox()
+  expect(Math.round(bounds?.width ?? 0)).toBe(704)
+  await wide.getByRole('button', { name: '关闭宽内容', exact: true }).click()
+  await expect(wide).toBeHidden()
+
+  await sizes.getByRole('button', { name: '打开全屏弹窗', exact: true }).click()
+  const fullscreen = page.getByRole('dialog', { name: '全屏工作面' })
+  await expect(fullscreen).toBeVisible()
+  await expect(fullscreen).toHaveAttribute('data-state', 'open')
+  await expect(fullscreen).toHaveClass(/o-dialog--fullscreen/u)
+  bounds = await fullscreen.boundingBox()
+  expect(Math.round(bounds?.width ?? 0)).toBe(1280)
+  expect(Math.round(bounds?.height ?? 0)).toBe(720)
+  expect(Math.round(bounds?.x ?? -1)).toBe(0)
+  expect(Math.round(bounds?.y ?? -1)).toBe(0)
+  await fullscreen.getByRole('button', { name: '退出全屏', exact: true }).click()
+  await expect(fullscreen).toBeHidden()
+
+  await page.setViewportSize({ width: 320, height: 640 })
+  await sizes.getByRole('button', { name: '打开紧凑弹窗', exact: true }).click()
+  await expect(compact).toBeVisible()
+  await expect(compact).toHaveAttribute('data-state', 'open')
+  bounds = await compact.boundingBox()
+  expect(Math.round(bounds?.width ?? 0)).toBe(288)
+  expect(Math.round(bounds?.x ?? -1)).toBe(16)
+  expect(bounds?.height ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(608)
+  await compact.getByRole('button', { name: '知道了', exact: true }).click()
+  await expect(compact).toBeHidden()
+})
+
+test('scrolls only the Dialog body and applies preserve or destroy mount policies', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 900, height: 640 })
+  await page.goto('/components/dialog')
+
+  const content = page.getByRole('region', { name: 'Dialog scrolling and content mounting' })
+  const persistentTrigger = content.getByRole('button', {
+    name: '打开保留状态的长内容',
+    exact: true,
+  })
+  await persistentTrigger.click()
+  const persistent = page.getByRole('dialog', { name: '保留挂载状态' })
+  const persistentInput = persistent.getByRole('textbox', { name: '保留的本地输入' })
+  const persistentBody = persistent.locator('.o-dialog__body')
+  await expect(persistent).toBeVisible()
+  expect(
+    await persistentBody.evaluate((element) => element.scrollHeight > element.clientHeight),
+  ).toBe(true)
+  await expect(persistent.locator('.o-dialog__header')).toBeVisible()
+  await expect(persistent.locator('.o-dialog__footer')).toBeVisible()
+  await persistentInput.fill('保留这段界面文本')
+  await persistent.getByRole('button', { name: '增加', exact: true }).click()
+  await persistent.getByRole('button', { name: '增加', exact: true }).click()
+  await expect(persistent.getByText('本地计数：2', { exact: true })).toBeVisible()
+  await persistent.getByRole('button', { name: '关闭并保留', exact: true }).click()
+  await expect(persistent).toBeHidden()
+
+  await persistentTrigger.click()
+  await expect(persistentInput).toHaveValue('保留这段界面文本')
+  await expect(persistent.getByText('本地计数：2', { exact: true })).toBeVisible()
+  await persistent.getByRole('button', { name: '关闭并保留', exact: true }).click()
+  await expect(persistent).toBeHidden()
+
+  const destroyTrigger = content.getByRole('button', {
+    name: '打开关闭后销毁的内容',
+    exact: true,
+  })
+  await destroyTrigger.click()
+  const destroyed = page.getByRole('dialog', { name: '关闭后销毁内容' })
+  await expect(destroyed).toBeVisible()
+  await destroyed.getByRole('textbox', { name: '关闭后重置的本地输入' }).fill('临时界面文本')
+  await destroyed.getByRole('button', { name: '增加', exact: true }).click()
+  await expect(destroyed.getByText('本地计数：1', { exact: true })).toBeVisible()
+  await destroyed.getByRole('button', { name: '关闭并销毁', exact: true }).click()
+  await expect(destroyed).toBeHidden()
+  await expect(destroyed.locator('.omg-dialog-mount-state')).toHaveCount(0)
+
+  await destroyTrigger.click()
+  await expect(destroyed.getByRole('textbox', { name: '关闭后重置的本地输入' })).toHaveValue('')
+  await expect(destroyed.getByText('本地计数：0', { exact: true })).toBeVisible()
+  await destroyed.getByRole('button', { name: '关闭并销毁', exact: true }).click()
+  await expect(destroyed).toBeHidden()
+})
+
+test('supports Dialog initial focus, rejected close requests, dark RTL, reduced motion, and axe', async ({
+  page,
+}) => {
+  await page.goto('/components/dialog')
+
+  const custom = page.getByRole('region', { name: 'Dialog custom slots and initial focus' })
+  const focusTrigger = custom.getByRole('button', {
+    name: '打开插槽与焦点示例',
+    exact: true,
+  })
+  await focusTrigger.click()
+  const focusDialog = page.getByRole('dialog', { name: '显示资料' })
+  const displayName = focusDialog.getByRole('textbox', { name: '显示名称' })
+  await expect(focusDialog).toBeVisible()
+  await expect(displayName).toBeFocused()
+  await expect(
+    focusDialog.getByRole('button', { name: '关闭显示资料弹窗' }).locator('svg'),
+  ).toBeVisible()
+  await expectNoSeriousAccessibilityViolations(page, ['dialog.o-dialog[open]'])
+  await focusDialog.getByRole('button', { name: '完成', exact: true }).click()
+  await expect(focusDialog).toBeHidden()
+  await expect(focusTrigger).toBeFocused()
+
+  const behavior = page.getByRole('region', {
+    name: 'Dialog close policies, dark theme, and RTL',
+  })
+  await behavior.getByRole('button', { name: '打开锁定弹窗', exact: true }).click()
+  const locked = page.getByRole('dialog', { name: '锁定的展示面' })
+  await expect(locked).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(locked).toBeVisible()
+  await page.mouse.click(4, 4)
+  await expect(locked).toBeVisible()
+  await locked.getByRole('button', { name: '明确关闭', exact: true }).click()
+  await expect(locked).toBeHidden()
+
+  await behavior.getByRole('button', { name: '打开策略弹窗', exact: true }).click()
+  const guarded = page.getByRole('dialog', { name: '关闭策略' })
+  await expect(guarded).toBeVisible()
+  await guarded.getByRole('button', { name: '请求关闭策略弹窗' }).click()
+  await expect(guarded).toBeVisible()
+  await expect(guarded.getByText('已拒绝关闭：请先选择「允许关闭」')).toBeVisible()
+  const allowClose = guarded.getByRole('checkbox', { name: '允许关闭' })
+  await guarded.getByText('允许关闭', { exact: true }).click()
+  await expect(allowClose).toBeChecked()
+  await guarded.getByRole('button', { name: '请求关闭策略弹窗' }).click()
+  await expect(guarded).toBeHidden()
+
+  await behavior.getByRole('button', { name: '打开深色 RTL 弹窗', exact: true }).click()
+  const darkRtl = page.getByRole('dialog', { name: '深色 RTL 展示' })
+  await expect(darkRtl).toBeVisible()
+  await expect(darkRtl).toHaveAttribute('data-omg-theme', 'dark')
+  await expect(darkRtl).toHaveAttribute('dir', 'rtl')
+  await expect(darkRtl).toHaveCSS('background-color', 'rgb(20, 24, 33)')
+  await expect(darkRtl).toHaveCSS('border-left-width', '0px')
+  await expectNoSeriousAccessibilityViolations(page, ['dialog.o-dialog[open]'])
+  await darkRtl.getByRole('button', { name: '完成', exact: true }).click()
+  await expect(darkRtl).toBeHidden()
+
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await focusTrigger.click()
+  await expect(focusDialog).toBeVisible()
+  expect(await focusDialog.evaluate((element) => element.getAnimations().length)).toBe(0)
+  await focusDialog.getByRole('button', { name: '完成', exact: true }).click()
+  await expect(focusDialog).toBeHidden()
+})
+
+test('renders accessible borderless Tag tones, variants, sizes, truncation, and close controls', async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: 'light' })
+  await page.goto('/components/tag')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Tag 标签' })).toBeVisible()
+  const basic = page.getByRole('region', { name: 'Tag tones variants and sizes' })
+  const tones = ['neutral', 'brand', 'success', 'warning', 'danger'] as const
+
+  for (const tone of tones) {
+    await expect(basic.locator(`.o-tag--soft.o-tag--${tone}`).first()).toBeVisible()
+    await expect(basic.locator(`.o-tag--solid.o-tag--${tone}`).first()).toBeVisible()
+  }
+  await expect(basic.locator('.o-tag--soft')).toHaveCount(9)
+  await expect(basic.locator('.o-tag--solid')).toHaveCount(5)
+
+  const small = basic.locator('.o-tag--sm').filter({ hasText: 'Small' })
+  const medium = basic.locator('.o-tag--md').filter({ hasText: 'Medium' })
+  expect(Math.round((await small.boundingBox())?.height ?? 0)).toBe(24)
+  expect(Math.round((await medium.boundingBox())?.height ?? 0)).toBe(30)
+  await expect(basic.locator('.o-tag__icon')).toHaveAttribute('aria-hidden', 'true')
+  await expect(basic.locator('.o-tag__icon svg')).toBeVisible()
+
+  const longContent = basic.locator('.tag-basic-long .o-tag__content')
+  await expect(longContent).toHaveCSS('overflow', 'hidden')
+  await expect(longContent).toHaveCSS('text-overflow', 'ellipsis')
+  expect(await longContent.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(
+    true,
+  )
+
+  const allTagBorders = await basic.locator('.o-tag').evaluateAll((tags) =>
+    tags.map((tag) => {
+      const styles = getComputedStyle(tag)
+      return [
+        styles.borderTopWidth,
+        styles.borderRightWidth,
+        styles.borderBottomWidth,
+        styles.borderLeftWidth,
+      ]
+    }),
+  )
+  expect(allTagBorders.every((widths) => widths.every((width) => width === '0px'))).toBe(true)
+
+  const lightContrasts: { ratio: number; tone: (typeof tones)[number] }[] = []
+  for (const tone of tones) {
+    const colors = await readEffectiveTextColors(
+      basic.locator(`.o-tag--soft.o-tag--${tone}`).first(),
+    )
+    lightContrasts.push({ ratio: contrastRatio(colors.foreground, colors.background), tone })
+  }
+  await basic.evaluate((element) => {
+    element.setAttribute('data-omg-theme', 'dark')
+    ;(element as HTMLElement).style.background = 'var(--omg-color-surface)'
+  })
+  const darkContrasts: { ratio: number; tone: (typeof tones)[number] }[] = []
+  for (const tone of tones) {
+    const colors = await readEffectiveTextColors(
+      basic.locator(`.o-tag--soft.o-tag--${tone}`).first(),
+    )
+    darkContrasts.push({ ratio: contrastRatio(colors.foreground, colors.background), tone })
+  }
+  expect([
+    ...lightContrasts
+      .filter(({ ratio }) => ratio < 4.5)
+      .map((result) => ({ ...result, theme: 'light' })),
+    ...darkContrasts
+      .filter(({ ratio }) => ratio < 4.5)
+      .map((result) => ({ ...result, theme: 'dark' })),
+  ]).toEqual([])
+
+  const closable = page.getByRole('region', { name: 'Closable tags' })
+  const vueClose = closable.getByRole('button', { name: '移除Vue标签', exact: true })
+  await expect(vueClose).toBeVisible()
+  await expect(vueClose).toHaveCSS('border-left-width', '0px')
+  await vueClose.click()
+  await expect(vueClose).toHaveCount(0)
+  await closable.getByRole('button', { name: '恢复标签', exact: true }).click()
+  await expect(closable.getByRole('button', { name: '移除Vue标签', exact: true })).toBeVisible()
 
   await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('renders Badge limits, zero and dot semantics, composition, RTL, and borderless markers', async ({
+  page,
+}) => {
+  await page.goto('/components/badge')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Badge 徽标' })).toBeVisible()
+  const values = page.getByRole('region', { name: 'Badge values tones and zero visibility' })
+  await expect(values.getByRole('img', { name: '120 条消息' })).toHaveText('99+')
+  const tones = values.getByRole('region', { name: '独立 Badge 与全部 tone' })
+  await expect(tones.locator('.o-badge--neutral .o-badge__marker')).toBeVisible()
+  await expect(tones.locator('.o-badge--brand .o-badge__marker')).toBeVisible()
+  await expect(tones.locator('.o-badge--success .o-badge__marker')).toBeVisible()
+  await expect(tones.locator('.o-badge--warning .o-badge__marker')).toBeVisible()
+  await expect(tones.locator('.o-badge--danger .o-badge__marker')).toBeVisible()
+
+  const zeroBadge = values.locator('.o-badge').filter({ hasText: '零值' })
+  await expect(zeroBadge.locator('.o-badge__marker')).toHaveCount(0)
+  await values.getByRole('button', { name: '显示零值', exact: true }).click()
+  await expect(zeroBadge.locator('.o-badge__marker')).toHaveText('0')
+  await values.getByRole('button', { name: '隐藏零值', exact: true }).click()
+  await expect(zeroBadge.locator('.o-badge__marker')).toHaveCount(0)
+
+  const decorativeDot = values.locator('.o-badge__marker--dot')
+  await expect(decorativeDot).toHaveAttribute('aria-hidden', 'true')
+  await expect(decorativeDot).not.toHaveAttribute('role', 'img')
+
+  const composition = page.getByRole('region', {
+    name: 'Badge composition and logical positioning',
+  })
+  await expect(composition.getByRole('button', { name: '通知', exact: true })).toBeVisible()
+  await expect(composition.getByRole('img', { name: '8 条未读通知' })).toHaveText('8')
+  await expect(composition.getByRole('img', { name: 'Yxswy', exact: true })).toBeVisible()
+  await expect(composition.getByRole('img', { name: 'Yxswy 在线', exact: true })).toBeVisible()
+
+  const rtlMarker = composition
+    .getByRole('region', { name: '从右到左 Badge 组合' })
+    .getByRole('img', { name: '12 条未读消息' })
+  expect(
+    await rtlMarker.evaluate(
+      (element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).e,
+    ),
+  ).toBeLessThan(0)
+
+  const markerBorders = await page.locator('.o-badge__marker').evaluateAll((markers) =>
+    markers.map((marker) => {
+      const styles = getComputedStyle(marker)
+      return [
+        styles.borderTopWidth,
+        styles.borderRightWidth,
+        styles.borderBottomWidth,
+        styles.borderLeftWidth,
+      ]
+    }),
+  )
+  expect(markerBorders.every((widths) => widths.every((width) => width === '0px'))).toBe(true)
+
+  await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('renders clamped and named Progress states with transform, RTL, dark, and reduced motion', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto('/components/progress')
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Progress 进度条' })).toBeVisible()
+  const basic = page.getByRole('region', { name: 'Progress values clamping sizes and labels' })
+  const sixtyEightItem = basic.locator('.progress-basic-item').filter({ hasText: '输入 68' })
+  const sixtyEight = sixtyEightItem.getByRole('progressbar', { name: '68%' })
+  await expect(sixtyEight).toHaveAttribute('aria-valuenow', '68')
+  const visibleLabel = sixtyEight.locator('.o-progress__label')
+  const visibleLabelId = await visibleLabel.getAttribute('id')
+  expect(visibleLabelId).not.toBeNull()
+  await expect(sixtyEight).toHaveAttribute('aria-labelledby', visibleLabelId!)
+  await expect
+    .poll(() =>
+      sixtyEight
+        .locator('.o-progress__fill')
+        .evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a),
+    )
+    .toBeCloseTo(0.68, 2)
+
+  const zero = basic
+    .locator('.progress-basic-item')
+    .filter({ hasText: '输入 -20 → 渲染 0' })
+    .getByRole('progressbar', { name: '0%' })
+  const hundred = basic
+    .locator('.progress-basic-item')
+    .filter({ hasText: '输入 140 → 渲染 100' })
+    .getByRole('progressbar', { name: '100%' })
+  await expect(zero).toHaveAttribute('aria-valuenow', '0')
+  await expect(hundred).toHaveAttribute('aria-valuenow', '100')
+
+  const completeNormal = basic
+    .locator('.progress-basic-item')
+    .filter({ hasText: '输入 100' })
+    .getByRole('progressbar', { name: '100%' })
+  await expect(completeNormal).toHaveClass(/o-progress--normal/u)
+  await expect(completeNormal).not.toHaveClass(/o-progress--success/u)
+  await expect(basic.getByRole('progressbar', { name: '同步进度' })).toHaveAttribute(
+    'aria-valuenow',
+    '42',
+  )
+  await expect(basic.getByRole('progressbar', { name: '文件导入进度' })).toContainText('已导入 73%')
+
+  const states = page.getByRole('region', { name: 'Progress states indeterminate dark and RTL' })
+  const indeterminate = states.getByRole('progressbar', { name: '正在同步' })
+  await expect(indeterminate).toHaveClass(/o-progress--normal/u)
+  await expect(indeterminate).toHaveClass(/o-progress--indeterminate/u)
+  await expect(indeterminate).not.toHaveAttribute('aria-valuenow')
+  await expect(indeterminate.locator('.o-progress__fill')).not.toHaveCSS('animation-name', 'none')
+
+  const rtl = states.locator('.progress-states-panel-rtl')
+  const rtlProgress = rtl.getByRole('progressbar', { name: '64%' })
+  const rtlOrigin = await rtlProgress.locator('.o-progress__fill').evaluate((element) => ({
+    origin: Number.parseFloat(getComputedStyle(element).transformOrigin),
+    width: Number.parseFloat(getComputedStyle(element).width),
+  }))
+  expect(rtlOrigin.origin).toBeCloseTo(rtlOrigin.width, 1)
+
+  const darkPanel = states.locator('.progress-states-panel-dark[data-omg-theme="dark"]')
+  const darkProgress = darkPanel.getByRole('progressbar', { name: '深色主题构建进度' })
+  await expect(darkProgress).toBeVisible()
+  await expect(darkPanel).toHaveCSS('background-color', 'rgb(20, 24, 33)')
+  await expect(darkProgress.locator('.o-progress__fill')).not.toHaveCSS(
+    'background-color',
+    'rgba(0, 0, 0, 0)',
+  )
+  await expectNoSeriousAccessibilityViolations(page)
+
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  const indeterminateFill = indeterminate.locator('.o-progress__fill')
+  await expect(indeterminateFill).toHaveCSS('animation-name', 'none')
+  await expect(indeterminateFill).toHaveCSS('transform', 'none')
 })
 
 test('opens and closes the image fullscreen preview', async ({ page }) => {
