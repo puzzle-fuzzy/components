@@ -69,11 +69,15 @@
   animation: o-progress-indeterminate 1.35s var(--omg-easing-standard) infinite;
 }
 
-.o-progress:dir(rtl) .o-progress__fill {
+.o-progress:dir(rtl) .o-progress__fill,
+.o-progress[dir='rtl'] .o-progress__fill,
+[dir='rtl'] .o-progress .o-progress__fill {
   transform-origin: right center;
 }
 
-.o-progress--indeterminate:dir(rtl) .o-progress__fill {
+.o-progress--indeterminate:dir(rtl) .o-progress__fill,
+.o-progress--indeterminate[dir='rtl'] .o-progress__fill,
+[dir='rtl'] .o-progress--indeterminate .o-progress__fill {
   animation-direction: reverse;
 }
 

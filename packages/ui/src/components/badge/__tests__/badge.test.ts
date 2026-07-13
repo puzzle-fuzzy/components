@@ -138,9 +138,9 @@ describe('OBadge', () => {
     expect(badgeStyles).toMatch(
       /\.o-badge--with-content \.o-badge__marker\s*\{[^}]*inset-block-start:\s*0;[^}]*inset-inline-end:\s*0;/su,
     )
-    expect(badgeStyles).toMatch(
-      /\.o-badge--with-content:dir\(rtl\) \.o-badge__marker\s*\{[^}]*translate\(-50%, -50%\)/su,
-    )
+    expect(badgeStyles).toContain('.o-badge--with-content:dir(rtl) .o-badge__marker')
+    expect(badgeStyles).toContain("[dir='rtl'] .o-badge--with-content .o-badge__marker")
+    expect(badgeStyles).toMatch(/\[dir='rtl'\][^{]*\{[^}]*translate\(-50%, -50%\)/su)
     expect(badgeStyles).not.toMatch(/^\s*border\s*:/mu)
     expect(badgeStyles).not.toMatch(/^\s*outline\s*:/mu)
   })

@@ -43,7 +43,9 @@
   transform: translate(50%, -50%);
 }
 
-.o-badge--with-content:dir(rtl) .o-badge__marker {
+.o-badge--with-content:dir(rtl) .o-badge__marker,
+.o-badge--with-content[dir='rtl'] .o-badge__marker,
+[dir='rtl'] .o-badge--with-content .o-badge__marker {
   transform: translate(-50%, -50%);
 }
 

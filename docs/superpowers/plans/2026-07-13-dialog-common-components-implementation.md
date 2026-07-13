@@ -902,17 +902,17 @@ defineSlots<OTagSlots>()
 
 - [ ] **Step 5: Implement borderless Tag styles**
 
-Use heights `24px` and `30px`, horizontal padding `8px` and `10px`, radius `var(--omg-radius-full)`, inherited font, `max-width:100%`, and ellipsis on `.o-tag__content`. Add `@amber-700: #b54708` to `primitives.less`, then add independent soft-background, soft-foreground, and solid-foreground roles in `semantic.less`:
+Use heights `24px` and `30px`, horizontal padding `8px` and `10px`, radius `var(--omg-radius-full)`, inherited font, `max-width:100%`, and ellipsis on `.o-tag__content`. Add `@green-800: #085d3a`, `@amber-800: #93370d`, and `@amber-700: #b54708` to `primitives.less`, then add independent soft-background, soft-foreground, and solid-foreground roles in `semantic.less`:
 
 ```less
 // light
 --omg-color-neutral-soft-text: @slate-700;
 --omg-color-brand-soft-text: @blue-600;
 --omg-color-success-soft: fade(@green-700, 12%);
---omg-color-success-soft-text: @green-700;
+--omg-color-success-soft-text: @green-800;
 --omg-color-on-success: @white;
 --omg-color-warning-soft: fade(@amber-600, 14%);
---omg-color-warning-soft-text: @amber-700;
+--omg-color-warning-soft-text: @amber-800;
 --omg-color-on-warning: #2a1600;
 --omg-color-danger-soft-text: @red-700;
 

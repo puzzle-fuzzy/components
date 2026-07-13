@@ -173,9 +173,9 @@ describe('OProgress', () => {
     expect(progressSource).not.toContain('<svg')
     expect(progressStyles).toContain('transform: scaleX(var(--o-progress-value, 0));')
     expect(progressStyles).not.toMatch(/transition:\s*[^;]*\b(?:width|inline-size)\b/u)
-    expect(progressStyles).toMatch(
-      /\.o-progress:dir\(rtl\) \.o-progress__fill\s*\{[^}]*transform-origin: right center;/su,
-    )
+    expect(progressStyles).toContain('.o-progress:dir(rtl) .o-progress__fill')
+    expect(progressStyles).toContain("[dir='rtl'] .o-progress .o-progress__fill")
+    expect(progressStyles).toMatch(/\[dir='rtl'\][^{]*\{[^}]*transform-origin: right center;/su)
     expect(progressStyles).toContain('@keyframes o-progress-indeterminate')
     expect(progressStyles).toMatch(
       /\.o-progress--indeterminate:dir\(rtl\)[^{]*\{[^}]*animation-direction: reverse;/su,
