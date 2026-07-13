@@ -1,0 +1,41 @@
+.o-spinner {
+  --omg-spinner-size: 18px;
+
+  display: inline-flex;
+  inline-size: var(--omg-spinner-size);
+  block-size: var(--omg-spinner-size);
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  color: inherit;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.o-spinner--sm {
+  --omg-spinner-size: 14px;
+}
+
+.o-spinner--lg {
+  --omg-spinner-size: 24px;
+}
+
+.o-spinner__icon {
+  inline-size: 100%;
+  block-size: 100%;
+  color: currentcolor;
+  animation: o-spinner-rotate 0.8s linear infinite;
+}
+
+@keyframes o-spinner-rotate {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .o-spinner__icon {
+    animation: none;
+  }
+}
