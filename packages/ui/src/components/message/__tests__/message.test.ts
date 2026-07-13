@@ -80,12 +80,24 @@ describe('OMessage', () => {
     [Number.POSITIVE_INFINITY, 3000],
     [Number.NEGATIVE_INFINITY, 3000],
     [0, 0],
-    [-20, 0],
-    [0.8, 0],
+    [-12, 0],
+    [0.8, 1],
+    [1.9, 1],
     [1200.9, 1200],
-    [2400, 2400],
-  ])('normalizes duration %s to %s', (input, expected) => {
+  ] as const)('normalizes duration %s to %s', (input, expected) => {
     expect(normalizeOMessageDuration(input)).toBe(expected)
+  })
+
+  it('keeps declarative OMessage controlled and timer-free', async () => {
+    vi.useFakeTimers()
+    const wrapper = mount(OMessage, {
+      props: { message: 'Controlled surface', closable: true },
+    })
+
+    await vi.advanceTimersByTimeAsync(10_000)
+
+    expect(wrapper.get('.o-message').text()).toContain('Controlled surface')
+    expect(wrapper.emitted('close')).toBeUndefined()
   })
 
   it.each([
@@ -251,13 +263,38 @@ describe('oMessage service', () => {
     expect(document.body.textContent).toContain('Persistent')
   })
 
-  it('preserves remaining time across hover pause and resume', async () => {
+  it('uses 3000ms by default and ignores hover unless opted in', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(0)
     const controller = createTestService()
     const onClose = vi.fn()
 
-    controller.service({ message: 'Hover me', duration: 1000, onClose })
+    controller.service({ message: 'Default lifecycle', onClose })
+    await nextTick()
+    const item = document.querySelector<HTMLElement>('.o-message-host__item')!
+
+    await vi.advanceTimersByTimeAsync(2500)
+    item.dispatchEvent(new MouseEvent('mouseenter'))
+    await vi.advanceTimersByTimeAsync(500)
+    await flushLeaveTransitions()
+
+    expect(onClose).toHaveBeenCalledOnce()
+    expect(document.querySelector('.o-message')).toBeNull()
+    expect(document.querySelector('.o-message-host')).toBeNull()
+  })
+
+  it('preserves remaining time when hover pause is explicitly enabled', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(0)
+    const controller = createTestService()
+    const onClose = vi.fn()
+
+    controller.service({
+      message: 'Hover me',
+      duration: 1000,
+      pauseOnHover: true,
+      onClose,
+    })
     await nextTick()
     const item = document.querySelector<HTMLElement>('.o-message-host__item')!
 
@@ -275,7 +312,7 @@ describe('oMessage service', () => {
     expect(onClose).toHaveBeenCalledOnce()
   })
 
-  it('pauses while focus is inside even when hover pausing is disabled', async () => {
+  it('pauses while focus is inside with the default hover policy', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(0)
     const controller = createTestService()
@@ -285,7 +322,6 @@ describe('oMessage service', () => {
       message: 'Focusable',
       duration: 1000,
       closable: true,
-      pauseOnHover: false,
       onClose,
     })
     await nextTick()
@@ -304,6 +340,35 @@ describe('oMessage service', () => {
     await flushLeaveTransitions()
 
     expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('keeps non-positive durations persistent and closes positive fractions after at least one millisecond', async () => {
+    vi.useFakeTimers()
+    const controller = createTestService()
+    const fractionalClose = vi.fn()
+    const zeroHandle = controller.service({ message: 'Zero', duration: 0 })
+    const negativeHandle = controller.service({ message: 'Negative', duration: -1 })
+
+    controller.service({ message: 'Fractional', duration: 0.8, onClose: fractionalClose })
+    await nextTick()
+
+    expect(document.body.textContent).toContain('Zero')
+    expect(document.body.textContent).toContain('Negative')
+    expect(document.body.textContent).toContain('Fractional')
+
+    await vi.advanceTimersByTimeAsync(1)
+    await flushLeaveTransitions()
+
+    expect(fractionalClose).toHaveBeenCalledOnce()
+    expect(document.body.textContent).not.toContain('Fractional')
+    expect(document.body.textContent).toContain('Zero')
+    expect(document.body.textContent).toContain('Negative')
+
+    zeroHandle.close()
+    negativeHandle.close()
+    await flushLeaveTransitions()
+
+    expect(document.querySelector('.o-message-host')).toBeNull()
   })
 
   it('does not pause hover timing when pauseOnHover is false', async () => {

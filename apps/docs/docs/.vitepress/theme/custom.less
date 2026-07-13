@@ -6,24 +6,27 @@ body {
 .omg-docs-demo {
   margin: 16px 0 28px;
   overflow: hidden;
-  border: 1px solid var(--vp-c-divider);
+  border: 0;
   border-radius: 12px;
   background: var(--vp-c-bg-soft);
 }
 
+// stylelint-disable-next-line selector-class-pattern -- DemoBlock owns this BEM shell contract.
 .omg-docs-demo__content {
   display: flex;
   min-height: 112px;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: var(--omg-space-3);
   align-items: center;
   padding: 24px;
+  font-size: var(--omg-font-size-md);
+  line-height: 1.5;
 }
 
 .omg-example-stack {
   display: grid;
   width: 100%;
-  gap: 18px;
+  gap: var(--omg-space-4);
 }
 
 .omg-example-theme {
@@ -53,6 +56,7 @@ body {
 }
 
 @media (width <= 640px) {
+  // stylelint-disable-next-line selector-class-pattern -- DemoBlock owns this BEM shell contract.
   .omg-docs-demo__content {
     align-items: stretch;
     padding: 16px;

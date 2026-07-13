@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, ref, useId, watch, type Component, type CSSProperties } from 'vue'
+import {
+  computed,
+  ref,
+  useId,
+  watch,
+  type Component,
+  type ComponentPublicInstance,
+  type CSSProperties,
+} from 'vue'
 import {
   LuAlertCircle,
   LuCheckCircle2,
@@ -25,6 +33,8 @@ import {
   type OUploadSlots,
 } from './upload'
 
+import { useFileSelection } from '../../../composables/use-file-selection'
+
 defineOptions({ name: 'OUpload' })
 
 const props = defineProps(oUploadProps)
@@ -32,7 +42,6 @@ const emit = defineEmits<OUploadEmits>()
 
 defineSlots<OUploadSlots>()
 
-const inputElement = ref<HTMLInputElement>()
 const isDragging = ref(false)
 const inputId = `o-upload-${useId()}-input`
 
@@ -59,6 +68,17 @@ const selectionStyle = computed<CSSProperties>(() => ({
   '--omg-upload-list-max-height': normalizeOUploadListMaxHeight(props.listMaxHeight) ?? 'none',
 }))
 
+const { inputElement, chooseFiles, selectFiles, handleInputChange } = useFileSelection({
+  canSelect: canSelectMore,
+  multiple: computed(() => props.multiple),
+  remainingCount,
+  onSelect: (files) => emit('select', files),
+})
+
+const setInputElement = (element: Element | ComponentPublicInstance | null): void => {
+  inputElement.value = element instanceof HTMLInputElement ? element : undefined
+}
+
 const setDragging = (active: boolean): void => {
   if (active && !canSelectMore.value) return
   if (isDragging.value === active) return
@@ -70,26 +90,6 @@ const setDragging = (active: boolean): void => {
 watch(canSelectMore, (available) => {
   if (!available) setDragging(false)
 })
-
-const chooseFiles = (): void => {
-  if (!canSelectMore.value) return
-  inputElement.value?.click()
-}
-
-const emitSelectedFiles = (files: FileList | readonly File[] | null): void => {
-  if (!files || !canSelectMore.value) return
-
-  const selectionLimit = props.multiple ? remainingCount.value : Math.min(1, remainingCount.value)
-  const selectedFiles = Array.from(files).slice(0, selectionLimit)
-
-  if (selectedFiles.length > 0) emit('select', selectedFiles)
-}
-
-const handleInputChange = (event: Event): void => {
-  const input = event.target as HTMLInputElement
-  emitSelectedFiles(input.files)
-  input.value = ''
-}
 
 const handleDropzoneKeydown = (event: KeyboardEvent): void => {
   if (event.key !== 'Enter' && event.key !== ' ') return
@@ -122,7 +122,7 @@ const handleDragLeave = (event: DragEvent): void => {
 const handleDrop = (event: DragEvent): void => {
   event.preventDefault()
   setDragging(false)
-  emitSelectedFiles(event.dataTransfer?.files ?? null)
+  selectFiles(event.dataTransfer?.files ?? null)
 }
 
 const removeFile = (file: OUploadFile): void => {
@@ -160,7 +160,7 @@ const getStateIcon = (file: OUploadFile): Component => stateIcons[file.state ?? 
   >
     <input
       :id="inputId"
-      ref="inputElement"
+      :ref="setInputElement"
       class="o-upload__input"
       type="file"
       :accept="props.accept"

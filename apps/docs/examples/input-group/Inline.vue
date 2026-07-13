@@ -28,7 +28,7 @@ const handle = ref('puzzle-fuzzy')
       <OInputGroupAddon align="inline-start">
         <LuAtSign aria-hidden="true" />
       </OInputGroupAddon>
-      <OInputGroupInput v-model="handle" aria-label="用户名" />
+      <OInputGroupInput v-model="handle" aria-label="用户名" variant="outline" />
       <OInputGroupAddon align="inline-end">
         <OInputGroupText>.vue</OInputGroupText>
       </OInputGroupAddon>

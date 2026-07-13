@@ -6,6 +6,8 @@ import SelectBasic from '../../examples/select/Basic.vue'
 
 `OSelect` 是一个非可编辑的单选控件，提供清晰的选中状态、可选清除、浮层定位和完整键盘导航。大型选项集合会按阈值使用 `vue-virtual-scroller`，小型集合仍保留直接渲染路径。
 
+默认 `soft` 外观采用浅色表面和透明的 1px 预留边界，focus / 打开时才显示品牌边界与 brand-soft 焦点层；`outline` 适合需要常显边界的场景。触发器右侧始终只保留一个 32px 尾部轨道：有已选值时，桌面端 hover / focus 会用 24px 清除动作替换箭头而不移动文字，粗指针环境则提供真实 44px 命中区域。
+
 ## 基础用法
 
 <DemoBlock label="Select single choice interactions">
@@ -51,6 +53,7 @@ interface OSelectOption {
 | open              | `boolean`                        | `undefined`         | 传入后进入受控开关模式                |
 | placeholder       | `string`                         | `'Select'`          | 未选择时显示的文字                    |
 | size              | `'sm' \| 'md' \| 'lg'`           | `'md'`              | 控件尺寸                              |
+| variant           | `'soft' \| 'outline'`            | `'soft'`            | 浅色无边框默认态或常显边界            |
 | disabled          | `boolean`                        | `false`             | 禁用整个控件                          |
 | clearable         | `boolean`                        | `false`             | 有选中值时显示独立清除按钮            |
 | clearAriaLabel    | `string`                         | `'Clear selection'` | 清除按钮的可访问名称                  |
@@ -62,7 +65,7 @@ interface OSelectOption {
 | virtualThreshold  | `number`                         | `100`               | 启用虚拟滚动的最小选项数量            |
 | virtualListHeight | `number`                         | `288`               | 虚拟列表视口高度，单位为像素          |
 
-为没有可见 label 的 Select 提供本地化 `ariaLabel`。清除按钮是 trigger 的相邻按钮，不会产生嵌套 button。
+为没有可见 label 的 Select 提供本地化 `ariaLabel`。清除按钮是 trigger 的相邻按钮，不会产生嵌套 button。Select 没有 `readonly` 或 `invalid` 业务状态；不可交互使用 `disabled`，校验消息与错误呈现由表单组合层负责。
 
 ## Events
 

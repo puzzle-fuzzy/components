@@ -1,8 +1,10 @@
 import type { ExtractPublicPropTypes, PropType, VNodeChild } from 'vue'
 
 import type { OFloatingPlacement } from '../../../composables/use-floating-panel'
+import { isOFieldControlVariant, oFieldControlVariants } from '../../../utils/field-control'
 
 export const oSelectSizes = ['sm', 'md', 'lg'] as const
+export const oSelectVariants = [...oFieldControlVariants] as const
 export const oSelectPlacements = [
   'bottom-start',
   'bottom-end',
@@ -10,6 +12,7 @@ export const oSelectPlacements = [
 
 export type OSelectValue = string | number
 export type OSelectSize = (typeof oSelectSizes)[number]
+export type OSelectVariant = (typeof oSelectVariants)[number]
 export type OSelectPlacement = (typeof oSelectPlacements)[number]
 
 export const normalizeOSelectVirtualThreshold = (threshold: number | undefined): number => {
@@ -54,6 +57,11 @@ export const oSelectProps = {
     type: String as PropType<OSelectSize>,
     default: 'md',
     validator: (value: unknown): value is OSelectSize => isStringMember(oSelectSizes, value),
+  },
+  variant: {
+    type: String as PropType<OSelectVariant>,
+    default: 'soft',
+    validator: isOFieldControlVariant,
   },
   disabled: Boolean,
   teleported: { type: Boolean, default: true },

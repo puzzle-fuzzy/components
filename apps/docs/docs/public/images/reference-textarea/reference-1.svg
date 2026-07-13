@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title description">
+  <title id="title">庭院中的红色旗袍人物</title>
+  <desc id="description">一位身着红色旗袍的女性站在有竹影和石阶的安静庭院中</desc>
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7f1e7" />
+      <stop offset="1" stop-color="#e5dccf" />
+    </linearGradient>
+    <linearGradient id="dress" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9363e" />
+      <stop offset="1" stop-color="#8f1f2a" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#30251f" flood-opacity=".18" />
+    </filter>
+  </defs>
+  <rect width="640" height="400" fill="url(#wall)" />
+  <rect y="278" width="640" height="122" fill="#b9b0a2" />
+  <path d="M0 314h640M0 350h640M86 278v122M218 278v122M352 278v122M494 278v122" stroke="#a1988c" stroke-width="2" opacity=".72" />
+  <path d="M60 0v263M72 0v263M586 0v263M598 0v263" stroke="#4e342e" stroke-width="9" opacity=".82" />
+  <path d="M0 44h640M0 58h640" stroke="#4e342e" stroke-width="8" opacity=".82" />
+  <g fill="none" stroke="#4f7354" stroke-linecap="round" opacity=".76">
+    <path d="M130 48c4 84 0 149-12 223M174 30c-7 81-4 160 9 238M520 36c-13 83-13 161 1 231" stroke-width="8" />
+    <path d="M125 94 91 72M127 126l38-27M121 164l-40 20M175 81l31-23M178 142l35 22M519 88l-35-25M519 136l40-28M520 191l-36 22" stroke-width="5" />
+  </g>
+  <g filter="url(#shadow)">
+    <ellipse cx="321" cy="332" rx="62" ry="15" fill="#51433c" opacity=".2" />
+    <circle cx="321" cy="108" r="37" fill="#e8b89c" />
+    <path d="M288 107c1-34 17-51 36-51 23 0 38 19 36 53-15-15-32-23-52-18-6 8-11 13-20 16Z" fill="#282421" />
+    <path d="M300 144c-10 24-19 68-23 117l-13 65c32 16 83 17 114 0l-13-65c-4-49-13-93-23-117Z" fill="url(#dress)" />
+    <path d="M302 149c13 12 25 13 38 0M319 150v119" fill="none" stroke="#f6d4a5" stroke-width="3" opacity=".85" />
+    <path d="m297 159-34 87M344 159l36 87" stroke="#e8b89c" stroke-width="12" stroke-linecap="round" />
+    <path d="M306 326h-14v37M348 326h-14v37" stroke="#3d3130" stroke-width="13" stroke-linecap="round" />
+    <path d="M286 363h26M328 363h26" stroke="#201d1c" stroke-width="10" stroke-linecap="round" />
+  </g>
+  <circle cx="495" cy="224" r="30" fill="#d4c4ad" opacity=".76" />
+  <circle cx="105" cy="254" r="22" fill="#70836f" opacity=".7" />
+</svg>

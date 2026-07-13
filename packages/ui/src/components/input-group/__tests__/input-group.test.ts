@@ -228,15 +228,48 @@ describe('OInputGroup family', () => {
     wrapper.unmount()
   })
 
-  it('owns one border and neutralizes nested control surfaces without focus glow', () => {
-    expect(groupStyles).toMatch(
-      /\.o-input-group\s*\{[\s\S]*?border:\s*1px solid var\(--omg-color-border\);/u,
+  it('composes default soft children inside one clipped muted surface', () => {
+    const wrapper = mount(OInputGroup, {
+      slots: {
+        default: () => [
+          h(OInputGroupInput, { modelValue: '' }),
+          h(OInputGroupTextarea, { modelValue: '' }),
+        ],
+      },
+    })
+
+    expect(wrapper.get('.o-input').classes()).toContain('o-input--soft')
+    expect(wrapper.get('.o-textarea').classes()).toContain('o-textarea--soft')
+    expect(groupStyles).toContain('overflow: clip')
+    expect(groupStyles).toContain('border: 1px solid var(--omg-field-border-color)')
+    expect(groupStyles).toContain('background: var(--omg-field-background)')
+  })
+
+  it('uses one outline boundary when a nested field requests outline', () => {
+    const wrapper = mount(OInputGroup, {
+      slots: {
+        default: () => h(OInputGroupInput, { modelValue: '', variant: 'outline' }),
+      },
+    })
+
+    expect(wrapper.get('.o-input').classes()).toContain('o-input--outline')
+    expect(groupStyles).toContain(
+      '.o-input-group:where(:has(.o-input--outline, .o-textarea--outline))',
     )
-    expect(groupStyles).toMatch(/\.o-input-group:focus-within\s*\{[\s\S]*?border-color:/u)
+  })
+
+  it('keeps focus invalid disabled and nested radii on the group boundary', () => {
+    expect(groupStyles).toMatch(
+      /\.o-input-group\s*\{[\s\S]*?--omg-field-focus-shadow:\s*0 0 0 2px var\(--omg-color-brand-soft\);/u,
+    )
+    expect(groupStyles).toMatch(/\.o-input-group:where\(:focus-within\)\s*\{[\s\S]*?border-color:/u)
     expect(groupStyles).toContain("[aria-invalid='true']")
     expect(groupStyles).toContain('.o-input__control')
     expect(groupStyles).toContain('.o-textarea__field')
     expect(groupStyles).toContain('box-shadow: none')
+    expect(groupStyles).toContain('@media (forced-colors: active)')
+    expect(groupStyles).toContain('border-color: ButtonText')
+    expect(groupStyles).toContain('border-color: Highlight')
     expect(groupStyles).not.toContain('outline:')
     expect(groupStyles).not.toContain('var(--vp-')
   })

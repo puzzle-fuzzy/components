@@ -4,7 +4,7 @@ import { OButton } from '@puzzle-fuzzy/ui'
 
 <template>
   <OButton size="sm" tone="neutral">Small</OButton>
-  <OButton tone="neutral">Medium</OButton>
+  <OButton size="md" tone="neutral">Medium</OButton>
   <OButton size="lg" tone="neutral">Large</OButton>
   <OButton loading>Saving</OButton>
   <OButton disabled>Unavailable</OButton>

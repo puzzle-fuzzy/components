@@ -75,7 +75,7 @@
       "label": "个人组件",
       "components": [
         { "slug": "avatar-flow", "label": "Avatar Flow 头像流" },
-        { "slug": "reference-textarea", "label": "Reference Textarea 引用输入" },
+        { "slug": "reference-textarea", "label": "Reference Textarea 参考图提示词" },
         { "slug": "widget", "label": "Widget 小组件" }
       ]
     }

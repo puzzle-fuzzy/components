@@ -7,7 +7,7 @@ import ButtonVariants from '../../examples/button/Variants.vue'
 
 # Button 按钮
 
-`OButton` 用于触发即时操作。默认原生类型是 `button`，loading 和 disabled 状态会阻止业务 click。
+`OButton` 用于触发即时操作。默认使用紧凑的 `sm` 尺寸（32px 高、12px 字号），默认原生类型是 `button`，loading 和 disabled 状态会阻止业务 click。`md` 为 38px / 14px，`lg` 为 46px / 14px；字号不再受 VitePress 或其他宿主页面影响。
 
 ## 基础与外观
 
@@ -55,7 +55,7 @@ import '@puzzle-fuzzy/ui/styles.css'
 | 名称     | 类型                                        | 默认值     | 说明                         |
 | -------- | ------------------------------------------- | ---------- | ---------------------------- |
 | variant  | `'solid' \| 'soft' \| 'outline' \| 'ghost'` | `'solid'`  | 视觉层级                     |
-| size     | `'sm' \| 'md' \| 'lg'`                      | `'md'`     | 控件尺寸                     |
+| size     | `'sm' \| 'md' \| 'lg'`                      | `'sm'`     | 控件尺寸                     |
 | tone     | `'brand' \| 'neutral' \| 'danger'`          | `'brand'`  | 语义色调                     |
 | type     | `'button' \| 'submit' \| 'reset'`           | `'button'` | 原生按钮类型                 |
 | loading  | `boolean`                                   | `false`    | 忙碌且不可点击               |

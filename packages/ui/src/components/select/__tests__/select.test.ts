@@ -64,11 +64,13 @@ import {
   oSelectPlacements,
   oSelectProps,
   oSelectSizes,
+  oSelectVariants,
   type OSelectEmits,
   type OSelectOption,
   type OSelectProps,
   type OSelectSlots,
   type OSelectValue,
+  type OSelectVariant,
 } from '../index'
 
 const selectStyles = readFileSync(
@@ -117,6 +119,7 @@ describe('OSelect public model', () => {
       placement: 'bottom-end',
       placeholder: 'Choose a letter',
       size: 'lg',
+      variant: 'outline',
       teleported: false,
       teleportTo: 'body',
       virtual: true,
@@ -134,8 +137,13 @@ describe('OSelect public model', () => {
       option: ({ option, selected, active }) =>
         `${option.label}:${String(selected)}:${String(active)}`,
     }
+    const variant: OSelectVariant = 'outline'
 
     expect(oSelectSizes).toEqual(['sm', 'md', 'lg'])
+    expect(oSelectVariants).toEqual(['soft', 'outline'])
+    expect(oSelectProps.variant.default).toBe('soft')
+    expect(oSelectProps.variant.validator(variant)).toBe(true)
+    expect(oSelectProps.variant.validator('filled')).toBe(false)
     expect(oSelectPlacements).toEqual(['bottom-start', 'bottom-end'])
     expect(oSelectProps.size.default).toBe('md')
     expect(oSelectProps.placeholder.default).toBe('Select')
@@ -220,8 +228,18 @@ describe('OSelect behavior', () => {
     expect(trigger.attributes('aria-controls')).toBeUndefined()
     expect(trigger.attributes('aria-activedescendant')).toBeUndefined()
     expect(trigger.text()).toContain('Select')
-    expect(wrapper.classes()).toEqual(expect.arrayContaining(['o-select', 'o-select--md']))
+    expect(wrapper.classes()).toEqual(
+      expect.arrayContaining(['o-select', 'o-select--md', 'o-select--soft']),
+    )
     expect(document.body.querySelector('[role="listbox"]')).toBeNull()
+  })
+
+  it('renders soft by default and outline on request', () => {
+    const soft = mountSelect()
+    const outline = mountSelect({ variant: 'outline' })
+
+    expect(soft.classes()).toContain('o-select--soft')
+    expect(outline.classes()).toContain('o-select--outline')
   })
 
   it.each([
@@ -411,6 +429,7 @@ describe('OSelect behavior', () => {
 
     expect(clear.element.tagName).toBe('BUTTON')
     expect(clear.attributes('aria-label')).toBe('Clear selection')
+    expect(wrapper.classes()).toContain('is-clearable')
     expect(clear.element.parentElement).toBe(trigger.element.parentElement)
     expect(trigger.element.contains(clear.element)).toBe(false)
 
@@ -626,6 +645,34 @@ describe('OSelect behavior', () => {
 })
 
 describe('OSelect styles', () => {
+  it('keeps clear and indicator inside one stable trailing rail', () => {
+    expect(selectStyles).toContain('--omg-select-rail-size: 32px')
+    expect(selectStyles).toContain('padding-inline: var(--omg-space-3) 32px')
+    expect(selectStyles).toContain('inline-size: 24px')
+    expect(selectStyles).toContain('block-size: 24px')
+    expect(selectStyles).toContain('font-size: var(--omg-font-size-md)')
+    expect(selectStyles).toContain('padding: 0 var(--omg-space-3)')
+    expect(selectStyles).toMatch(
+      /@media \(hover: none\), \(pointer: coarse\)[\s\S]*inline-size:\s*44px/u,
+    )
+    expect(selectStyles).toMatch(
+      /@media \(hover: none\), \(pointer: coarse\)[\s\S]*\.o-select__trigger\s*\{[^}]*min-block-size:\s*44px/iu,
+    )
+    expect(selectStyles).toMatch(
+      /@media \(hover: none\), \(pointer: coarse\)[\s\S]*\.o-select\.is-clearable \.o-select__clear\s*\{[^}]*inline-size:\s*44px;[^}]*block-size:\s*44px/iu,
+    )
+    expect(selectStyles).toMatch(
+      /@media \(hover: none\), \(pointer: coarse\)[\s\S]*--omg-select-rail-size:\s*44px/u,
+    )
+    expect(selectStyles).toMatch(
+      /@media \(hover: none\), \(pointer: coarse\)[\s\S]*padding-inline-end:\s*var\(--omg-select-rail-size\)/u,
+    )
+    expect(selectStyles).toMatch(
+      /\.o-select\.is-clearable \.o-select__clear\s*\{[^}]*inset-inline-end:\s*0;/su,
+    )
+    expect(selectStyles).not.toContain('&::before')
+  })
+
   it('uses the shared control scale and restrained tokenized surface', () => {
     expect(selectStyles).toContain('--omg-select-height: var(--omg-control-height-md)')
     expect(selectStyles).toContain('--omg-select-height: var(--omg-control-height-sm)')
@@ -642,14 +689,14 @@ describe('OSelect styles', () => {
   it('keeps the trigger boundary without outlining the floating panel', () => {
     const triggerStyles = selectStyles.slice(
       selectStyles.indexOf('  &__trigger {'),
-      selectStyles.indexOf('  &__control:has(&__clear)'),
+      selectStyles.indexOf('  &__value {'),
     )
     const panelStyles = selectStyles.slice(
       selectStyles.indexOf('.o-select__panel {'),
       selectStyles.indexOf('.o-select__panel.is-virtualized'),
     )
 
-    expect(triggerStyles).toContain('border: 1px solid var(--omg-color-border)')
+    expect(triggerStyles).toContain('border: 1px solid var(--omg-field-border-color)')
     expect(panelStyles).not.toMatch(/^\s*border\s*:/mu)
     expect(panelStyles).toContain('background: var(--omg-color-surface)')
     expect(panelStyles).toContain('box-shadow: var(--omg-shadow-sm)')
@@ -662,10 +709,15 @@ describe('OSelect styles', () => {
     )
 
     expect(selectStyles).toMatch(/&__trigger[\s\S]*&:focus-visible/u)
-    expect(selectStyles).toContain('outline: 3px solid var(--omg-color-focus-ring)')
+    expect(selectStyles).toContain(
+      '--omg-field-focus-shadow: 0 0 0 2px var(--omg-color-brand-soft)',
+    )
     expect(selectStyles).toContain('.o-select-panel-enter-active')
     expect(selectStyles).toContain('.o-select-panel-leave-active')
-    expect(selectStyles).toContain('transition: transform var(--omg-duration-fast)')
+    expect(selectStyles).toMatch(
+      /@media \(forced-colors: active\)[\s\S]*\.o-select__clear:focus-visible[\s\S]*Highlight/u,
+    )
+    expect(selectStyles).toMatch(/transition:\s*transform var\(--omg-duration-fast\)/u)
     expect(panelEnterMotion).toContain('transform: scale(0.98)')
     expect(panelEnterMotion).not.toContain('translateY')
     expect(selectStyles).toMatch(

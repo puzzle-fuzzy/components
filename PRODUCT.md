@@ -38,6 +38,7 @@ OMG UI 是一个仅面向 Vue 3 的个人组件库。它同时容纳边界清晰
 7. Message 只管理视觉队列和显示生命周期，Drawer 只管理模态侧面板；请求结果、重试、保存、脏表单确认和路由仍由使用方负责。
 8. Tag 的移除、Badge 的显示值以及 Progress 的数值、状态和标签都属于使用方状态；组件只负责可靠地呈现和发出交互意图。
 9. Switch 不持久化设置，Alert 不映射异常，Skeleton 不判断数据是否就绪，Tooltip 不接管焦点或执行交互内容。
+10. 表单控件以 `soft` 作为安静的默认表面，以 `outline` 作为持续显示边界的显式选择；边框优先承担焦点、错误和高对比度状态，而不是静态装饰。
 
 ## Component Contracts
 
@@ -51,6 +52,10 @@ OMG UI 是一个仅面向 Vue 3 的个人组件库。它同时容纳边界清晰
 - **Skeleton：** 只提供 text、rect 和 circle 原子占位形状，加载状态完全受控；占位节点对辅助技术隐藏，内容区域的 `aria-busy` 与加载播报由使用方负责。
 - **Tooltip：** 是不可交互的辅助描述层，通过单一触发器、`aria-describedby`、悬停、焦点和 Escape 工作。它不移动焦点、不因点击单独打开，也不承载任何可交互内容；未来 Popover 保持独立合同。
 - **Image 与 Tabs：** Image 继续使用自身独立的 Teleport 预览层，不为了复用而依赖 Dialog。Tabs 的测量滑块、线型和填充效果属于已确认的组件能力，规范化工作不得将其替换为普通颜色切换。
+- **Button 与字段：** Button 默认使用 32px / 12px 的紧凑 `sm` 尺寸，`md` 与 `lg` 明确使用 14px；Input、Textarea 和 Select 共享 `soft | outline` 状态词汇，但分别导出组件专属类型。字体家族由应用继承，字号、边界、状态和间距不受文档站或消费应用的默认字号影响。
+- **Select：** 触发器只保留一个 32px 尾部操作轨，清除动作出现时替换箭头而不是叠加额外内边距；弹层、普通选项和虚拟选项保持同一套 4px / 12px / 36px 几何。
+- **Message：** `OMessage` 是静态受控表面；`oMessage()` 默认显示 3000ms，默认悬停不暂停，但键盘焦点始终暂停。只有非正数 duration 持久显示，所有正 duration 至少为 1ms。
+- **Reference Textarea：** `media[index]` 与 `[Image index+1]` 是唯一编号关系。组件在 Prompt 上方显示和选择参考图，通过原生 textarea 的 `@` 列表插入纯文本 token；文件上传、对象 URL、媒体持久化、删除后的数组更新和 token 重编号由使用方明确处理。
 - **Border budget：** Dialog、Drawer、Message、Alert、Tooltip、Skeleton 以及已有表面不会为了“完整”额外添加边框。只有输入边界、状态、焦点、真实分隔或无法由背景、间距和阴影表达的层级可以消耗边框预算。
 
 ## Accessibility & Inclusion

@@ -6,6 +6,8 @@ import InputBasic from '../../examples/input/Basic.vue'
 
 `OInput` 是受控的原生单行输入控件。它保留真实 `<input>` 的表单、自动填充与输入法语义，并提供统一尺寸、前后缀、清除按钮和密码可见性切换。
 
+默认 `soft` 外观使用 Upload 同系的浅色表面，并始终预留透明的 1px 边界：静止时没有装饰性边框，hover 只改变背景，focus / invalid 才显示语义边界与克制的 brand-soft 焦点层。需要始终可见边界时使用 `variant="outline"`。两种外观都保留相同尺寸和原生行为。
+
 ## 基础用法
 
 <DemoBlock label="Input native text controls">
@@ -27,6 +29,7 @@ import '@puzzle-fuzzy/ui/styles.css'
 | modelValue            | `string`                                                        | `''`              | 当前受控值                             |
 | type                  | `'text' \| 'password' \| 'email' \| 'search' \| 'tel' \| 'url'` | `'text'`          | 原生输入类型                           |
 | size                  | `'sm' \| 'md' \| 'lg'`                                          | `'md'`            | 控件尺寸                               |
+| variant               | `'soft' \| 'outline'`                                           | `'soft'`          | 浅色无边框默认态或常显边界             |
 | placeholder           | `string`                                                        | —                 | 占位文本                               |
 | clearable             | `boolean`                                                       | `false`           | 非空且可编辑时显示清除按钮             |
 | showPassword          | `boolean`                                                       | `false`           | `type="password"` 时显示可见性切换按钮 |

@@ -21,10 +21,11 @@ const showSuccess = (): void => {
 
 const showWarning = (): void => {
   oMessage.warning({
-    message: '请检查当前输入',
-    duration: 4200,
+    message: '请检查当前输入（已显式开启悬停暂停）',
+    duration: 6000,
     closable: true,
     closeAriaLabel: '关闭检查输入消息',
+    pauseOnHover: true,
   })
 }
 
@@ -40,19 +41,19 @@ const showError = (): void => {
 const showStack = (): void => {
   oMessage.info({
     message: '第一条堆叠消息',
-    duration: 0,
+    duration: 6000,
     closable: true,
     closeAriaLabel: '关闭第一条堆叠消息',
   })
   oMessage.success({
     message: '第二条堆叠消息',
-    duration: 0,
+    duration: 6000,
     closable: true,
     closeAriaLabel: '关闭第二条堆叠消息',
   })
   oMessage.warning({
     message: '第三条堆叠消息',
-    duration: 0,
+    duration: 6000,
     closable: true,
     closeAriaLabel: '关闭第三条堆叠消息',
   })
@@ -86,7 +87,7 @@ const showLongMessage = (): void => {
   oMessage.info({
     message:
       '这是一条用于检查长文本换行的消息：即使内容持续变长，消息也会保持在视口内，并为图标、正文与关闭按钮保留稳定空间。',
-    duration: 0,
+    duration: 6000,
     closable: true,
     closeAriaLabel: '关闭长文本消息',
   })

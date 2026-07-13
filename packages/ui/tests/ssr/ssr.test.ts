@@ -69,6 +69,7 @@ import {
   type OAvatarFlowPeer,
   type OAvatarGroupItem,
   type ODropdownItem,
+  type OReferenceTextareaMedia,
   type OSelectOption,
   type OTabsItem,
   type OUploadFile,
@@ -95,6 +96,16 @@ const groupItems: readonly OAvatarGroupItem[] = [
 const dropdownItems: readonly ODropdownItem[] = [{ value: 'profile', label: 'Profile' }]
 
 const selectOptions: readonly OSelectOption[] = [{ value: 1, label: 'One' }]
+
+const referencePromptMedia: readonly OReferenceTextareaMedia[] = [
+  {
+    id: 'dress',
+    src: '/dress-thumb.webp',
+    previewSrc: '/dress.webp',
+    label: '红色旗袍女性',
+    alt: '身着红色旗袍的女性',
+  },
+]
 
 const virtualSelectOptions: readonly OSelectOption[] = Array.from({ length: 120 }, (_, index) => ({
   value: index,
@@ -376,23 +387,32 @@ describe('server rendering', () => {
     expect(html).toContain('aria-hidden="true"')
   })
 
-  test('renders OInput controls and standard icons without DOM globals', async () => {
+  test('renders soft and outline OInput controls with standard icons without DOM globals', async () => {
     const html = await renderToString(
       createSSRApp({
         render: () =>
-          h(OInput, {
-            modelValue: 'secret',
-            type: 'password',
-            clearable: true,
-            showPassword: true,
-            ariaLabel: 'Password',
-          }),
+          h('div', [
+            h(OInput, {
+              modelValue: 'secret',
+              type: 'password',
+              clearable: true,
+              showPassword: true,
+              ariaLabel: 'Soft password',
+            }),
+            h(OInput, {
+              modelValue: 'outlined',
+              variant: 'outline',
+              ariaLabel: 'Outline input',
+            }),
+          ]),
       }),
     )
 
-    expect(html).toContain('class="o-input')
+    expect(html).toContain('o-input--soft')
+    expect(html).toContain('o-input--outline')
     expect(html).toContain('type="password"')
-    expect(html).toContain('aria-label="Password"')
+    expect(html).toContain('aria-label="Soft password"')
+    expect(html).toContain('aria-label="Outline input"')
     expect(html).toContain('o-input__clear')
     expect(html).toContain('o-input__password-toggle')
   })
@@ -631,7 +651,7 @@ describe('server rendering', () => {
     expect(secondTitleId).toBe(firstTitleId)
   })
 
-  test('renders accessible OMessage surfaces and keeps the service inert without DOM', async () => {
+  test('renders controlled OMessage surfaces and keeps the service inert without DOM', async () => {
     const html = await renderToString(
       createSSRApp({
         render: () =>
@@ -652,11 +672,13 @@ describe('server rendering', () => {
     expect(html).toContain('role="alert"')
     expect(html).toContain('保存成功')
     expect(html).toContain('aria-label="关闭保存消息"')
+    expect(html).not.toContain('o-message-host')
     expect(document.querySelector('.o-message-host')).toBeNull()
 
     vi.stubGlobal('document', undefined)
     try {
-      const handle = oMessage('SSR')
+      const handle = oMessage('SSR no-op')
+      expect(handle.close).toEqual(expect.any(Function))
       handle.close()
       handle.close()
     } finally {
@@ -695,21 +717,37 @@ describe('server rendering', () => {
     expect(html).toContain('Account')
   })
 
-  test('renders OSelect without DOM globals', async () => {
+  test('renders closed soft and outline OSelect controls without DOM globals', async () => {
     const html = await renderToString(
       createSSRApp({
         render: () =>
-          h(OSelect, {
-            ariaLabel: 'Number',
-            modelValue: 1,
-            options: selectOptions,
-          }),
+          h('div', [
+            h(OSelect, {
+              ariaLabel: 'Soft number',
+              modelValue: 1,
+              options: selectOptions,
+            }),
+            h(OSelect, {
+              ariaLabel: 'Outline number',
+              modelValue: 1,
+              options: selectOptions,
+              variant: 'outline',
+            }),
+          ]),
       }),
     )
+    const container = document.createElement('div')
+    container.innerHTML = html
 
-    expect(html).toContain('role="combobox"')
-    expect(html).toContain('aria-label="Number"')
+    expect(container.querySelectorAll('[role="combobox"]')).toHaveLength(2)
+    expect(container.querySelector('.o-select--soft')).not.toBeNull()
+    expect(container.querySelector('.o-select--outline')).not.toBeNull()
+    expect(html).toContain('aria-label="Soft number"')
+    expect(html).toContain('aria-label="Outline number"')
     expect(html).toContain('One')
+    expect(container.querySelectorAll('[aria-expanded="false"]')).toHaveLength(2)
+    expect(container.querySelector('[role="listbox"]')).toBeNull()
+    expect(container.querySelector('.o-select__panel')).toBeNull()
   })
 
   test('prerenders a bounded virtual OSelect window without DOM globals', async () => {
@@ -756,31 +794,59 @@ describe('server rendering', () => {
     expect(html).not.toContain('o-image__preview-mask')
   })
 
-  test('renders OTextarea without DOM globals', async () => {
-    const html = await renderToString(
-      createSSRApp({
-        render: () => h(OTextarea, { modelValue: 'SSR', ariaLabel: '消息' }),
-      }),
-    )
-
-    expect(html).toContain('class="o-textarea')
-    expect(html).toContain('SSR')
-  })
-
-  test('renders OReferenceTextarea without DOM globals', async () => {
+  test('renders soft and outline OTextarea controls without DOM globals', async () => {
     const html = await renderToString(
       createSSRApp({
         render: () =>
-          h(OReferenceTextarea, {
-            modelValue: 'SSR',
-            ariaLabel: '消息',
-            references: [{ id: 'one', label: 'Yxswy' }],
-          }),
+          h('div', [
+            h(OTextarea, { modelValue: 'Soft SSR', ariaLabel: '浅色消息' }),
+            h(OTextarea, {
+              modelValue: 'Outline SSR',
+              variant: 'outline',
+              ariaLabel: '边框消息',
+            }),
+          ]),
       }),
     )
 
-    expect(html).toContain('class="o-reference-textarea')
-    expect(html).toContain('Yxswy')
+    expect(html).toContain('o-textarea--soft')
+    expect(html).toContain('o-textarea--outline')
+    expect(html).toContain('Soft SSR')
+    expect(html).toContain('Outline SSR')
+  })
+
+  test('renders soft and outline Reference Prompts from media without opening overlays', async () => {
+    const html = await renderToString(
+      createSSRApp({
+        render: () =>
+          h('div', [
+            h(OReferenceTextarea, {
+              modelValue: '请保留 [Image 1] 中身着红色旗袍的女性',
+              ariaLabel: 'Soft Reference Prompt',
+              media: referencePromptMedia,
+            }),
+            h(OReferenceTextarea, {
+              modelValue: 'Outline Reference Prompt',
+              variant: 'outline',
+              ariaLabel: 'Outline Reference Prompt',
+              media: referencePromptMedia,
+            }),
+          ]),
+      }),
+    )
+    const container = document.createElement('div')
+    container.innerHTML = html
+
+    expect(container.querySelectorAll('.o-reference-textarea')).toHaveLength(2)
+    expect(container.querySelector('.o-reference-textarea .o-textarea--soft')).not.toBeNull()
+    expect(container.querySelector('.o-reference-textarea .o-textarea--outline')).not.toBeNull()
+    expect(html).toContain('[Image 1]')
+    expect(html).toContain('红色旗袍女性')
+    expect(html).toContain('src="/dress-thumb.webp"')
+    expect(container.querySelectorAll('.o-image__trigger[aria-expanded="false"]')).toHaveLength(2)
+    expect(container.querySelector('[role="listbox"]')).toBeNull()
+    expect(container.querySelector('.o-reference-textarea__mention-list')).toBeNull()
+    expect(container.querySelector('.o-image__preview-mask')).toBeNull()
   })
 
   test('renders OTabs without DOM globals', async () => {

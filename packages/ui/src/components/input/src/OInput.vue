@@ -119,6 +119,7 @@ const getFieldAttrs = () =>
     class="o-input"
     :class="[
       `o-input--${props.size}`,
+      `o-input--${props.variant}`,
       {
         'is-disabled': props.disabled,
         'is-readonly': props.readonly,

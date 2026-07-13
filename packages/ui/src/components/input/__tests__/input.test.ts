@@ -1,4 +1,7 @@
 /* eslint-disable vue/one-component-per-file -- Colocated harnesses exercise controlled updates. */
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { createSSRApp, defineComponent, h, nextTick, ref } from 'vue'
 import { renderToString } from '@vue/server-renderer'
 import { mount } from '@vue/test-utils'
@@ -9,10 +12,17 @@ import {
   oInputProps,
   oInputSizes,
   oInputTypes,
+  oInputVariants,
   type OInputEmits,
   type OInputProps,
   type OInputSlots,
+  type OInputVariant,
 } from '../index'
+
+const inputStyles = readFileSync(
+  resolve('packages/ui/src/components/input/style/index.less'),
+  'utf8',
+)
 
 describe('OInput', () => {
   it('keeps public vocabularies and types aligned with runtime validation', () => {
@@ -20,6 +30,7 @@ describe('OInput', () => {
       modelValue: 'hello',
       type: 'password',
       size: 'lg',
+      variant: 'outline',
       placeholder: '请输入',
       clearable: true,
       showPassword: true,
@@ -42,15 +53,37 @@ describe('OInput', () => {
       blur: [focusEvent],
       clear: [],
     }
+    const variant: OInputVariant = 'outline'
 
     expect(oInputTypes).toEqual(['text', 'password', 'email', 'search', 'tel', 'url'])
     expect(oInputSizes).toEqual(['sm', 'md', 'lg'])
+    expect(oInputVariants).toEqual(['soft', 'outline'])
+    expect(oInputProps.variant.default).toBe('soft')
+    expect(oInputProps.variant.validator(variant)).toBe(true)
+    expect(oInputProps.variant.validator('filled')).toBe(false)
     expect(oInputProps.type.validator(props.type)).toBe(true)
     expect(oInputProps.type.validator('number')).toBe(false)
     expect(oInputProps.size.validator(props.size)).toBe(true)
     expect(oInputProps.size.validator('xl')).toBe(false)
     expect(slots.prefix?.()).toBe('prefix')
     expect(emits['update:modelValue']).toEqual(['next'])
+  })
+
+  it('renders the soft field variant by default and outline on request', async () => {
+    const wrapper = mount(OInput, { props: { modelValue: '' } })
+
+    expect(wrapper.classes()).toContain('o-input--soft')
+
+    await wrapper.setProps({ variant: 'outline' })
+
+    expect(wrapper.classes()).toContain('o-input--outline')
+    expect(wrapper.classes()).not.toContain('o-input--soft')
+  })
+
+  it('uses border and brand-soft focus feedback with a forced-colors boundary', () => {
+    expect(inputStyles).toContain('--omg-field-focus-shadow: 0 0 0 2px var(--omg-color-brand-soft)')
+    expect(inputStyles).toContain('@media (forced-colors: active)')
+    expect(inputStyles).toContain('.o-input__control:focus-within')
   })
 
   it('renders native input semantics and forwards attrs and listeners to the field', async () => {
@@ -230,6 +263,7 @@ describe('OInput', () => {
         modelValue: 'value',
         type: 'email',
         size: 'lg',
+        variant: 'outline',
         disabled: true,
         readonly: true,
         invalid: true,
@@ -239,7 +273,13 @@ describe('OInput', () => {
     const input = wrapper.get('input')
 
     expect(wrapper.classes()).toEqual(
-      expect.arrayContaining(['o-input--lg', 'is-disabled', 'is-readonly', 'is-invalid']),
+      expect.arrayContaining([
+        'o-input--lg',
+        'o-input--outline',
+        'is-disabled',
+        'is-readonly',
+        'is-invalid',
+      ]),
     )
     expect(input.attributes('type')).toBe('email')
     expect(input.attributes('disabled')).toBeDefined()

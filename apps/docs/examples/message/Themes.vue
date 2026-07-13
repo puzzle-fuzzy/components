@@ -16,7 +16,7 @@ const showLight = (): void => {
   clearThemeMessage()
   themeMessage = oMessage.info({
     message: '白色消息表面',
-    duration: 0,
+    duration: 4200,
     closable: true,
     closeAriaLabel: '关闭白色消息表面',
     appendTo: lightTarget.value,
@@ -28,7 +28,7 @@ const showDark = (): void => {
   clearThemeMessage()
   themeMessage = oMessage.success({
     message: '深色消息表面',
-    duration: 0,
+    duration: 4200,
     closable: true,
     closeAriaLabel: '关闭深色消息表面',
     appendTo: darkTarget.value,

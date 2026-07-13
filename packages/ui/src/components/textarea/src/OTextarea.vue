@@ -110,6 +110,7 @@ const getFieldAttrs = () =>
     class="o-textarea"
     :class="[
       autosizeState.enabled ? 'o-textarea--autosize' : 'o-textarea--fixed',
+      `o-textarea--${props.variant}`,
       {
         'is-autosize-bounded': autosizeState.enabled && autosizeState.maxRows !== undefined,
         'is-count-visible': props.showCount,

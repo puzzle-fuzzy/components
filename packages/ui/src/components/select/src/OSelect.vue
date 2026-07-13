@@ -316,7 +316,14 @@ watch(
   <div
     v-bind="$attrs"
     class="o-select"
-    :class="[`o-select--${props.size}`, { 'is-disabled': props.disabled }]"
+    :class="[
+      `o-select--${props.size}`,
+      `o-select--${props.variant}`,
+      {
+        'is-clearable': props.clearable && selectedOption && !props.disabled,
+        'is-disabled': props.disabled,
+      },
+    ]"
     :data-open="isListboxOpen || undefined"
   >
     <div class="o-select__control">

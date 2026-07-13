@@ -1,6 +1,10 @@
 .o-input {
   --omg-input-height: var(--omg-control-height-md);
   --omg-input-disabled-opacity: 0.56;
+  --omg-field-background: var(--omg-color-surface-muted);
+  --omg-field-border-color: transparent;
+  --omg-field-focus-border: var(--omg-color-brand);
+  --omg-field-focus-shadow: 0 0 0 2px var(--omg-color-brand-soft);
 
   display: inline-flex;
   inline-size: 100%;
@@ -19,6 +23,11 @@
     --omg-input-height: var(--omg-control-height-lg);
   }
 
+  &--outline {
+    --omg-field-background: var(--omg-color-surface);
+    --omg-field-border-color: var(--omg-color-border);
+  }
+
   &.is-disabled {
     opacity: var(--omg-input-disabled-opacity);
   }
@@ -32,21 +41,18 @@
     gap: var(--omg-space-2);
     box-sizing: border-box;
     padding-inline: var(--omg-space-3);
-    border: 1px solid var(--omg-color-border);
+    border: 1px solid var(--omg-field-border-color);
     border-radius: var(--omg-radius-md);
-    background: var(--omg-color-surface);
+    background: var(--omg-field-background);
     transition:
       border-color var(--omg-duration-fast) var(--omg-easing-standard),
       background-color var(--omg-duration-fast) var(--omg-easing-standard),
       box-shadow var(--omg-duration-fast) var(--omg-easing-standard);
 
-    &:hover {
-      border-color: var(--omg-color-brand-border);
-    }
-
-    &:has(.o-input__field:focus-visible) {
-      border-color: var(--omg-color-focus-ring);
-      box-shadow: 0 0 0 2px var(--omg-color-brand-soft);
+    &:focus-within {
+      border-color: var(--omg-field-focus-border);
+      background: var(--omg-color-surface);
+      box-shadow: var(--omg-field-focus-shadow);
     }
   }
 
@@ -56,14 +62,25 @@
 
   &.is-disabled &__control {
     cursor: not-allowed;
-
-    &:hover {
-      border-color: var(--omg-color-border);
-    }
   }
 
-  &.is-invalid &__control,
-  &.is-invalid &__control:has(.o-input__field:focus-visible) {
+  &.is-invalid &__control {
+    border-color: var(--omg-color-danger);
+  }
+
+  &--soft.is-invalid &__control {
+    background: var(--omg-color-danger-soft);
+  }
+
+  &--soft:where(:not(.is-readonly, .is-disabled, .is-invalid, :focus-within)) &__control:hover {
+    background: var(--omg-color-neutral-soft);
+  }
+
+  &--outline:where(:not(.is-readonly, .is-disabled, .is-invalid, :focus-within)) &__control:hover {
+    border-color: var(--omg-color-brand-border);
+  }
+
+  &.is-invalid &__control:focus-within {
     border-color: var(--omg-color-danger);
   }
 
@@ -163,6 +180,17 @@
   .o-input__action {
     inline-size: 44px;
     block-size: 44px;
+  }
+}
+
+@media (forced-colors: active) {
+  .o-input__control {
+    border-color: ButtonText;
+  }
+
+  .o-input__control:focus-within {
+    border-color: Highlight;
+    box-shadow: none;
   }
 }
 

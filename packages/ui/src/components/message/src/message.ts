@@ -10,7 +10,7 @@ const isOMessageStatus = (value: unknown): value is OMessageStatus =>
 export const normalizeOMessageDuration = (value?: number): number => {
   if (value === undefined || !Number.isFinite(value)) return 3000
   if (value <= 0) return 0
-  return Math.floor(value)
+  return Math.max(1, Math.floor(value))
 }
 
 export const oMessageProps = {

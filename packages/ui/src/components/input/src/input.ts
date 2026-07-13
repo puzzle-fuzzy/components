@@ -1,10 +1,14 @@
 import type { ExtractPublicPropTypes, PropType, VNodeChild } from 'vue'
 
+import { isOFieldControlVariant, oFieldControlVariants } from '../../../utils/field-control'
+
 export const oInputTypes = ['text', 'password', 'email', 'search', 'tel', 'url'] as const
 export const oInputSizes = ['sm', 'md', 'lg'] as const
+export const oInputVariants = [...oFieldControlVariants] as const
 
 export type OInputType = (typeof oInputTypes)[number]
 export type OInputSize = (typeof oInputSizes)[number]
+export type OInputVariant = (typeof oInputVariants)[number]
 
 const isStringMember = <Value extends string>(
   values: readonly Value[],
@@ -25,6 +29,11 @@ export const oInputProps = {
     type: String as PropType<OInputSize>,
     default: 'md',
     validator: (value: unknown): value is OInputSize => isStringMember(oInputSizes, value),
+  },
+  variant: {
+    type: String as PropType<OInputVariant>,
+    default: 'soft',
+    validator: isOFieldControlVariant,
   },
   placeholder: String,
   clearable: Boolean,

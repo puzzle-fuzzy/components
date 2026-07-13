@@ -202,7 +202,7 @@ export const createOMessageService = (): OMessageServiceController => {
       host,
       record,
       onClose: options.onClose,
-      pauseOnHover: options.pauseOnHover ?? true,
+      pauseOnHover: options.pauseOnHover ?? false,
       persistent: duration === 0,
       pausedBy: new Set(),
       remaining: duration,

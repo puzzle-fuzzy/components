@@ -11,10 +11,12 @@ import {
   OTextarea,
   normalizeOTextareaRows,
   oTextareaProps,
+  oTextareaVariants,
   resolveOTextareaAutosize,
   type OTextareaAutosizeOptions,
   type OTextareaEmits,
   type OTextareaProps,
+  type OTextareaVariant,
 } from '../index'
 
 const textareaStyles = readFileSync(
@@ -27,6 +29,7 @@ describe('OTextarea', () => {
     const autosize: OTextareaAutosizeOptions = { minRows: 2, maxRows: 8 }
     const publicProps: OTextareaProps = {
       modelValue: 'hello',
+      variant: 'outline',
       placeholder: '输入内容',
       rows: 5,
       maxlength: 100,
@@ -43,7 +46,12 @@ describe('OTextarea', () => {
       focus: [event],
       blur: [event],
     }
+    const variant: OTextareaVariant = 'outline'
 
+    expect(oTextareaVariants).toEqual(['soft', 'outline'])
+    expect(oTextareaProps.variant.default).toBe('soft')
+    expect(oTextareaProps.variant.validator(variant)).toBe(true)
+    expect(oTextareaProps.variant.validator('filled')).toBe(false)
     expect(oTextareaProps.rows.default).toBe(4)
     expect(oTextareaProps.autosize.default).toBe(false)
     expect(normalizeOTextareaRows(3.8)).toBe(3)
@@ -65,6 +73,26 @@ describe('OTextarea', () => {
     })
     expect(publicProps.autosize).toBe(autosize)
     expect(publicEmits['update:modelValue']).toEqual(['next'])
+  })
+
+  it('renders the soft field variant by default and outline on request', async () => {
+    const wrapper = mount(OTextarea, { props: { modelValue: '' } })
+
+    expect(wrapper.classes()).toContain('o-textarea--soft')
+
+    await wrapper.setProps({ variant: 'outline' })
+
+    expect(wrapper.classes()).toContain('o-textarea--outline')
+    expect(wrapper.classes()).not.toContain('o-textarea--soft')
+  })
+
+  it('uses border and brand-soft focus feedback with a forced-colors boundary', () => {
+    expect(textareaStyles).toContain(
+      '--omg-field-focus-shadow: 0 0 0 2px var(--omg-color-brand-soft)',
+    )
+    expect(textareaStyles).toContain('@media (forced-colors: active)')
+    expect(textareaStyles).toContain('.o-textarea__field:focus-visible')
+    expect(textareaStyles).toContain('font-size: var(--omg-font-size-md)')
   })
 
   it('renders textarea semantics and character count', async () => {
@@ -289,6 +317,7 @@ describe('OTextarea', () => {
     const wrapper = mount(OTextarea, {
       props: {
         modelValue: '',
+        variant: 'outline',
         disabled: true,
         readonly: true,
         invalid: true,
@@ -297,7 +326,7 @@ describe('OTextarea', () => {
     const textarea = wrapper.get('textarea')
 
     expect(wrapper.classes()).toEqual(
-      expect.arrayContaining(['is-disabled', 'is-readonly', 'is-invalid']),
+      expect.arrayContaining(['o-textarea--outline', 'is-disabled', 'is-readonly', 'is-invalid']),
     )
     expect(textarea.attributes('disabled')).toBeDefined()
     expect(textarea.attributes('readonly')).toBeDefined()

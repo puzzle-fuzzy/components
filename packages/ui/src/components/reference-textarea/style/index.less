@@ -1,3 +1,5 @@
+@import '../../../styles/mixins.less';
+
 .o-reference-textarea {
   display: block;
   inline-size: 100%;
@@ -6,60 +8,292 @@
   color: var(--omg-color-text);
 }
 
-.o-reference-textarea .o-reference-textarea__references {
+.o-reference-textarea__media {
+  min-inline-size: 0;
+  margin-block-end: var(--omg-space-3);
+}
+
+.o-reference-textarea__input {
+  .visually-hidden();
+}
+
+.o-reference-textarea .o-reference-textarea__media-list {
   display: flex;
+  min-inline-size: 0;
   flex-wrap: wrap;
   gap: var(--omg-space-2);
-  margin-block: var(--omg-space-2) 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.o-reference-textarea__reference {
+.o-reference-textarea__media-item,
+.o-reference-textarea__add-item {
+  inline-size: 112px;
   min-inline-size: 0;
-  max-inline-size: 100%;
+  flex: 0 0 112px;
 }
 
-.o-reference-textarea__reference-content {
-  display: inline-flex;
-  min-block-size: 32px;
-  max-inline-size: 100%;
-  align-items: center;
-  gap: var(--omg-space-2);
+.o-reference-textarea__media-item {
+  position: relative;
+  overflow: hidden;
   box-sizing: border-box;
-  padding-inline: var(--omg-space-3);
-  border: 1px solid var(--omg-color-border-subtle);
-  border-radius: var(--omg-radius-full);
+  padding: var(--omg-space-1);
+  border-radius: var(--omg-radius-md);
   background: var(--omg-color-surface-muted);
+}
+
+.o-reference-textarea__preview {
+  overflow: hidden;
+  inline-size: 100%;
+  block-size: 72px;
+  border-radius: var(--omg-radius-sm);
+  background: var(--omg-color-surface);
+}
+
+.o-reference-textarea__preview :where(.o-image, .o-image__trigger, .o-image__img) {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.o-reference-textarea__media-copy,
+.o-reference-textarea__mention-copy {
+  display: flex;
+  min-inline-size: 0;
+  flex-direction: column;
+}
+
+.o-reference-textarea__media-copy {
+  gap: 2px;
+  padding: 6px var(--omg-space-1) var(--omg-space-1);
+}
+
+.o-reference-textarea__media-token,
+.o-reference-textarea__mention-token {
+  overflow: hidden;
+  color: var(--omg-color-text);
+  font-size: var(--omg-font-size-md);
+  font-weight: var(--omg-font-weight-semibold);
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.o-reference-textarea__media-label,
+.o-reference-textarea__mention-label {
+  overflow: hidden;
+  color: var(--omg-color-text-muted);
+  font-size: var(--omg-font-size-sm);
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.o-reference-textarea__remove {
+  position: absolute;
+  inset-block-start: var(--omg-space-2);
+  inset-inline-end: var(--omg-space-2);
+  display: inline-grid;
+  inline-size: 28px;
+  block-size: 28px;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--omg-radius-md);
+  background: color-mix(in srgb, var(--omg-color-surface) 92%, transparent);
+  box-shadow: var(--omg-shadow-sm);
+  color: var(--omg-color-text);
+  cursor: pointer;
+  font: inherit;
+  transition:
+    background-color var(--omg-duration-fast) var(--omg-easing-standard),
+    color var(--omg-duration-fast) var(--omg-easing-standard);
+}
+
+.o-reference-textarea__remove > svg {
+  inline-size: 16px;
+  block-size: 16px;
+}
+
+.o-reference-textarea__remove:hover,
+.o-reference-textarea__remove:focus-visible {
+  background: var(--omg-color-surface);
+  color: var(--omg-color-danger);
+}
+
+.o-reference-textarea__remove:focus-visible {
+  box-shadow: 0 0 0 2px var(--omg-color-focus-ring);
+  outline: none;
+}
+
+.o-reference-textarea__picker {
+  display: flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--omg-color-border);
+  border-radius: var(--omg-radius-lg);
+  background: var(--omg-color-surface-muted);
+  color: var(--omg-color-text-muted);
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+  transition:
+    border-color var(--omg-duration-fast) var(--omg-easing-standard),
+    background-color var(--omg-duration-fast) var(--omg-easing-standard),
+    color var(--omg-duration-fast) var(--omg-easing-standard);
+}
+
+.o-reference-textarea__picker:focus-visible {
+  box-shadow: 0 0 0 2px var(--omg-color-brand-soft);
+  outline: none;
+}
+
+.o-reference-textarea__picker:hover,
+.o-reference-textarea__picker:focus-visible,
+.o-reference-textarea.is-dragging .o-reference-textarea__picker {
+  border-color: var(--omg-color-brand);
+  background: var(--omg-color-brand-soft);
+  color: var(--omg-color-brand);
+}
+
+.o-reference-textarea__picker--empty {
+  min-block-size: 144px;
+  flex-direction: column;
+  gap: var(--omg-space-3);
+  padding: var(--omg-space-5);
+}
+
+.o-reference-textarea__picker--compact {
+  inline-size: 112px;
+  block-size: 112px;
+  flex-direction: column;
+  gap: var(--omg-space-2);
+  padding: var(--omg-space-3);
+  font-size: var(--omg-font-size-xs);
+  line-height: 1.35;
+}
+
+.o-reference-textarea__picker-visual {
+  display: inline-grid;
+  inline-size: 40px;
+  block-size: 40px;
+  place-items: center;
+  border-radius: var(--omg-radius-full);
+  background: var(--omg-color-brand-soft);
+  color: var(--omg-color-brand);
+}
+
+.o-reference-textarea__picker-icon {
+  inline-size: 20px;
+  block-size: 20px;
+  flex: 0 0 auto;
+}
+
+.o-reference-textarea__picker-title {
   color: var(--omg-color-text);
   font-size: var(--omg-font-size-sm);
+  font-weight: var(--omg-font-weight-semibold);
   line-height: 1.4;
 }
 
-.o-reference-textarea__reference--image .o-reference-textarea__reference-content {
-  padding-inline-start: var(--omg-space-2);
-  border-radius: var(--omg-radius-md);
+.o-reference-textarea__prompt {
+  min-inline-size: 0;
 }
 
-.o-reference-textarea__thumbnail {
+.o-reference-textarea__mention-list {
+  .omg-scrollbar();
+
+  z-index: var(--omg-z-index-dropdown);
+  overflow-y: auto;
+  max-block-size: min(288px, var(--omg-floating-available-height, 288px));
+  box-sizing: border-box;
+  padding: var(--omg-space-1);
+  border: 0;
+  border-radius: var(--omg-radius-md);
+  background: var(--omg-color-surface);
+  box-shadow: var(--omg-shadow-sm);
+  color: var(--omg-color-text);
+}
+
+.o-reference-textarea__mention-option {
+  display: flex;
+  min-block-size: 36px;
+  min-inline-size: 0;
+  align-items: center;
+  gap: var(--omg-space-2);
+  box-sizing: border-box;
+  padding: 0 var(--omg-space-3);
+  border-radius: var(--omg-radius-sm);
+  cursor: pointer;
+}
+
+.o-reference-textarea__mention-option.is-active {
+  background: var(--omg-color-neutral-soft);
+}
+
+.o-reference-textarea__mention-image {
   display: block;
-  inline-size: 44px;
-  block-size: 32px;
+  inline-size: 32px;
+  block-size: 26px;
   flex: 0 0 auto;
   border-radius: var(--omg-radius-sm);
+  background: var(--omg-color-surface-muted);
   object-fit: cover;
 }
 
-.o-reference-textarea__reference-icon {
-  inline-size: 16px;
-  block-size: 16px;
-  flex: 0 0 auto;
-  color: var(--omg-color-text-muted);
+.o-reference-textarea__mention-copy {
+  flex: 1 1 auto;
+  gap: 2px;
 }
 
-.o-reference-textarea__reference-label {
-  min-inline-size: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.o-reference-textarea-mention-enter-active,
+.o-reference-textarea-mention-leave-active {
+  transition:
+    opacity var(--omg-duration-fast) var(--omg-easing-standard),
+    transform var(--omg-duration-fast) var(--omg-easing-standard);
+}
+
+.o-reference-textarea-mention-enter-from,
+.o-reference-textarea-mention-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.o-reference-textarea.is-disabled {
+  opacity: 0.56;
+}
+
+@media (width <= 480px) {
+  .o-reference-textarea__media-item,
+  .o-reference-textarea__add-item,
+  .o-reference-textarea__picker--compact {
+    inline-size: 104px;
+    flex-basis: 104px;
+  }
+
+  .o-reference-textarea__picker--compact {
+    block-size: 108px;
+  }
+}
+
+@media (pointer: coarse) {
+  .o-reference-textarea__remove {
+    inline-size: 44px;
+    block-size: 44px;
+  }
+
+  .o-reference-textarea__mention-option {
+    min-block-size: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .o-reference-textarea__remove,
+  .o-reference-textarea__picker,
+  .o-reference-textarea-mention-enter-active,
+  .o-reference-textarea-mention-leave-active {
+    transition: none;
+  }
 }

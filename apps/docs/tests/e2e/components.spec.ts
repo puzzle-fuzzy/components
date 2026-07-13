@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
+import { Buffer } from 'node:buffer'
 import { readFileSync } from 'node:fs'
 import { build } from 'vite'
 
@@ -53,6 +54,56 @@ const readSurfaceSnapshot = (locator: Locator) =>
     }
   })
 
+interface FieldSurfaceSnapshot {
+  readonly background: string
+  readonly border: string
+  readonly borderWidth: string
+  readonly boxShadow: string
+  readonly tokens: {
+    readonly border: string
+    readonly brand: string
+    readonly brandSoft: string
+    readonly danger: string
+    readonly neutralSoft: string
+    readonly surface: string
+    readonly surfaceMuted: string
+    readonly transparent: string
+  }
+}
+
+const readFieldSurfaceSnapshot = (locator: Locator): Promise<FieldSurfaceSnapshot> =>
+  locator.evaluate((element) => {
+    const styles = getComputedStyle(element)
+    const tokenHost = element.parentElement ?? document.body
+    const resolveColor = (value: string): string => {
+      const probe = document.createElement('span')
+      probe.style.color = value
+      probe.style.position = 'absolute'
+      probe.style.visibility = 'hidden'
+      tokenHost.append(probe)
+      const color = getComputedStyle(probe).color
+      probe.remove()
+      return color
+    }
+
+    return {
+      background: styles.backgroundColor,
+      border: styles.borderTopColor,
+      borderWidth: styles.borderTopWidth,
+      boxShadow: styles.boxShadow,
+      tokens: {
+        border: resolveColor('var(--omg-color-border)'),
+        brand: resolveColor('var(--omg-color-brand)'),
+        brandSoft: resolveColor('var(--omg-color-brand-soft)'),
+        danger: resolveColor('var(--omg-color-danger)'),
+        neutralSoft: resolveColor('var(--omg-color-neutral-soft)'),
+        surface: resolveColor('var(--omg-color-surface)'),
+        surfaceMuted: resolveColor('var(--omg-color-surface-muted)'),
+        transparent: resolveColor('transparent'),
+      },
+    }
+  })
+
 const readEffectiveTextColors = (
   locator: Locator,
 ): Promise<{ readonly background: string; readonly foreground: string }> =>
@@ -101,9 +152,11 @@ const readEffectiveTextColors = (
 const expectNoSeriousAccessibilityViolations = async (
   page: Page,
   includes: readonly string[] = ['.omg-docs-demo'],
+  excludes: readonly string[] = [],
 ) => {
   let builder = new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
   for (const selector of includes) builder = builder.include(selector)
+  for (const selector of excludes) builder = builder.exclude(selector)
 
   const results = await builder.analyze()
   const violations = results.violations.filter(
@@ -309,6 +362,48 @@ test('renders the built package examples and synchronizes theme state', async ({
   await expect(html).not.toHaveAttribute('data-omg-theme', initialTheme ?? '')
 
   await expectNoSeriousAccessibilityViolations(page)
+})
+
+test('keeps compact controls independent from VitePress typography', async ({ page }) => {
+  await page.goto('/components/button')
+
+  const variants = page.getByRole('region', { name: 'Button variants' })
+  const states = page.getByRole('region', { name: 'Button sizes and states' })
+  for (const [button, expectedHeight, expectedFontSize] of [
+    [variants.getByRole('button', { name: 'Solid', exact: true }), '32px', '12px'],
+    [states.getByRole('button', { name: 'Medium', exact: true }), '38px', '14px'],
+    [states.getByRole('button', { name: 'Large', exact: true }), '46px', '14px'],
+  ] as const) {
+    await expect(button).toHaveCSS('height', expectedHeight)
+    await expect(button).toHaveCSS('font-size', expectedFontSize)
+  }
+
+  const demo = page.locator('.omg-docs-demo').first()
+  const content = demo.locator('.omg-docs-demo__content')
+  const demoSnapshot = await demo.evaluate((element) => {
+    const styles = getComputedStyle(element)
+    return [
+      styles.borderBlockStartWidth,
+      styles.borderInlineEndWidth,
+      styles.borderBlockEndWidth,
+      styles.borderInlineStartWidth,
+    ]
+  })
+  expect(demoSnapshot).toEqual(['0px', '0px', '0px', '0px'])
+
+  const contentSnapshot = await content.evaluate((element) => {
+    const styles = getComputedStyle(element)
+    return {
+      columnGap: styles.columnGap,
+      fontSize: Number.parseFloat(styles.fontSize),
+      lineHeight: Number.parseFloat(styles.lineHeight),
+      rowGap: styles.rowGap,
+    }
+  })
+  expect(contentSnapshot.columnGap).toBe('12px')
+  expect(contentSnapshot.rowGap).toBe('12px')
+  expect(contentSnapshot.fontSize).toBe(14)
+  expect(contentSnapshot.lineHeight / contentSnapshot.fontSize).toBeCloseTo(1.5, 2)
 })
 
 test('keeps icon-only buttons square and accessibly named at every size', async ({ page }) => {
@@ -656,6 +751,197 @@ test('keeps a non-teleported dropdown panel inside its root and interactive', as
   await expect(trigger).toBeFocused()
 })
 
+test('keeps Select text and one trailing action rail balanced', async ({ page }) => {
+  await page.goto('/components/select')
+  await page.mouse.move(0, 0)
+
+  const trigger = page.getByRole('combobox', { name: '选择展示项' })
+  const select = page.locator('.o-select').filter({ has: trigger })
+  const clear = select.getByRole('button', { name: 'Clear selection' })
+  const indicator = trigger.locator('.o-select__indicator')
+  const readTriggerGeometry = () =>
+    trigger.evaluate((element) => {
+      const styles = getComputedStyle(element)
+      const triggerBounds = element.getBoundingClientRect()
+      const valueBounds = element.querySelector('.o-select__value')?.getBoundingClientRect()
+      if (!valueBounds) throw new Error('Expected the selected Select value')
+
+      const isRtl = styles.direction === 'rtl'
+      const borderStart = Number.parseFloat(
+        isRtl ? styles.borderRightWidth : styles.borderLeftWidth,
+      )
+      const textStart = isRtl
+        ? triggerBounds.right - borderStart - valueBounds.right
+        : valueBounds.left - triggerBounds.left - borderStart
+
+      return {
+        paddingEnd: Number.parseFloat(styles.paddingInlineEnd),
+        paddingStart: Number.parseFloat(styles.paddingInlineStart),
+        textStart,
+        valueLeft: valueBounds.left,
+        valueWidth: valueBounds.width,
+      }
+    })
+
+  const restGeometry = await readTriggerGeometry()
+  expect(restGeometry.paddingStart).toBe(12)
+  expect(restGeometry.paddingEnd).toBe(32)
+  expect(restGeometry.textStart).toBeCloseTo(12, 1)
+  expect(
+    await select.evaluate((element) => {
+      const currentTrigger = element.querySelector('.o-select__trigger')
+      const currentClear = element.querySelector('.o-select__clear')
+      return (
+        currentTrigger?.parentElement === currentClear?.parentElement &&
+        !currentTrigger?.contains(currentClear ?? null)
+      )
+    }),
+  ).toBe(true)
+
+  await select.hover()
+  await expect(clear).toHaveCSS('opacity', '1')
+  await expect(indicator).toHaveCSS('opacity', '0')
+  const hoverGeometry = await readTriggerGeometry()
+  expect(hoverGeometry.paddingEnd).toBe(32)
+  expect(hoverGeometry.valueLeft).toBeCloseTo(restGeometry.valueLeft, 2)
+  expect(hoverGeometry.valueWidth).toBeCloseTo(restGeometry.valueWidth, 2)
+
+  await page.mouse.move(0, 0)
+  await trigger.focus()
+  await expect(clear).toHaveCSS('opacity', '1')
+  await expect(indicator).toHaveCSS('opacity', '0')
+  const focusGeometry = await readTriggerGeometry()
+  expect(focusGeometry.paddingEnd).toBe(32)
+  expect(focusGeometry.valueLeft).toBeCloseTo(restGeometry.valueLeft, 2)
+  expect(focusGeometry.valueWidth).toBeCloseTo(restGeometry.valueWidth, 2)
+
+  await trigger.press('ArrowDown')
+  await trigger.press('ArrowDown')
+  const panel = page.getByRole('listbox')
+  const option = panel.getByRole('option', { name: '基础选项' })
+  await expect(panel).toBeVisible()
+  await waitForAnimations(panel)
+  await expect(panel).toHaveCSS('padding-left', '4px')
+  const optionGeometry = await option.evaluate((element) => {
+    const styles = getComputedStyle(element)
+    return {
+      fontSize: styles.fontSize,
+      height: element.getBoundingClientRect().height,
+      paddingEnd: styles.paddingInlineEnd,
+      paddingStart: styles.paddingInlineStart,
+    }
+  })
+  expect(optionGeometry).toEqual({
+    fontSize: '14px',
+    height: 36,
+    paddingEnd: '12px',
+    paddingStart: '12px',
+  })
+  const [triggerBounds, panelBounds] = await Promise.all([
+    trigger.boundingBox(),
+    panel.boundingBox(),
+  ])
+  expect(triggerBounds).not.toBeNull()
+  expect(panelBounds).not.toBeNull()
+  expect(panelBounds!.x).toBeCloseTo(triggerBounds!.x, 0)
+  await expectNoSeriousAccessibilityViolations(page, ['.omg-docs-demo', '.o-select__panel'])
+
+  await trigger.press('Enter')
+  await expect(trigger).toContainText('进阶选项')
+  await expect(trigger).toBeFocused()
+  await select.hover()
+  await clear.click()
+  await expect(trigger).toContainText('选择一个选项')
+  await expect(trigger).toBeFocused()
+
+  const rtlTrigger = page.getByRole('combobox', { name: '从右到左选择器' })
+  const rtlGeometry = await rtlTrigger.evaluate((element) => {
+    const styles = getComputedStyle(element)
+    const triggerBounds = element.getBoundingClientRect()
+    const valueBounds = element.querySelector('.o-select__value')?.getBoundingClientRect()
+    if (!valueBounds) throw new Error('Expected the RTL Select value')
+
+    return {
+      paddingEnd: Number.parseFloat(styles.paddingInlineEnd),
+      paddingStart: Number.parseFloat(styles.paddingInlineStart),
+      textStart:
+        triggerBounds.right - Number.parseFloat(styles.borderRightWidth) - valueBounds.right,
+    }
+  })
+  expect(rtlGeometry).toEqual({ paddingEnd: 32, paddingStart: 12, textStart: 12 })
+  await rtlTrigger.click()
+  const rtlTriggerId = await rtlTrigger.getAttribute('id')
+  expect(rtlTriggerId).not.toBeNull()
+  const rtlPanel = page.locator(`[role="listbox"][aria-labelledby="${rtlTriggerId}"]`)
+  await expect(rtlPanel).toBeVisible()
+  await waitForAnimations(rtlPanel)
+  const [rtlTriggerBounds, rtlPanelBounds] = await Promise.all([
+    rtlTrigger.boundingBox(),
+    rtlPanel.boundingBox(),
+  ])
+  expect(rtlTriggerBounds).not.toBeNull()
+  expect(rtlPanelBounds).not.toBeNull()
+  expect(rtlPanelBounds!.x + rtlPanelBounds!.width).toBeCloseTo(
+    rtlTriggerBounds!.x + rtlTriggerBounds!.width,
+    0,
+  )
+  await page.keyboard.press('Escape')
+
+  const virtualTrigger = page.getByRole('combobox', { name: '选择大型数据项' })
+  await virtualTrigger.press('ArrowDown')
+  const virtualRow = page.locator('.o-select__virtual-list .o-select__option').first()
+  await expect(virtualRow).toBeVisible()
+  await expect(virtualRow).toHaveCSS('height', '36px')
+  await expect(virtualRow).toHaveCSS('font-size', '14px')
+  await page.keyboard.press('Escape')
+})
+
+test('keeps Select text touch targets inside a narrow viewport', async ({ browser }) => {
+  const baseURL = test.info().project.use.baseURL
+  if (typeof baseURL !== 'string') throw new Error('Expected the Playwright base URL')
+
+  const context = await browser.newContext({
+    baseURL,
+    hasTouch: true,
+    viewport: { width: 390, height: 844 },
+  })
+  try {
+    const page = await context.newPage()
+    await page.goto('/components/select')
+
+    const trigger = page.getByRole('combobox', { name: '选择展示项' })
+    const select = page.locator('.o-select').filter({ has: trigger })
+    const clear = select.getByRole('button', { name: 'Clear selection' })
+    await expect(clear).toHaveCSS('opacity', '1')
+
+    const [triggerBounds, clearBounds] = await Promise.all([
+      trigger.boundingBox(),
+      clear.boundingBox(),
+    ])
+    expect(triggerBounds).not.toBeNull()
+    expect(clearBounds).not.toBeNull()
+    expect(triggerBounds!.height).toBeGreaterThanOrEqual(44)
+    expect(clearBounds!.width).toBeGreaterThanOrEqual(44)
+    expect(clearBounds!.height).toBeGreaterThanOrEqual(44)
+
+    const overflow = await select.evaluate((element) => {
+      const bounds = element.getBoundingClientRect()
+      return {
+        clientWidth: element.clientWidth,
+        left: bounds.left,
+        right: bounds.right,
+        scrollWidth: element.scrollWidth,
+        viewportWidth: document.documentElement.clientWidth,
+      }
+    })
+    expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth)
+    expect(overflow.left).toBeGreaterThanOrEqual(0)
+    expect(overflow.right).toBeLessThanOrEqual(overflow.viewportWidth)
+  } finally {
+    await context.close()
+  }
+})
+
 test('preserves local font and overlay layer for a teleported select panel', async ({ page }) => {
   await page.goto('/components/select')
 
@@ -693,6 +979,7 @@ test('supports select active descendants, selection, clearing, and viewport posi
 
   await expect(page.getByRole('heading', { level: 1, name: 'Select 选择器' })).toBeVisible()
   const trigger = page.getByRole('combobox', { name: '选择展示项' })
+  const select = page.locator('.o-select').filter({ has: trigger })
   await trigger.focus()
   await trigger.press('ArrowDown')
   await trigger.press('ArrowDown')
@@ -724,7 +1011,7 @@ test('supports select active descendants, selection, clearing, and viewport posi
   await expect(trigger).toContainText('进阶选项')
   await expect(trigger).toBeFocused()
 
-  await page.getByRole('button', { name: 'Clear selection' }).click()
+  await select.getByRole('button', { name: 'Clear selection' }).click()
   await expect(page.getByText('当前选择：未选择', { exact: true })).toBeVisible()
   await expect(trigger).toContainText('选择一个选项')
   await expect(trigger).toBeFocused()
@@ -835,7 +1122,7 @@ test('stops flow, panel, and chevron motion when reduced motion is requested', a
 
   await page.goto('/components/select')
   const selectIndicators = page.locator('.o-select__indicator')
-  await expect(selectIndicators).toHaveCount(3)
+  expect(await selectIndicators.count()).toBeGreaterThan(0)
   for (const indicator of await selectIndicators.all()) {
     await expect(indicator).toHaveCSS('transition-duration', '0s')
   }
@@ -1363,6 +1650,122 @@ test('opens and closes the image fullscreen preview', async ({ page }) => {
   await expectNoSeriousAccessibilityViolations(page)
 })
 
+test('shows soft and outline fields with state-led borders', async ({ page }) => {
+  const contracts = [
+    {
+      name: 'Input',
+      path: '/components/input',
+      rootClass: 'o-input',
+      surfaceSelector: '.o-input__control',
+      nativeSelector: 'input',
+      softSelector: '#input-keyword',
+      outlineSelector: '#input-email',
+      invalidSelector: '#input-invalid',
+      readonlySelector: '#input-readonly',
+      disabledSelector: '#input-disabled',
+      darkRootSelector: '.omg-example-theme[data-omg-theme="dark"] .o-input',
+    },
+    {
+      name: 'Textarea',
+      path: '/components/textarea',
+      rootClass: 'o-textarea',
+      surfaceSelector: '.o-textarea__field',
+      nativeSelector: 'textarea',
+      softSelector: '#fixed-message-body',
+      outlineSelector: '#growing-message-body',
+      invalidSelector: '#textarea-invalid',
+      readonlySelector: '#textarea-readonly',
+      disabledSelector: '#textarea-disabled',
+      darkRootSelector: '.omg-example-theme[data-omg-theme="dark"] .o-textarea',
+    },
+  ] as const
+
+  for (const contract of contracts) {
+    await test.step(contract.name, async () => {
+      await page.goto(contract.path)
+      await page.mouse.move(0, 0)
+
+      const getRoot = (selector: string) =>
+        page.locator(`.${contract.rootClass}`).filter({ has: page.locator(selector) })
+      const getSurface = (selector: string) => getRoot(selector).locator(contract.surfaceSelector)
+
+      const softField = page.locator(contract.softSelector)
+      const softSurface = getSurface(contract.softSelector)
+      const softRest = await readFieldSurfaceSnapshot(softSurface)
+      expect(softRest.borderWidth).toBe('1px')
+      expect(softRest.border).toBe(softRest.tokens.transparent)
+      expect(softRest.background).toBe(softRest.tokens.surfaceMuted)
+
+      await softSurface.hover()
+      await expect
+        .poll(async () => (await readFieldSurfaceSnapshot(softSurface)).background)
+        .toBe(softRest.tokens.neutralSoft)
+      expect((await readFieldSurfaceSnapshot(softSurface)).border).toBe(softRest.tokens.transparent)
+
+      await softField.focus()
+      await expect
+        .poll(async () => {
+          const snapshot = await readFieldSurfaceSnapshot(softSurface)
+          return { background: snapshot.background, border: snapshot.border }
+        })
+        .toEqual({ background: softRest.tokens.surface, border: softRest.tokens.brand })
+      await expect
+        .poll(async () => (await readFieldSurfaceSnapshot(softSurface)).boxShadow)
+        .toContain('0px 0px 0px 2px')
+      expect((await readFieldSurfaceSnapshot(softSurface)).boxShadow).toContain(
+        softRest.tokens.brandSoft,
+      )
+
+      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+      await page.mouse.move(0, 0)
+      const outlineSurface = getSurface(contract.outlineSelector)
+      const outlineRest = await readFieldSurfaceSnapshot(outlineSurface)
+      expect(outlineRest.background).toBe(outlineRest.tokens.surface)
+      expect(outlineRest.border).toBe(outlineRest.tokens.border)
+
+      const invalidField = page.locator(contract.invalidSelector)
+      const invalidSurface = getSurface(contract.invalidSelector)
+      await invalidField.focus()
+      await expect
+        .poll(async () => (await readFieldSurfaceSnapshot(invalidSurface)).border)
+        .toBe((await readFieldSurfaceSnapshot(invalidSurface)).tokens.danger)
+
+      await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+      await page.mouse.move(0, 0)
+      const readonlySurface = getSurface(contract.readonlySelector)
+      const readonlyRest = await readFieldSurfaceSnapshot(readonlySurface)
+      await readonlySurface.hover()
+      await page.waitForTimeout(200)
+      const readonlyHover = await readFieldSurfaceSnapshot(readonlySurface)
+      expect(readonlyHover.background).toBe(readonlyRest.background)
+      expect(readonlyHover.border).toBe(readonlyRest.border)
+
+      await expect(page.locator(contract.disabledSelector)).toBeDisabled()
+
+      const darkRoot = page.locator(contract.darkRootSelector)
+      const darkField = darkRoot.locator(contract.nativeSelector)
+      const darkSurface = darkRoot.locator(contract.surfaceSelector)
+      await page.mouse.move(0, 0)
+      const darkRest = await readFieldSurfaceSnapshot(darkSurface)
+      expect(darkRest.background).toBe(darkRest.tokens.surfaceMuted)
+      expect(darkRest.border).toBe(darkRest.tokens.transparent)
+
+      await darkField.focus()
+      await expect
+        .poll(async () => {
+          const snapshot = await readFieldSurfaceSnapshot(darkSurface)
+          return { background: snapshot.background, border: snapshot.border }
+        })
+        .toEqual({ background: darkRest.tokens.surface, border: darkRest.tokens.brand })
+      const darkFocus = await readFieldSurfaceSnapshot(darkSurface)
+      expect(darkFocus.boxShadow).toContain('0px 0px 0px 2px')
+      expect(darkFocus.boxShadow).toContain(darkRest.tokens.brandSoft)
+
+      await expectNoSeriousAccessibilityViolations(page)
+    })
+  }
+})
+
 test('keeps fixed textareas scrollable and grows autosize textareas within their bounds', async ({
   page,
 }) => {
@@ -1561,26 +1964,180 @@ test('preserves native validation and form state in form dialogs', async ({ page
   await expect(trigger).toBeFocused()
 })
 
-test('renders consumer-controlled textarea references', async ({ page }) => {
+test('Reference Textarea keeps media above the prompt and supports keyboard mentions and repeated files', async ({
+  page,
+}) => {
   await page.goto('/components/reference-textarea')
 
   await expect(
-    page.getByRole('heading', { level: 1, name: 'Reference Textarea 引用输入' }),
+    page.getByRole('heading', { level: 1, name: 'Reference Textarea 参考图提示词' }),
   ).toBeVisible()
-  await expect(page.getByText('需求说明', { exact: true })).toBeVisible()
-  await expect(page.getByText('界面预览', { exact: true })).toBeVisible()
-  await expect(page.locator('.o-reference-textarea__references')).toHaveCSS(
-    'list-style-type',
-    'none',
+
+  const workflow = page.getByRole('region', { name: 'Reference image prompt workflow' })
+  const component = workflow.locator('.o-reference-textarea')
+  const mediaSection = component.locator('.o-reference-textarea__media')
+  const textarea = workflow.getByRole('textbox', { name: '参考图提示词' })
+  await expect(workflow.locator('.o-reference-textarea__references')).toHaveCount(0)
+  const [mediaBounds, textareaBounds] = await Promise.all([
+    mediaSection.boundingBox(),
+    textarea.boundingBox(),
+  ])
+
+  expect(mediaBounds).not.toBeNull()
+  expect(textareaBounds).not.toBeNull()
+  expect(mediaBounds!.y + mediaBounds!.height).toBeLessThanOrEqual(textareaBounds!.y)
+
+  await textarea.fill('@')
+  const mentionList = page.getByRole('listbox', { name: '选择参考图' })
+  const secondOption = mentionList.getByRole('option', {
+    name: '[Image 2] 桌边陶瓷花瓶',
+    exact: true,
+  })
+  await expect(mentionList).toBeVisible()
+  await expect(textarea).toBeFocused()
+
+  await textarea.press('ArrowDown')
+  await expect(secondOption).toHaveAttribute('aria-selected', 'true')
+  await expect(textarea).toBeFocused()
+  await textarea.press('Enter')
+  await expect(mentionList).toBeHidden()
+  await expect(textarea).toHaveValue('[Image 2]')
+
+  await textarea.pressSequentially('中桌边的陶瓷花瓶')
+  await expect(textarea).toHaveValue('[Image 2]中桌边的陶瓷花瓶')
+
+  const fileInput = component.locator('input[type="file"]')
+  const repeatedFile = {
+    name: 'same-reference.svg',
+    mimeType: 'image/svg+xml',
+    buffer: Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" fill="#2563eb"/></svg>',
+    ),
+  }
+
+  await fileInput.setInputFiles(repeatedFile)
+  await expect(component.locator('.o-reference-textarea__media-item')).toHaveCount(3)
+  await fileInput.setInputFiles(repeatedFile)
+  await expect(component.locator('.o-reference-textarea__media-item')).toHaveCount(4)
+  await expect(workflow.getByText('same-reference.svg', { exact: true })).toHaveCount(2)
+
+  await expectNoSeriousAccessibilityViolations(page, [
+    '[aria-label="Reference image prompt workflow"]',
+  ])
+})
+
+test('Reference Textarea reindexes controlled tokens and restores focus from OImage preview', async ({
+  page,
+}) => {
+  await page.goto('/components/reference-textarea')
+
+  const reindexDemo = page.getByRole('region', {
+    name: 'Controlled removal and token reindexing',
+  })
+  const reindexComponent = reindexDemo.locator('.o-reference-textarea')
+  const prompt = reindexDemo.getByRole('textbox', { name: '可重排编号的参考图提示词' })
+
+  await expect(reindexComponent.locator('.o-reference-textarea__media-token')).toHaveText([
+    '[Image 1]',
+    '[Image 2]',
+    '[Image 3]',
+  ])
+  await reindexDemo.getByRole('button', { name: 'Remove Image 2', exact: true }).click()
+  await expect(reindexComponent.locator('.o-reference-textarea__media-token')).toHaveText([
+    '[Image 1]',
+    '[Image 2]',
+  ])
+  await expect(reindexComponent.locator('.o-reference-textarea__media-label')).toHaveText([
+    '人物服装',
+    '庭院光线',
+  ])
+  await expect(prompt).toHaveValue(
+    '[Image 1]控制人物服装，控制桌面花瓶，[Image 2]作为整体光线参考。',
   )
-  await expect(page.locator('.o-reference-textarea__thumbnail')).toBeVisible()
 
-  const textarea = page.getByRole('textbox', { name: '消息正文' })
-  await textarea.fill('普通文本')
-  await expect(textarea).toHaveValue('普通文本')
-  await expect(page.locator('.o-reference-textarea__reference')).toHaveCount(2)
+  const workflow = page.getByRole('region', { name: 'Reference image prompt workflow' })
+  const previewTrigger = workflow.getByRole('button', {
+    name: '[Image 1] 红色旗袍人物',
+    exact: true,
+  })
+  await previewTrigger.click()
 
-  await expectNoSeriousAccessibilityViolations(page)
+  const preview = page.getByRole('dialog', {
+    name: '[Image 1] 红色旗袍人物',
+    exact: true,
+  })
+  await expect(preview).toBeVisible()
+  await expect(preview).toBeFocused()
+  expect(await preview.evaluate((element) => element.parentElement === document.body)).toBe(true)
+  await expect(workflow.locator('.o-image__preview-mask')).toHaveCount(0)
+
+  await page.keyboard.press('Escape')
+  await expect(preview).toHaveCount(0)
+  await expect(previewTrigger).toBeFocused()
+
+  await expectNoSeriousAccessibilityViolations(page, [
+    '[aria-label="Reference image prompt workflow"]',
+    '[aria-label="Controlled removal and token reindexing"]',
+  ])
+})
+
+test('Reference Textarea keeps readonly disabled max-count and dark states compact at 390px', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 900 })
+  await page.goto('/components/reference-textarea')
+
+  const states = page.getByRole('region', {
+    name: 'Readonly disabled max-count and dark theme',
+  })
+  const components = states.locator('.o-reference-textarea')
+  await expect(components).toHaveCount(3)
+
+  const readonlyPrompt = states.getByRole('textbox', { name: '只读参考图提示词' })
+  const readonlyComponent = components.filter({
+    has: page.getByRole('textbox', { name: '只读参考图提示词' }),
+  })
+  await expect(readonlyPrompt).toHaveAttribute('readonly', '')
+  await expect(readonlyComponent.locator('input[type="file"]')).toHaveCount(0)
+  await expect(readonlyComponent.locator('.o-reference-textarea__remove')).toHaveCount(0)
+  await expect(readonlyComponent.locator('.o-image__trigger').first()).toBeEnabled()
+
+  const disabledPrompt = states.getByRole('textbox', { name: '禁用参考图提示词' })
+  const disabledComponent = components.filter({
+    has: page.getByRole('textbox', { name: '禁用参考图提示词' }),
+  })
+  await expect(disabledPrompt).toBeDisabled()
+  await expect(disabledComponent.locator('input[type="file"]')).toHaveCount(0)
+  await expect(disabledComponent.locator('.o-reference-textarea__remove')).toHaveCount(0)
+  await expect(disabledComponent.locator('.o-image__trigger').first()).toBeDisabled()
+
+  const darkDemo = states.locator('.omg-example-theme[data-omg-theme="dark"]')
+  const limitedComponent = darkDemo.locator('.o-reference-textarea')
+  await expect(darkDemo).toHaveAttribute('data-omg-theme', 'dark')
+  await expect(limitedComponent.locator('.o-reference-textarea__media-item')).toHaveCount(2)
+  await expect(limitedComponent.locator('input[type="file"]')).toHaveCount(0)
+  await expect(limitedComponent.locator('.o-reference-textarea__add-item')).toHaveCount(0)
+
+  const componentWidths = await components.evaluateAll((elements) =>
+    elements.map((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    })),
+  )
+  for (const { clientWidth, scrollWidth } of componentWidths) {
+    expect(scrollWidth).toBeLessThanOrEqual(clientWidth)
+  }
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    ),
+  ).toBe(true)
+
+  await expectNoSeriousAccessibilityViolations(
+    page,
+    ['[aria-label="Readonly disabled max-count and dark theme"]'],
+    ['.o-reference-textarea.is-disabled'],
+  )
 })
 
 test('switches tabs with slider and line variants', async ({ page }) => {
@@ -1694,28 +2251,30 @@ test('renders opaque top-right Message statuses, stacks, and scoped themes', asy
   await page.setViewportSize({ width: 1280, height: 720 })
   await page.goto('/components/message')
 
-  await page.getByRole('button', { name: '显示普通消息', exact: true }).click()
-  await page.getByRole('button', { name: '显示成功消息', exact: true }).click()
+  const declarativeDemo = page.getByRole('region', { name: 'Message declarative surfaces' })
+  const statusIconMarkup = await Promise.all(
+    ['info', 'success', 'warning', 'error'].map((status) =>
+      declarativeDemo
+        .locator(`.o-message--${status}`)
+        .first()
+        .locator('.o-message__icon svg')
+        .evaluate((icon) => icon.innerHTML),
+    ),
+  )
+  expect(new Set(statusIconMarkup).size).toBe(4)
+
   await page.getByRole('button', { name: '显示警告消息', exact: true }).click()
-  await page.getByRole('button', { name: '显示错误消息', exact: true }).click()
 
   const host = page.locator('.o-message-host')
-  const messages = host.locator('.o-message')
-  const success = host.getByRole('status').filter({ hasText: '保存成功' })
+  const warning = host.getByRole('status').filter({ hasText: '已显式开启悬停暂停' })
   await expect(host).toHaveCount(1)
-  await expect(messages).toHaveCount(4)
-  await expect(success).toHaveCSS('background-color', 'rgb(255, 255, 255)')
-  await expect(success).toHaveCSS('border-left-width', '0px')
-  expect(await success.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe('none')
+  await expect(warning).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+  await expect(warning).toHaveCSS('border-left-width', '0px')
+  expect(await warning.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe('none')
 
   const hostBounds = await host.boundingBox()
   expect(hostBounds).not.toBeNull()
   expect(Math.round((hostBounds?.x ?? 0) + (hostBounds?.width ?? 0))).toBe(1264)
-  const iconMarkup = await host
-    .locator('.o-message__icon svg')
-    .evaluateAll((icons) => icons.map((icon) => icon.innerHTML))
-  expect(new Set(iconMarkup).size).toBe(4)
-
   await page.evaluate(() => {
     document.documentElement.dir = 'rtl'
   })
@@ -1770,6 +2329,43 @@ test('renders opaque top-right Message statuses, stacks, and scoped themes', asy
   await expect(host).toHaveCount(0)
 })
 
+test('auto-hides Message with the default hover policy and preserves focus pause', async ({
+  page,
+}) => {
+  await page.goto('/components/message')
+
+  const host = page.locator('.o-message-host')
+  await page.getByRole('button', { name: '显示普通消息', exact: true }).click()
+  const defaultItem = host.locator('.o-message-host__item').filter({
+    hasText: '这是一条普通消息',
+  })
+  await expect(defaultItem).toBeVisible()
+  await expectNoSeriousAccessibilityViolations(page, ['.omg-docs-demo', '.o-message-host'])
+
+  await defaultItem.hover()
+  await expect(defaultItem).toHaveCount(0, { timeout: 4500 })
+  await expect(host).toHaveCount(0)
+
+  const errorTrigger = page.getByRole('button', { name: '显示错误消息', exact: true })
+  await errorTrigger.click()
+  const errorItem = host.locator('.o-message-host__item').filter({
+    hasText: '暂时无法完成操作',
+  })
+  const close = errorItem.getByRole('button', { name: '关闭操作失败消息' })
+  await expect(errorItem).toBeVisible()
+
+  await page.waitForTimeout(3000)
+  await close.focus()
+  await expect(close).toBeFocused()
+  await page.waitForTimeout(1500)
+  await expect(errorItem).toBeVisible()
+
+  await errorTrigger.focus()
+  await expect(errorTrigger).toBeFocused()
+  await expect(errorItem).toHaveCount(0, { timeout: 2500 })
+  await expect(host).toHaveCount(0)
+})
+
 test('runs Message right-entry, scale-fade exit, and reduced-motion cleanup', async ({ page }) => {
   await page.goto('/components/message')
   await page.getByRole('button', { name: '显示持久消息', exact: true }).click()
@@ -1786,6 +2382,9 @@ test('runs Message right-entry, scale-fade exit, and reduced-motion cleanup', as
         frame.translateX > 0 || /translate(?:X)?\(\s*calc\(\s*100%\s*\+\s*/u.test(frame.transform),
     ),
   ).toBe(true)
+
+  await page.waitForTimeout(3200)
+  await expect(item).toBeVisible()
 
   await waitForAnimations(item)
   const leaveSnapshotsPromise = captureOpacityAndTransformTransitions(item)

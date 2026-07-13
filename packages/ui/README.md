@@ -90,10 +90,10 @@ const items: readonly ODropdownItem[] = [{ value: 'settings', label: '设置', i
 
 ## 表单与受控状态
 
-- `OInput` 保留真实单行 input，并提供清除、密码可见性和前后缀能力。
+- `OInput` 保留真实单行 input，并提供清除、密码可见性和前后缀能力；默认 `soft` 表面静止时不显示装饰边框，`outline` 显式保留边界。
 - `OCheckbox`、`ORadio` 与 `ORadioGroup` 保留原生表单提交、键盘和辅助技术语义。
 - `OSwitch` 使用真实 checkbox 与 `role="switch"`，保留表单提交、Space 键和 label 激活；loading 与 readonly 只阻止界面变更，不持久化设置或启动请求。
-- `OTextarea` 支持固定 `rows`、`autosize=true` 和 `{ minRows, maxRows }` 三种高度策略，始终关闭浏览器右下角尺寸拖拽手柄。
+- `OTextarea` 支持固定 `rows`、`autosize=true` 和 `{ minRows, maxRows }` 三种高度策略，始终关闭浏览器右下角尺寸拖拽手柄，并与 Input、Select 共享 `soft | outline` 状态语义。
 - `OConfirmDialog` 只发出确认或取消意图；`OFormDialog` 只在原生校验通过后发出 `SubmitEvent`。两者都不会执行操作、序列化表单或自动保存。
 
 输入组件采用受控值合同。父级拒绝或规范化更新时，真实表单控件会恢复到最新 prop，不维护第二份公开业务状态。
@@ -113,14 +113,14 @@ const items: readonly ODropdownItem[] = [{ value: 'settings', label: '设置', i
 
 边框只有在表达输入边界、焦点或错误状态、拖拽状态、明确分隔线，或者无法由其他方式替代的层级时才使用。卡片、列表行和浮层优先通过表面色、间距或单一阴影建立层级，不同时叠加无意义的描边。
 
-- Dropdown 和 Select 的 trigger 保留控件边界，浮层面板使用 surface 与 shadow，不再重复描边。
+- Dropdown 保留必要的 trigger 边界；Input、Textarea 和 Select 默认通过 muted surface 表达范围，只在 focus、open、invalid 或强制高对比度状态显示真实边界。浮层面板使用 surface 与 shadow，不再重复描边。
 - Upload dropzone 保留虚线操作提示，文件行依靠 muted surface 与状态填充区分。
 - Widget 保留圆形图标构图，但以安静色调背景替代圆环描边；磨砂卡片本身没有外框。
 - Tabs、Avatar、表单、状态环、Divider 和 outline Button 的功能性边框保持不变。
 
 ## Message 与 Drawer
 
-`OMessage` 是可声明组合的单条消息表面；常规右上角消息使用 `oMessage()`、`oMessage.success()` 等命令式入口。服务按需创建 Host，支持自动关闭、`duration: 0` 持久显示、悬停或焦点暂停、返回 handle 手动关闭以及 `closeAll()`。浅色表面固定为不透明白色，深色表面固定为 `#2d2d2d`，通过状态图标和阴影建立层级，不叠加装饰边框。SSR 导入不会创建 DOM；无 DOM 环境中的调用返回可重复关闭的空 handle。
+`OMessage` 是可声明组合且不会自行计时的单条消息表面；常规右上角消息使用 `oMessage()`、`oMessage.success()` 等命令式入口。服务按需创建 Host，默认 3000ms 自动关闭，默认悬停不暂停，显式 `pauseOnHover: true` 才暂停悬停计时；键盘焦点始终按剩余时间暂停和恢复。只有 `duration <= 0` 持久显示，所有正数至少按 1ms 处理。服务同时支持 handle 手动关闭和 `closeAll()`。浅色表面固定为不透明白色，深色表面固定为 `#2d2d2d`，通过状态图标和阴影建立层级，不叠加装饰边框。SSR 导入不会创建 DOM；无 DOM 环境中的调用返回可重复关闭的空 handle。
 
 `ODrawer` 组合原生 `ODialog`，支持逻辑方向 `start` / `end` 与数字或 CSS 长度尺寸。它复用 top layer、遮罩、Esc、原生模态焦点、焦点返回和页面滚动锁定，正文是唯一滚动区域。Drawer 只发出受控关闭意图，不负责保存、提交、路由跳转或未保存内容确认。
 
@@ -170,7 +170,7 @@ Teleported 浮层会同步 trigger 的 OMG tokens 与主题属性，具体规则
 - `OConfirmDialog` 确认时保持受控打开状态，由使用方决定操作结果与关闭时机。
 - `OFormDialog` 保留原生 form association 和约束校验，只发出原始提交事件。
 - `OImage` 只负责图片展示和预览交互，并在组件内部维护 Teleport 预览层，不依赖 `ODialog` 或外部浮层管理器。
-- `OReferenceTextarea` 只渲染使用方传入的通用引用项，不解析成员、图片或私有文本协议。
+- `OReferenceTextarea` 是专用参考图 Prompt 输入：`media[0]` 对应 `[Image 1]`，参考图显示在输入区上方，输入 `@` 可把对应 token 插入真实 textarea。组件只发出文件选择和移除意图，不上传文件、不创建对象 URL、不修改受控 media，也不自动重编号 Prompt；使用方可调用 `reindexOReferenceTextareaTokens()` 处理删除后的编号。
 - `OUpload` 使用独立原生 file input 修复递归点击，并在每次选择后重置 input，使同一文件可再次选择；上传请求、校验、重试和持久化全部由使用方实现。
 - `OWidget` 只呈现标题、数值和迷你图表；趋势含义、数据获取与业务单位由使用方提供。
 

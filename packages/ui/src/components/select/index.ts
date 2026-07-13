@@ -5,6 +5,7 @@ export {
   oSelectPlacements,
   oSelectProps,
   oSelectSizes,
+  oSelectVariants,
 } from './src/select'
 export type {
   OSelectEmits,
@@ -15,4 +16,5 @@ export type {
   OSelectSize,
   OSelectSlots,
   OSelectValue,
+  OSelectVariant,
 } from './src/select'

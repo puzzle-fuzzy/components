@@ -286,13 +286,14 @@ export type { OFormDialogEmits, OFormDialogProps, OFormDialogSlots } from './com
 export { OImage, oImageFits, oImageProps } from './components/image'
 export type { OImageEmits, OImageFit, OImageProps } from './components/image'
 
-export { OInput, oInputProps, oInputSizes, oInputTypes } from './components/input'
+export { OInput, oInputProps, oInputSizes, oInputTypes, oInputVariants } from './components/input'
 export type {
   OInputEmits,
   OInputProps,
   OInputSize,
   OInputSlots,
   OInputType,
+  OInputVariant,
 } from './components/input'
 
 export {
@@ -427,13 +428,21 @@ export type {
   ORadioValue,
 } from './components/radio'
 
-export { OReferenceTextarea, oReferenceTextareaProps } from './components/reference-textarea'
+export {
+  defaultOReferenceTextareaLabels,
+  OReferenceTextarea,
+  oReferenceTextareaProps,
+  reindexOReferenceTextareaTokens,
+  resolveOReferenceTextareaLabels,
+} from './components/reference-textarea'
 export type {
   OReferenceTextareaEmits,
+  OReferenceTextareaLabelOverrides,
+  OReferenceTextareaLabels,
+  OReferenceTextareaMedia,
+  OReferenceTextareaMediaSlotProps,
+  OReferenceTextareaMentionOptionSlotProps,
   OReferenceTextareaProps,
-  OReferenceTextareaReference,
-  OReferenceTextareaReferenceKind,
-  OReferenceTextareaReferenceSlotProps,
   OReferenceTextareaSlots,
 } from './components/reference-textarea'
 
@@ -456,6 +465,7 @@ export {
   oSelectPlacements,
   oSelectProps,
   oSelectSizes,
+  oSelectVariants,
 } from './components/select'
 export type {
   OSelectEmits,
@@ -466,6 +476,7 @@ export type {
   OSelectSize,
   OSelectSlots,
   OSelectValue,
+  OSelectVariant,
 } from './components/select'
 
 export { OSwitch, oSwitchProps, oSwitchSizes } from './components/switch'
@@ -495,6 +506,7 @@ export {
   OTextarea,
   normalizeOTextareaRows,
   oTextareaProps,
+  oTextareaVariants,
   resolveOTextareaAutosize,
 } from './components/textarea'
 export type {
@@ -502,6 +514,7 @@ export type {
   OTextareaAutosizeState,
   OTextareaEmits,
   OTextareaProps,
+  OTextareaVariant,
 } from './components/textarea'
 
 export {

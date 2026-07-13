@@ -381,7 +381,7 @@
       "refersTo": "button-solid",
       "description": "Primary product action with compact geometry and explicit focus.",
       "html": "<button class=\"ds-button-solid\" type=\"button\">Save changes</button>",
-      "css": ".ds-button-solid { min-height: 38px; padding: 8px 16px; border: 1px solid transparent; border-radius: 8px; background: var(--omg-color-brand, #1d4ed8); color: var(--omg-color-on-brand, #fff); box-shadow: var(--omg-shadow-sm, 0 1px 2px rgb(15 23 42 / 10%)); font: inherit; font-weight: 650; transition: background-color 160ms cubic-bezier(0.2, 0, 0, 1), transform 160ms cubic-bezier(0.2, 0, 0, 1); } .ds-button-solid:hover { background: var(--omg-color-brand-hover, #1e40af); } .ds-button-solid:focus-visible { outline: 3px solid var(--omg-color-focus-ring, #1d4ed8); outline-offset: 2px; } .ds-button-solid:active { transform: translateY(1px); } @media (prefers-reduced-motion: reduce) { .ds-button-solid { transition: none; } .ds-button-solid:active { transform: none; } }"
+      "css": ".ds-button-solid { min-height: 32px; padding: 4px 12px; border: 1px solid transparent; border-radius: 8px; background: var(--omg-color-brand, #1d4ed8); color: var(--omg-color-on-brand, #fff); box-shadow: var(--omg-shadow-sm, 0 1px 2px rgb(15 23 42 / 10%)); font: inherit; font-size: 12px; font-weight: 650; transition: background-color 160ms cubic-bezier(0.2, 0, 0, 1), transform 160ms cubic-bezier(0.2, 0, 0, 1); } .ds-button-solid:hover { background: var(--omg-color-brand-hover, #1e40af); } .ds-button-solid:focus-visible { outline: 3px solid var(--omg-color-focus-ring, #1d4ed8); outline-offset: 2px; } .ds-button-solid:active { transform: translateY(1px); } @media (prefers-reduced-motion: reduce) { .ds-button-solid { transition: none; } .ds-button-solid:active { transform: none; } }"
     },
     {
       "name": "Soft Brand Button",
@@ -389,15 +389,15 @@
       "refersTo": "button-soft",
       "description": "Secondary action using a quiet brand tint without elevation.",
       "html": "<button class=\"ds-button-soft\" type=\"button\">View details</button>",
-      "css": ".ds-button-soft { min-height: 38px; padding: 8px 16px; border: 1px solid transparent; border-radius: 8px; background: var(--omg-color-brand-soft, rgb(29 78 216 / 12%)); color: var(--omg-color-brand, #1d4ed8); font: inherit; font-weight: 650; transition: background-color 160ms cubic-bezier(0.2, 0, 0, 1); } .ds-button-soft:hover { background: var(--omg-color-brand-border, rgb(29 78 216 / 28%)); } .ds-button-soft:focus-visible { outline: 3px solid var(--omg-color-focus-ring, #1d4ed8); outline-offset: 2px; } @media (prefers-reduced-motion: reduce) { .ds-button-soft { transition: none; } }"
+      "css": ".ds-button-soft { min-height: 32px; padding: 4px 12px; border: 1px solid transparent; border-radius: 8px; background: var(--omg-color-brand-soft, rgb(29 78 216 / 12%)); color: var(--omg-color-brand, #1d4ed8); font: inherit; font-size: 12px; font-weight: 650; transition: background-color 160ms cubic-bezier(0.2, 0, 0, 1); } .ds-button-soft:hover { background: var(--omg-color-brand-border, rgb(29 78 216 / 28%)); } .ds-button-soft:focus-visible { outline: 3px solid var(--omg-color-focus-ring, #1d4ed8); outline-offset: 2px; } @media (prefers-reduced-motion: reduce) { .ds-button-soft { transition: none; } }"
     },
     {
       "name": "Native Text Input",
       "kind": "input",
       "refersTo": "input-field",
-      "description": "A controlled native single-line field with optional clear and password visibility actions.",
+      "description": "A controlled native single-line field with a soft default surface, explicit outline alternative, and optional clear or password actions.",
       "html": "<label for=\"ds-account\">Account</label><input id=\"ds-account\" class=\"ds-input\" value=\"Yxswy\" autocomplete=\"username\">",
-      "css": ".ds-input { width: 100%; min-height: 38px; box-sizing: border-box; padding: 0 12px; border: 1px solid var(--omg-color-border, rgb(24 30 40 / 18%)); border-radius: 8px; background: var(--omg-color-surface, #fff); color: var(--omg-color-text, #273040); font: inherit; } .ds-input:focus-visible { border-color: var(--omg-color-focus-ring, #1d4ed8); outline: 3px solid var(--omg-color-brand-soft, rgb(29 78 216 / 12%)); outline-offset: 1px; }"
+      "css": ".ds-input { width: 100%; min-height: 38px; box-sizing: border-box; padding: 0 12px; border: 1px solid transparent; border-radius: 8px; outline: none; background: var(--omg-color-surface-muted, #eef2f7); color: var(--omg-color-text, #273040); font: inherit; font-size: 14px; } .ds-input:hover { background: var(--omg-color-neutral-soft, rgb(32 34 38 / 8%)); } .ds-input:focus-visible { border-color: var(--omg-color-brand, #1d4ed8); background: var(--omg-color-surface, #fff); box-shadow: 0 0 0 2px var(--omg-color-brand-soft, rgb(29 78 216 / 12%)); }"
     },
     {
       "name": "Native Checkbox",
@@ -443,15 +443,15 @@
       "name": "Single Select",
       "kind": "input",
       "refersTo": "select-control",
-      "description": "A select-only combobox that virtualizes fixed-height rows only for large option collections.",
+      "description": "A soft-default combobox with one 32px trailing action rail and fixed-height virtualization only for large option collections.",
       "html": "<div class=\"ds-select\"><button class=\"ds-select-trigger\" type=\"button\" role=\"combobox\" aria-haspopup=\"listbox\" aria-expanded=\"true\">Foundation <span aria-hidden=\"true\">⌄</span></button><div class=\"ds-select-panel\" role=\"listbox\"><div class=\"ds-select-option ds-selected\" role=\"option\" aria-selected=\"true\">Foundation <span aria-hidden=\"true\">✓</span></div><div class=\"ds-select-option\" role=\"option\" aria-selected=\"false\">Advanced</div></div></div>",
-      "css": ".ds-select { display: inline-flex; min-width: 180px; flex-direction: column; gap: 6px; font: inherit; color: var(--omg-color-text, #273040); } .ds-select-trigger { display: flex; min-height: 38px; align-items: center; justify-content: space-between; padding: 0 12px; border: 1px solid var(--omg-color-border, rgb(24 30 40 / 18%)); border-radius: 8px; background: var(--omg-color-surface, #fff); color: inherit; font: inherit; } .ds-select-trigger:hover { border-color: var(--omg-color-brand-border, rgb(29 78 216 / 28%)); } .ds-select-trigger:focus-visible { outline: 3px solid var(--omg-color-focus-ring, #1d4ed8); outline-offset: 2px; } .ds-select-panel { padding: 4px; border-radius: 8px; background: var(--omg-color-surface, #fff); box-shadow: var(--omg-shadow-sm, 0 1px 2px rgb(15 23 42 / 10%)); } .ds-select-option { display: flex; min-height: 36px; align-items: center; justify-content: space-between; padding: 0 8px; border-radius: 6px; } .ds-select-option:hover { background: var(--omg-color-neutral-soft, rgb(32 34 38 / 8%)); } .ds-select-option.ds-selected { color: var(--omg-color-brand, #1d4ed8); font-weight: 650; }"
+      "css": ".ds-select { display: inline-flex; min-width: 180px; flex-direction: column; gap: 6px; color: var(--omg-color-text, #273040); font: inherit; font-size: 14px; } .ds-select-trigger { position: relative; display: flex; min-height: 38px; align-items: center; padding: 0 32px 0 12px; border: 1px solid transparent; border-radius: 8px; outline: none; background: var(--omg-color-surface-muted, #eef2f7); color: inherit; font: inherit; font-size: 14px; } .ds-select-trigger:focus-visible { border-color: var(--omg-color-brand, #1d4ed8); background: var(--omg-color-surface, #fff); box-shadow: 0 0 0 2px var(--omg-color-brand-soft, rgb(29 78 216 / 12%)); } .ds-select-panel { padding: 4px; border-radius: 8px; background: var(--omg-color-surface, #fff); box-shadow: var(--omg-shadow-sm, 0 1px 2px rgb(15 23 42 / 10%)); } .ds-select-option { display: flex; min-height: 36px; align-items: center; justify-content: space-between; padding: 0 12px; border-radius: 6px; } .ds-select-option:hover { background: var(--omg-color-neutral-soft, rgb(32 34 38 / 8%)); } .ds-select-option.ds-selected { color: var(--omg-color-brand, #1d4ed8); font-weight: 650; }"
     },
     {
       "name": "Solid Status Message",
       "kind": "custom",
       "refersTo": "message-surface",
-      "description": "A borderless opaque top-right status surface with Lucide status semantics and short spatial motion.",
+      "description": "A static borderless status surface; the imperative host owns a 3000ms default, opt-in hover pause, mandatory focus pause, and finite cleanup.",
       "html": "<div class=\"ds-message ds-message-success\" role=\"status\" aria-atomic=\"true\"><span class=\"ds-message-icon\" aria-hidden=\"true\"></span><span>Saved successfully</span><button type=\"button\" aria-label=\"Close message\">Close</button></div>",
       "css": ".ds-message { display: flex; width: min(360px, calc(100vw - 32px)); align-items: flex-start; gap: 12px; padding: 12px 16px; border: 0; border-radius: 12px; background: var(--omg-color-message-surface, #fff); box-shadow: var(--omg-shadow-message, 0 14px 36px rgb(15 23 42 / 18%), 0 4px 12px rgb(15 23 42 / 10%)); color: var(--omg-color-text, #273040); font: inherit; } .ds-message-icon { width: 20px; height: 20px; flex: 0 0 auto; border-radius: 999px; background: var(--omg-color-success, #067647); } .ds-message button { margin-inline-start: auto; border: 0; background: transparent; color: inherit; font: inherit; } @media (prefers-color-scheme: dark) { .ds-message { background: var(--omg-color-message-surface, #2d2d2d); } }"
     },
@@ -491,9 +491,17 @@
       "name": "Multiline Text Field",
       "kind": "input",
       "refersTo": "textarea-field",
-      "description": "A native multiline field with fixed or content-driven height, no resize handle, and a connected count.",
+      "description": "A soft-default native multiline field with an outline alternative, fixed or content-driven height, no resize handle, and a connected count.",
       "html": "<label for=\"ds-message\">Message</label><textarea id=\"ds-message\" class=\"ds-textarea\" aria-describedby=\"ds-message-count\"></textarea><span id=\"ds-message-count\">0/120</span>",
-      "css": ".ds-textarea { min-height: 112px; width: 100%; padding: 12px; border: 1px solid var(--omg-color-border, rgb(24 30 40 / 18%)); border-radius: 8px; field-sizing: content; resize: none; background: var(--omg-color-surface, #fff); color: var(--omg-color-text, #273040); font: inherit; } .ds-textarea:focus-visible { border-color: var(--omg-color-brand, #1d4ed8); outline: 2px solid var(--omg-color-focus-ring, #1d4ed8); outline-offset: 1px; }"
+      "css": ".ds-textarea { min-height: 112px; width: 100%; padding: 12px; border: 1px solid transparent; border-radius: 8px; outline: none; field-sizing: content; resize: none; background: var(--omg-color-surface-muted, #eef2f7); color: var(--omg-color-text, #273040); font: inherit; font-size: 14px; } .ds-textarea:focus-visible { border-color: var(--omg-color-brand, #1d4ed8); background: var(--omg-color-surface, #fff); box-shadow: 0 0 0 2px var(--omg-color-brand-soft, rgb(29 78 216 / 12%)); }"
+    },
+    {
+      "name": "Reference Image Prompt",
+      "kind": "input",
+      "refersTo": "reference-textarea",
+      "description": "Controlled reference images above a native Prompt textarea with exact array-order Image tokens and an accessible at-mention listbox.",
+      "html": "<div class=\"ds-reference-textarea\"><ul aria-label=\"Reference images\"><li><img src=\"/images/reference-textarea/reference-1.svg\" alt=\"Red dress reference\"><strong>[Image 1]</strong><span>Red dress reference</span></li><li><img src=\"/images/reference-textarea/reference-2.svg\" alt=\"Ceramic vase reference\"><strong>[Image 2]</strong><span>Ceramic vase reference</span></li></ul><textarea aria-label=\"Reference image prompt\">[Image 1]中的红衣女性</textarea></div>",
+      "css": ".ds-reference-textarea { display: grid; gap: 12px; color: var(--omg-color-text, #273040); font: inherit; font-size: 14px; } .ds-reference-textarea ul { display: flex; gap: 12px; margin: 0; padding: 0; list-style: none; } .ds-reference-textarea li { display: grid; width: 128px; gap: 4px; padding: 8px; border-radius: 8px; background: var(--omg-color-surface-muted, #eef2f7); } .ds-reference-textarea img { width: 100%; aspect-ratio: 3 / 2; border-radius: 6px; object-fit: cover; } .ds-reference-textarea textarea { min-height: 112px; padding: 12px; border: 1px solid transparent; border-radius: 8px; outline: none; resize: none; background: var(--omg-color-surface-muted, #eef2f7); color: inherit; font: inherit; } .ds-reference-textarea textarea:focus-visible { border-color: var(--omg-color-brand, #1d4ed8); background: var(--omg-color-surface, #fff); box-shadow: 0 0 0 2px var(--omg-color-brand-soft, rgb(29 78 216 / 12%)); }"
     },
     {
       "name": "Value Tabs",

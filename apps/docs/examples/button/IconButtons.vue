@@ -8,7 +8,7 @@ import { LuPlus, LuSave, LuSettings, LuTrash2 } from 'vue-icons-plus/lu'
     <template #icon><LuPlus /></template>
     新建
   </OButton>
-  <OButton icon-only variant="soft" aria-label="设置">
+  <OButton icon-only size="md" variant="soft" aria-label="设置">
     <template #icon><LuSettings /></template>
   </OButton>
   <OButton icon-only size="lg" variant="outline" tone="danger">

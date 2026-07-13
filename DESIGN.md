@@ -47,17 +47,17 @@ components:
   button-solid:
     backgroundColor: '{colors.focused-blue}'
     textColor: '{colors.on-focused-blue}'
-    typography: '{typography.body}'
+    typography: '{typography.label}'
     rounded: '{rounded.md}'
-    padding: '8px 16px'
-    height: '38px'
+    padding: '4px 12px'
+    height: '32px'
   button-soft:
     backgroundColor: '#1d4ed81f'
     textColor: '{colors.focused-blue}'
-    typography: '{typography.body}'
+    typography: '{typography.label}'
     rounded: '{rounded.md}'
-    padding: '8px 16px'
-    height: '38px'
+    padding: '4px 12px'
+    height: '32px'
   code-field:
     backgroundColor: '{colors.light-surface}'
     textColor: '{colors.light-ink}'
@@ -86,14 +86,14 @@ components:
     rounded: '{rounded.md}'
     padding: '4px'
   select-control:
-    backgroundColor: '{colors.light-surface}'
+    backgroundColor: '{colors.light-surface-muted}'
     textColor: '{colors.light-ink}'
     typography: '{typography.body}'
     rounded: '{rounded.md}'
-    padding: '0 12px'
+    padding: '0 32px 0 12px'
     height: '38px'
   input-field:
-    backgroundColor: '{colors.light-surface}'
+    backgroundColor: '{colors.light-surface-muted}'
     textColor: '{colors.light-ink}'
     typography: '{typography.body}'
     rounded: '{rounded.md}'
@@ -149,11 +149,17 @@ components:
     rounded: '{rounded.lg}'
     padding: '20px'
   textarea-field:
-    backgroundColor: '{colors.light-surface}'
+    backgroundColor: '{colors.light-surface-muted}'
     textColor: '{colors.light-ink}'
     typography: '{typography.body}'
     rounded: '{rounded.md}'
     padding: '12px'
+  reference-textarea:
+    backgroundColor: '{colors.light-surface-muted}'
+    textColor: '{colors.light-ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.md}'
+    gap: '12px'
   tabs-control:
     backgroundColor: '{colors.light-surface-muted}'
     textColor: '{colors.light-ink}'
@@ -326,7 +332,8 @@ Motion explains arrival, departure, and spatial ownership. It never uses bounce,
 ### Buttons
 
 - **Shape:** gently curved control corners (8px) with compact heights of 32px, 38px, and 46px.
-- **Primary:** Focused Blue background, on-brand text, 8px by 16px medium padding, and semibold inherited type.
+- **Default:** `sm` is the public default at 32px with explicit 12px text. `md` is 38px / 14px and `lg` is 46px / 14px. Font family remains inherited, but VitePress or a consuming application cannot enlarge component text accidentally.
+- **Primary:** Focused Blue background, on-brand text, compact tokenized padding, and semibold inherited type.
 - **Hover / Focus:** 160ms semantic color transition, a visible 3px focus ring with 2px offset, and a restrained 1px active translation.
 - **Soft / Outline / Ghost:** preserve the same geometry and use tint, border, or transparent surfaces instead of inventing new control shapes.
 - **Icon Only:** the same 32px, 38px, or 46px height becomes the square inline size; the icon is decorative and the native button must retain an accessible name.
@@ -341,14 +348,15 @@ Motion explains arrival, departure, and spatial ownership. It never uses bounce,
 
 ### Inputs / Fields
 
-- **Style:** 1px semantic border, 8px radius, inherited type, and a surface background.
-- **Focus:** border changes are immediate and legible; Code Input uses a 2px Focused Blue border without glow or box shadow.
+- **Variants:** Input, Textarea, and Select each expose component-specific `soft | outline` types backed by one internal tuple. `soft` is the default muted surface with a transparent reserved 1px border; `outline` keeps a semantic border visible at rest.
+- **Focus:** both field variants switch to the normal surface, Focused Blue border, and a restrained 2px brand-soft shadow. Native outline is not used on the field surface; forced-colors mode restores system-color boundaries. Code Input keeps its purpose-specific 2px Focused Blue cell border without glow or box shadow.
 - **Error / Disabled:** danger border for invalid input; disabled opacity is 0.56 with a non-interactive cursor.
 - **Input:** single-line controls retain the real input, controlled-value rejection, IME commitment, autocomplete, prefix/suffix composition, clear action, and optional password visibility.
+- **Input Group:** one clipped wrapper owns the surface, focus, invalid state, and outer radius. Nested Input/Textarea controls become transparent and never create doubled borders.
 - **Checkbox / Radio:** selection mirrors a real native input. Checkbox mixed state and Radio Group naming remain SSR-safe; CSS or Lucide marks never replace native semantics.
 - **Switch:** a real checkbox with `role="switch"` owns form submission, Space-key interaction, and label activation. Track fill and logical-axis thumb position communicate state without a normal border; loading and readonly only block UI changes and never persist settings or start requests.
 - **Textarea:** native form attributes and events belong to the real textarea; native resize is always disabled. Fixed rows scroll internally, while `autosize` can grow freely or clamp between `minRows` and `maxRows`.
-- **Reference Textarea:** references are controlled visual items supplied by consumers. The component never parses member syntax, image syntax, URLs, or other domain protocols.
+- **Reference Textarea:** controlled reference images render above the Prompt and map by array order to exact `[Image n]` text. A native textarea opens a bottom-start image listbox for valid `@query` input, supports Arrow/Enter/Tab/Escape and IME, and inserts the selected token into the real value. The component emits file and removal intent but never uploads, owns object URLs, mutates media, or silently rewrites removal indexes.
 
 ### Navigation
 
@@ -356,7 +364,7 @@ Motion explains arrival, departure, and spatial ownership. It never uses bounce,
 - **Keyboard:** familiar Arrow, Home, End, Enter, Space, Escape, and Tab behavior is part of the visual component contract.
 - **Responsive treatment:** components use intrinsic sizing, logical properties, and container-aware spacing instead of fluid typography.
 - **Dropdown:** a 38px bordered menu button opens a borderless portal surface with one structural shadow, 36px minimum action rows, disabled-item skipping, danger tone, and focus restoration.
-- **Select:** a 180px minimum bordered combobox keeps focus on its trigger; its borderless portal surface uses one structural shadow, exposes active options through `aria-activedescendant`, and virtualizes fixed-height rows only for large collections.
+- **Select:** a 180px minimum combobox uses the shared field variants and keeps focus on its trigger. Text starts 12px from logical start; one 32px logical-end rail centers a 16px chevron or 24px desktop clear action, so selected text never moves. Its borderless portal surface uses 4px padding, 12px option padding, 36px fixed rows, one structural shadow, `aria-activedescendant`, and virtualization only for large collections.
 - **Portal context:** a floating surface mirrors local theme, language, direction, typography, and divergent `--omg-*` overrides while leaving root tokens naturally inherited. Native dialog/top-layer compositions use `teleported="false"` or an in-layer `teleportTo` target.
 
 ### Avatar and Avatar Flow
@@ -392,7 +400,7 @@ Motion explains arrival, departure, and spatial ownership. It never uses bounce,
 ### Message and Drawer
 
 - **Message surface:** an opaque, borderless 360px-maximum surface fixed 16px from the physical top-right. Light uses `#fff`; dark uses exact `#2d2d2d`. Info, success, warning, and error remain distinguishable through Lucide icons and accessible roles rather than color alone.
-- **Message lifecycle:** `OMessage` is the flow-positioned surface. `oMessage()` lazily owns per-target stacking, automatic display duration, remaining-time pause, idempotent handles, and after-leave cleanup. It never maps request results or retries work.
+- **Message lifecycle:** `OMessage` is a static flow-positioned controlled surface. `oMessage()` lazily owns per-target stacking, a 3000ms default duration, idempotent handles, and after-leave cleanup. Hover pause is opt-in, focus pause is always active, and only non-positive duration is persistent; it never maps request results or retries work.
 - **Drawer composition:** `ODrawer` composes `ODialog`, adding only `start/end`, responsive size, side geometry, directional shadow, and motion. Native top layer, focus cycling, backdrop, Esc, focus return, and scroll lock remain Dialog responsibilities.
 - **Drawer content:** header and footer stay fixed while the body scrolls. A settled open Drawer has `transform: none`, allowing inline fixed-position Select panels to keep viewport coordinates.
 - **Layer targets:** a Message or floating control used inside Drawer targets an element inside the native dialog; `OSelect` and `ODropdown` may instead use `teleported="false"`.

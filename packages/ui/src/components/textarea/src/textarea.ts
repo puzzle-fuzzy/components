@@ -1,5 +1,11 @@
 import type { ExtractPublicPropTypes, PropType } from 'vue'
 
+import { isOFieldControlVariant, oFieldControlVariants } from '../../../utils/field-control'
+
+export const oTextareaVariants = [...oFieldControlVariants] as const
+
+export type OTextareaVariant = (typeof oTextareaVariants)[number]
+
 export interface OTextareaAutosizeOptions {
   readonly minRows?: number
   readonly maxRows?: number
@@ -50,6 +56,11 @@ export const oTextareaProps = {
   modelValue: {
     type: String,
     default: '',
+  },
+  variant: {
+    type: String as PropType<OTextareaVariant>,
+    default: 'soft',
+    validator: isOFieldControlVariant,
   },
   placeholder: String,
   rows: {

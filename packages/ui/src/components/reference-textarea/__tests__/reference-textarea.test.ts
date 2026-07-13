@@ -1,293 +1,483 @@
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
-
-import { createSSRApp, defineComponent, h, nextTick, ref } from 'vue'
-import { renderToString } from '@vue/server-renderer'
-import { mount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { defineComponent, h, nextTick, ref } from 'vue'
+import { mount, type DOMWrapper, type VueWrapper } from '@vue/test-utils'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   OReferenceTextarea,
+  defaultOReferenceTextareaLabels,
   oReferenceTextareaProps,
+  reindexOReferenceTextareaTokens,
+  resolveOReferenceTextareaLabels,
   type OReferenceTextareaEmits,
+  type OReferenceTextareaMedia,
+  type OReferenceTextareaMediaSlotProps,
+  type OReferenceTextareaMentionOptionSlotProps,
   type OReferenceTextareaProps,
-  type OReferenceTextareaReference,
-  type OReferenceTextareaReferenceSlotProps,
   type OReferenceTextareaSlots,
 } from '../index'
 
-const referenceTextareaSource = readFileSync(
-  resolve('packages/ui/src/components/reference-textarea/src/OReferenceTextarea.vue'),
-  'utf8',
-)
-
-const references: readonly OReferenceTextareaReference[] = [
-  { id: 'brief', label: '需求说明' },
+const media: readonly OReferenceTextareaMedia[] = [
+  { id: 'dress', src: '/dress.webp', label: '红色旗袍女性' },
   {
-    id: 'preview',
-    label: '界面预览',
-    kind: 'image',
-    thumbnailSrc: 'https://example.com/preview.png',
+    id: 'vase',
+    src: '/vase-thumb.webp',
+    previewSrc: '/vase.webp',
+    label: '桌边陶瓷花瓶',
+    alt: '桌边的白色陶瓷花瓶',
   },
 ]
 
+interface ControlledHarness {
+  readonly wrapper: VueWrapper
+  readonly value: ReturnType<typeof ref<string>>
+  readonly textarea: () => Omit<DOMWrapper<HTMLTextAreaElement>, 'exists'>
+}
+
+const mountControlled = (
+  initialValue = '',
+  extraProps: Record<string, unknown> = {},
+): ControlledHarness => {
+  const value = ref(initialValue)
+  const Harness = defineComponent({
+    setup() {
+      return () =>
+        h(OReferenceTextarea, {
+          media,
+          teleported: false,
+          ...extraProps,
+          modelValue: value.value,
+          'onUpdate:modelValue': (nextValue: string) => {
+            value.value = nextValue
+          },
+        })
+    },
+  })
+  const wrapper = mount(Harness, { attachTo: document.body })
+
+  return {
+    wrapper,
+    value,
+    textarea: () => wrapper.get<HTMLTextAreaElement>('textarea'),
+  }
+}
+
+const enterPrompt = async (
+  harness: ControlledHarness,
+  value: string,
+  selectionStart = value.length,
+  selectionEnd = selectionStart,
+): Promise<void> => {
+  const textarea = harness.textarea().element as HTMLTextAreaElement
+  textarea.focus()
+  textarea.value = value
+  textarea.setSelectionRange(selectionStart, selectionEnd)
+  textarea.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }))
+  await nextTick()
+  await nextTick()
+}
+
+afterEach(() => {
+  document.body.innerHTML = ''
+})
+
 describe('OReferenceTextarea', () => {
-  it('keeps the generic public props, emits, and reference slot typed', () => {
+  it('keeps the dedicated image-media public contract typed', () => {
     const publicProps: OReferenceTextareaProps = {
-      modelValue: '请检查引用内容',
-      references,
-      placeholder: '输入内容',
-      rows: 5,
-      maxlength: 120,
-      autosize: { minRows: 3, maxRows: 8 },
-      showCount: true,
-      disabled: false,
-      readonly: false,
-      invalid: false,
-      ariaLabel: '带引用的消息',
+      modelValue: '[Image 1]中身着红色旗袍的女性',
+      media,
+      variant: 'outline',
+      labels: { upload: '上传参考图' },
+      accept: 'image/*',
+      multiple: true,
+      maxCount: 4,
+      uploadable: true,
+      removable: true,
+      teleported: false,
+      teleportTo: 'body',
     }
     const event = new FocusEvent('focus')
     const publicEmits: OReferenceTextareaEmits = {
       'update:modelValue': ['next'],
+      select: [[]],
+      remove: [media[0]!, 0],
       focus: [event],
       blur: [event],
     }
-    const slotProps: OReferenceTextareaReferenceSlotProps = {
-      reference: references[0]!,
+    const mediaSlotProps: OReferenceTextareaMediaSlotProps = {
+      media: media[0]!,
       index: 0,
+      token: '[Image 1]',
+    }
+    const mentionSlotProps: OReferenceTextareaMentionOptionSlotProps = {
+      ...mediaSlotProps,
+      active: true,
     }
     const publicSlots: OReferenceTextareaSlots = {
-      reference: ({ reference }) => reference.label,
+      media: ({ token }) => token,
+      mentionOption: ({ media: item }) => item.label,
+      upload: () => 'Upload',
     }
 
-    expect(oReferenceTextareaProps.references.default()).toEqual([])
-    expect(publicProps.references).toBe(references)
-    expect(publicProps.autosize).toEqual({ minRows: 3, maxRows: 8 })
-    expect(publicEmits['update:modelValue']).toEqual(['next'])
-    expect(publicSlots.reference?.(slotProps)).toBe('需求说明')
+    expect(oReferenceTextareaProps.media.default()).toEqual([])
+    expect(oReferenceTextareaProps.accept.default).toBe('image/*')
+    expect(oReferenceTextareaProps.multiple.default).toBe(true)
+    expect(oReferenceTextareaProps.variant.default).toBe('soft')
+    expect(defaultOReferenceTextareaLabels.upload).toBe('Select reference images')
+    expect(resolveOReferenceTextareaLabels({ upload: '上传参考图' }).upload).toBe('上传参考图')
+    expect(publicProps.media).toBe(media)
+    expect(publicEmits.remove).toEqual([media[0], 0])
+    expect(publicSlots.media?.(mediaSlotProps)).toBe('[Image 1]')
+    expect(publicSlots.mentionOption?.(mentionSlotProps)).toBe('红色旗袍女性')
+    expect(reindexOReferenceTextareaTokens('[Image 2]', 0)).toBe('[Image 1]')
   })
 
-  it('uses standardized fallback icons without replacing image thumbnails', () => {
+  it('renders controlled media before the native textarea', () => {
+    const wrapper = mount(OReferenceTextarea, {
+      props: { modelValue: '', media, teleported: false },
+    })
+    const root = wrapper.get('.o-reference-textarea').element
+    const mediaRegion = wrapper.get('.o-reference-textarea__media').element
+    const prompt = wrapper.get('.o-reference-textarea__prompt').element
+
+    expect(root.children[0]).toBe(mediaRegion)
+    expect(root.children[1]).toBe(prompt)
+    expect(wrapper.findAll('.o-reference-textarea__media-item')).toHaveLength(2)
+    expect(wrapper.findAllComponents({ name: 'OImage' })).toHaveLength(2)
+  })
+
+  it('maps media order to visible Image tokens', () => {
+    const wrapper = mount(OReferenceTextarea, {
+      props: { modelValue: '', media, teleported: false },
+    })
+
+    expect(
+      wrapper.findAll('.o-reference-textarea__media-token').map((item) => item.text()),
+    ).toEqual(['[Image 1]', '[Image 2]'])
+    expect(
+      wrapper.findAll('.o-reference-textarea__media-label').map((item) => item.text()),
+    ).toEqual(['红色旗袍女性', '桌边陶瓷花瓶'])
+  })
+
+  it('uses OImage for independent teleported previews', async () => {
+    const wrapper = mount(OReferenceTextarea, {
+      attachTo: document.body,
+      props: { modelValue: '', media, teleported: false },
+    })
+
+    await wrapper.findAll('.o-image__trigger')[1]!.trigger('click')
+    await nextTick()
+
+    const preview = document.body.querySelector('.o-image__preview-mask')
+    expect(preview).not.toBeNull()
+    expect(preview?.querySelector('img')?.getAttribute('src')).toBe('/vase.webp')
+
+    preview?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    await nextTick()
+    expect(document.body.querySelector('.o-image__preview-mask')).toBeNull()
+  })
+
+  it('emits selected files and permits the same file again', async () => {
+    const wrapper = mount(OReferenceTextarea, {
+      props: { modelValue: '', media: [], teleported: false },
+    })
+    const input = wrapper.get('input[type="file"]')
+    const file = new File(['image'], 'reference.png', { type: 'image/png' })
+    Object.defineProperty(input.element, 'files', { configurable: true, value: [file] })
+
+    await input.trigger('change')
+    await input.trigger('change')
+
+    expect(wrapper.emitted('select')).toEqual([[[file]], [[file]]])
+    expect((input.element as HTMLInputElement).value).toBe('')
+  })
+
+  it('limits picker and drop selection by maxCount and multiple', async () => {
+    const files = [
+      new File(['one'], 'one.png', { type: 'image/png' }),
+      new File(['two'], 'two.png', { type: 'image/png' }),
+      new File(['three'], 'three.png', { type: 'image/png' }),
+    ]
+    const wrapper = mount(OReferenceTextarea, {
+      props: { modelValue: '', media: media.slice(0, 1), maxCount: 2, teleported: false },
+    })
+    const drop = new Event('drop', { bubbles: true, cancelable: true })
+    Object.defineProperty(drop, 'dataTransfer', { value: { files } })
+    wrapper.get('.o-reference-textarea__media').element.dispatchEvent(drop)
+    await nextTick()
+
+    expect(wrapper.emitted('select')).toEqual([[[files[0]]]])
+
+    const singleWrapper = mount(OReferenceTextarea, {
+      props: { modelValue: '', media: [], multiple: false, teleported: false },
+    })
+    const input = singleWrapper.get('input[type="file"]')
+    Object.defineProperty(input.element, 'files', { configurable: true, value: files })
+    await input.trigger('change')
+    expect(singleWrapper.emitted('select')).toEqual([[[files[0]]]])
+  })
+
+  it('emits remove intent without mutating media or rewriting the prompt', async () => {
+    const wrapper = mount(OReferenceTextarea, {
+      props: { modelValue: '[Image 2] 保持原样', media, teleported: false },
+    })
+
+    await wrapper.get('[aria-label="Remove Image 2"]').trigger('click')
+
+    expect(wrapper.emitted('remove')).toEqual([[media[1], 1]])
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    expect(wrapper.props('media')).toStrictEqual(media)
+    expect(media).toHaveLength(2)
+  })
+
+  it('keeps preview available while readonly and hides mutation controls', () => {
+    const wrapper = mount(OReferenceTextarea, {
+      props: { modelValue: '', media, readonly: true, teleported: false },
+    })
+
+    expect(wrapper.get('textarea').attributes('readonly')).toBeDefined()
+    expect(wrapper.find('input[type="file"]').exists()).toBe(false)
+    expect(wrapper.find('.o-reference-textarea__remove').exists()).toBe(false)
+    expect(wrapper.get('.o-image__trigger').attributes('disabled')).toBeUndefined()
+  })
+
+  it('disables editing selection removal and preview while disabled', () => {
+    const wrapper = mount(OReferenceTextarea, {
+      props: { modelValue: '', media, disabled: true, teleported: false },
+    })
+
+    expect(wrapper.get('textarea').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('input[type="file"]').exists()).toBe(false)
+    expect(wrapper.find('.o-reference-textarea__remove').exists()).toBe(false)
+    expect(wrapper.get('.o-image__trigger').attributes('disabled')).toBeDefined()
+  })
+
+  it('preserves textarea attrs autosize count focus blur and controlled rejection', async () => {
+    const onChange = vi.fn()
     const wrapper = mount(OReferenceTextarea, {
       props: {
-        modelValue: '',
-        references: [
-          { id: 'brief', label: '需求说明' },
-          { id: 'image', label: '待补充图片', kind: 'image' },
-          {
-            id: 'preview',
-            label: '界面预览',
-            kind: 'image',
-            thumbnailSrc: 'https://example.com/preview.png',
-          },
-        ],
+        modelValue: 'accepted',
+        media,
+        variant: 'outline',
+        autosize: { minRows: 2, maxRows: 5 },
+        maxlength: 80,
+        showCount: true,
+        teleported: false,
       },
-    })
-    const icons = wrapper.findAll('.o-reference-textarea__reference-icon')
-
-    expect(referenceTextareaSource).toContain(
-      "import { LuFileText, LuImage } from 'vue-icons-plus/lu'",
-    )
-    expect(referenceTextareaSource).not.toContain('<svg')
-    expect(icons).toHaveLength(2)
-    expect(icons.every((icon) => icon.attributes('aria-hidden') === 'true')).toBe(true)
-    expect(wrapper.findAll('.o-reference-textarea__thumbnail')).toHaveLength(1)
-  })
-
-  it('renders generic text and image references without parsing modelValue', async () => {
-    const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
-
-    try {
-      const wrapper = mount(OReferenceTextarea, {
-        props: {
-          modelValue: '@[This is plain text](member:not-parsed)',
-          references: [
-            { id: 'duplicate', label: '需求说明' },
-            {
-              id: 'duplicate',
-              label: '界面预览',
-              kind: 'image',
-              thumbnailSrc: 'https://example.com/preview.png',
-            },
-          ],
-          ariaLabel: '带引用的消息',
-        },
-      })
-
-      expect(wrapper.findAll('.o-reference-textarea__reference')).toHaveLength(2)
-      expect(wrapper.get('.o-reference-textarea__reference--text').text()).toBe('需求说明')
-      const image = wrapper.get('.o-reference-textarea__thumbnail')
-      expect(image.attributes('src')).toBe('https://example.com/preview.png')
-      expect(image.attributes('alt')).toBe('')
-      expect(wrapper.text()).not.toContain('This is plain text')
-
-      await wrapper.setProps({
-        references: [
-          { id: 'duplicate', label: '更新后的文本' },
-          { id: 'duplicate', label: '第二个重复 ID' },
-        ],
-      })
-
-      expect(wrapper.findAll('.o-reference-textarea__reference')).toHaveLength(2)
-      expect(wrapper.text()).toContain('更新后的文本')
-      expect(wrapper.text()).toContain('第二个重复 ID')
-      expect(warning.mock.calls.flat().join(' ')).not.toContain('Duplicate keys')
-      expect(wrapper.emitted('referencesChange')).toBeUndefined()
-    } finally {
-      warning.mockRestore()
-    }
-  })
-
-  it('supports a typed reference renderer slot', () => {
-    const wrapper = mount(OReferenceTextarea, {
-      props: { modelValue: '', references },
-      slots: {
-        reference: ({ reference, index }: OReferenceTextareaReferenceSlotProps) =>
-          h('strong', { 'data-reference-index': index }, reference.label),
-      },
-    })
-
-    const renderedReferences = wrapper.findAll('[data-reference-index]')
-    expect(renderedReferences).toHaveLength(2)
-    expect(renderedReferences[0]?.text()).toBe('需求说明')
-    expect(renderedReferences[1]?.text()).toBe('界面预览')
-  })
-
-  it('forwards native attrs and listeners to the composed textarea', async () => {
-    let changeTarget: EventTarget | null = null
-    const onChange = vi.fn((event: Event) => {
-      changeTarget = event.currentTarget
-    })
-    const onInvalid = vi.fn()
-    const wrapper = mount(OReferenceTextarea, {
-      props: { modelValue: '', references },
-      attrs: {
-        id: 'reference-message',
-        name: 'reference-message',
-        required: true,
-        'aria-describedby': 'reference-help',
-        onChange,
-        onInvalid,
-      },
+      attrs: { id: 'reference-prompt', name: 'prompt', required: true, onChange },
     })
     const textarea = wrapper.get('textarea')
 
-    expect(wrapper.attributes('id')).toBeUndefined()
     expect(textarea.attributes()).toEqual(
-      expect.objectContaining({
-        id: 'reference-message',
-        name: 'reference-message',
-        required: '',
-        'aria-describedby': 'reference-help',
-      }),
+      expect.objectContaining({ id: 'reference-prompt', name: 'prompt', required: '' }),
     )
-
-    await textarea.trigger('change')
-    textarea.element.dispatchEvent(new Event('invalid', { cancelable: true }))
-
-    expect(onChange).toHaveBeenCalledOnce()
-    expect(changeTarget).toBe(textarea.element)
-    expect(onInvalid).toHaveBeenCalledOnce()
-  })
-
-  it('forwards fixed and bounded autosize modes to the native textarea', async () => {
-    const wrapper = mount(OReferenceTextarea, {
-      props: { modelValue: '', references, rows: 3 },
-    })
-    const textarea = wrapper.get('textarea')
-
-    expect(wrapper.get('.o-textarea').classes()).toContain('o-textarea--fixed')
-    expect(textarea.attributes('rows')).toBe('3')
-
-    await wrapper.setProps({ autosize: { minRows: 2, maxRows: 6 } })
-
-    expect(wrapper.get('.o-textarea').classes()).toEqual(
-      expect.arrayContaining(['o-textarea--autosize', 'is-autosize-bounded']),
-    )
-    expect(textarea.attributes('rows')).toBe('2')
-    expect(textarea.attributes('style')).toContain('--omg-textarea-max-rows: 6')
-  })
-
-  it('restores rejected values and renders parent-normalized values', async () => {
-    const rejectedWrapper = mount(OReferenceTextarea, {
-      props: { modelValue: 'accepted', references },
-    })
-    const rejectedTextarea = rejectedWrapper.get('textarea')
-
-    await rejectedTextarea.setValue('rejected')
-    await nextTick()
-
-    expect(rejectedWrapper.emitted('update:modelValue')).toEqual([['rejected']])
-    expect(rejectedTextarea.element.value).toBe('accepted')
-
-    const Harness = defineComponent({
-      setup() {
-        const value = ref('start')
-        return () =>
-          h(OReferenceTextarea, {
-            modelValue: value.value,
-            references,
-            'onUpdate:modelValue': (nextValue: string) => {
-              value.value = nextValue.trim().toUpperCase()
-            },
-          })
-      },
-    })
-    const normalizedWrapper = mount(Harness)
-    const normalizedTextarea = normalizedWrapper.get('textarea')
-
-    await normalizedTextarea.setValue(' next ')
-    await nextTick()
-
-    expect(normalizedTextarea.element.value).toBe('NEXT')
-  })
-
-  it('does not emit IME intermediate values and forwards focus and blur', async () => {
-    const wrapper = mount(OReferenceTextarea, {
-      props: { modelValue: '', references },
-    })
-    const textarea = wrapper.get('textarea')
+    expect(wrapper.get('.o-textarea').classes()).toContain('o-textarea--outline')
+    expect(wrapper.get('.o-textarea').classes()).toContain('o-textarea--autosize')
+    expect(wrapper.get('.o-textarea__count').text()).toBe('8/80')
 
     await textarea.trigger('focus')
-    await textarea.trigger('compositionstart')
-    textarea.element.value = 'n'
-    textarea.element.dispatchEvent(new Event('input', { bubbles: true }))
-
-    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
-
-    textarea.element.value = '你'
-    await textarea.trigger('compositionend')
-    await nextTick()
+    await textarea.setValue('rejected')
     await nextTick()
     await textarea.trigger('blur')
 
-    expect(wrapper.emitted('update:modelValue')).toEqual([['你']])
-    expect(textarea.element.value).toBe('')
-    expect(wrapper.emitted('focus')?.[0]?.[0]).toBeInstanceOf(FocusEvent)
-    expect(wrapper.emitted('blur')?.[0]?.[0]).toBeInstanceOf(FocusEvent)
+    expect(wrapper.emitted('update:modelValue')).toEqual([['rejected']])
+    expect((textarea.element as HTMLTextAreaElement).value).toBe('accepted')
+    expect(wrapper.emitted('focus')).toHaveLength(1)
+    expect(wrapper.emitted('blur')).toHaveLength(1)
+    expect(onChange).toHaveBeenCalledOnce()
   })
 
-  it('keeps generated count ids stable across server rendering and hydration', async () => {
-    const render = () =>
-      h(OReferenceTextarea, {
-        modelValue: 'SSR',
-        references,
-        showCount: true,
-        'aria-describedby': 'reference-help',
-      })
-    const html = await renderToString(createSSRApp({ render }))
-    const container = document.createElement('div')
-    container.innerHTML = html
-    const serverCountId = container.querySelector('.o-textarea__count')?.id
-    const app = createSSRApp({ render })
-    app.mount(container)
+  it('uses stable composite keys when consumer media IDs repeat', async () => {
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const wrapper = mount(OReferenceTextarea, {
+      props: {
+        modelValue: '',
+        media: [
+          { ...media[0]!, id: 'duplicate' },
+          { ...media[1]!, id: 'duplicate' },
+        ],
+        teleported: false,
+      },
+    })
 
-    expect(serverCountId).toBeTruthy()
-    expect(container.querySelector('.o-textarea__count')?.id).toBe(serverCountId)
-    expect(
-      container.querySelector('textarea')?.getAttribute('aria-describedby')?.split(/\s+/u),
-    ).toEqual(['reference-help', serverCountId])
-    expect(container.textContent).toContain('需求说明')
-    app.unmount()
+    await wrapper.setProps({ media: media.map((item) => ({ ...item, id: 'duplicate' })) })
+
+    expect(wrapper.findAll('.o-reference-textarea__media-item')).toHaveLength(2)
+    expect(warning.mock.calls.flat().join(' ')).not.toContain('Duplicate keys')
+    warning.mockRestore()
+  })
+
+  it('opens the image listbox from @ while retaining textarea focus', async () => {
+    const harness = mountControlled()
+    await enterPrompt(harness, '@')
+
+    await vi.waitFor(() => {
+      expect(harness.wrapper.get('[role="listbox"]').isVisible()).toBe(true)
+    })
+    expect(document.activeElement).toBe(harness.textarea().element)
+    expect(harness.textarea().attributes('aria-expanded')).toBe('true')
+  })
+
+  it('filters options by generated token number and media label', async () => {
+    const harness = mountControlled()
+    await enterPrompt(harness, '@2')
+
+    expect(harness.wrapper.findAll('[role="option"]')).toHaveLength(1)
+    expect(harness.wrapper.get('[role="option"]').text()).toContain('[Image 2]')
+
+    await enterPrompt(harness, '@红色')
+    expect(harness.wrapper.findAll('[role="option"]')).toHaveLength(1)
+    expect(harness.wrapper.get('[role="option"]').text()).toContain('红色旗袍女性')
+  })
+
+  it('navigates enabled options with Arrow keys and inserts with Enter', async () => {
+    const harness = mountControlled()
+    await enterPrompt(harness, '@')
+    const textarea = harness.textarea().element as HTMLTextAreaElement
+
+    textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }))
+    textarea.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
+    )
+    await nextTick()
+    await nextTick()
+
+    expect(harness.value.value).toBe('[Image 2]')
+    expect(textarea.selectionStart).toBe('[Image 2]'.length)
+  })
+
+  it('inserts with Tab and pointer selection without blurring', async () => {
+    const tabHarness = mountControlled()
+    await enterPrompt(tabHarness, '@')
+    const tabTextarea = tabHarness.textarea().element as HTMLTextAreaElement
+    tabTextarea.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }),
+    )
+    await nextTick()
+    expect(tabHarness.value.value).toBe('[Image 1]')
+    tabHarness.wrapper.unmount()
+
+    const pointerHarness = mountControlled()
+    await enterPrompt(pointerHarness, '@')
+    const option = pointerHarness.wrapper.findAll('[role="option"]')[1]!
+    await option.trigger('pointerdown')
+    await option.trigger('click')
+    await nextTick()
+
+    expect(pointerHarness.value.value).toBe('[Image 2]')
+    expect(document.activeElement).toBe(pointerHarness.textarea().element)
+  })
+
+  it('replaces only the active @ range and restores the caret', async () => {
+    const harness = mountControlled('比较 @红色 与背景')
+    const value = '比较 @红色 与背景'
+    await enterPrompt(harness, value, 6)
+    const textarea = harness.textarea().element as HTMLTextAreaElement
+
+    textarea.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
+    )
+    await nextTick()
+    await nextTick()
+
+    expect(harness.value.value).toBe('比较 [Image 1] 与背景')
+    expect(textarea.selectionStart).toBe(3 + '[Image 1]'.length)
+  })
+
+  it('closes with Escape and blur outside the compound component', async () => {
+    const harness = mountControlled()
+    await enterPrompt(harness, '@')
+    const textarea = harness.textarea().element as HTMLTextAreaElement
+
+    textarea.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+    )
+    await nextTick()
+    expect(harness.wrapper.find('[role="listbox"]').exists()).toBe(false)
+
+    await enterPrompt(harness, '@')
+    const outside = document.createElement('button')
+    document.body.append(outside)
+    textarea.dispatchEvent(new FocusEvent('blur', { bubbles: true, relatedTarget: outside }))
+    await nextTick()
+    expect(harness.wrapper.find('[role="listbox"]').exists()).toBe(false)
+  })
+
+  it('does not open or commit during IME composition', async () => {
+    const harness = mountControlled()
+    const textarea = harness.textarea().element as HTMLTextAreaElement
+    textarea.focus()
+    textarea.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }))
+    textarea.value = '@'
+    textarea.setSelectionRange(1, 1)
+    textarea.dispatchEvent(new InputEvent('input', { bubbles: true, isComposing: true }))
+    await nextTick()
+
+    expect(harness.wrapper.find('[role="listbox"]').exists()).toBe(false)
+    expect(harness.value.value).toBe('')
+
+    textarea.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true, data: '@' }))
+    await nextTick()
+    await nextTick()
+    expect(harness.value.value).toBe('@')
+  })
+
+  it('rejects a complete token that would exceed maxlength', async () => {
+    const harness = mountControlled('', { maxlength: 8 })
+    await enterPrompt(harness, '@')
+    const textarea = harness.textarea().element as HTMLTextAreaElement
+
+    textarea.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
+    )
+    await nextTick()
+
+    expect(harness.value.value).toBe('@')
+    expect(harness.wrapper.find('[role="listbox"]').exists()).toBe(true)
+  })
+
+  it('does not render an empty listbox without matching media', async () => {
+    const harness = mountControlled()
+    await enterPrompt(harness, '@不存在')
+    expect(harness.wrapper.find('[role="listbox"]').exists()).toBe(false)
+
+    harness.wrapper.unmount()
+    const emptyHarness = mountControlled('', { media: [] })
+    await enterPrompt(emptyHarness, '@')
+    expect(emptyHarness.wrapper.find('[role="listbox"]').exists()).toBe(false)
+  })
+
+  it('merges consumer keydown click and input listeners', async () => {
+    const onKeydown = vi.fn()
+    const onClick = vi.fn()
+    const onInput = vi.fn()
+    const wrapper = mount(OReferenceTextarea, {
+      props: { modelValue: '', media, teleported: false },
+      attrs: { onKeydown, onClick, onInput },
+    })
+    const textarea = wrapper.get('textarea')
+    ;(textarea.element as HTMLTextAreaElement).value = '@'
+    ;(textarea.element as HTMLTextAreaElement).setSelectionRange(1, 1)
+
+    await textarea.trigger('focus')
+    await textarea.trigger('input')
+    await textarea.trigger('click')
+    await textarea.trigger('select')
+    await textarea.trigger('keydown', { key: 'ArrowDown' })
+
+    expect(onKeydown).toHaveBeenCalled()
+    expect(onClick).toHaveBeenCalled()
+    expect(onInput).toHaveBeenCalled()
+  })
+
+  it('exposes the textarea listbox active descendant relationship', async () => {
+    const harness = mountControlled()
+    await enterPrompt(harness, '@')
+    const textarea = harness.textarea()
+    const listbox = harness.wrapper.get('[role="listbox"]')
+    const activeOption = harness.wrapper.get('[role="option"][aria-selected="true"]')
+
+    expect(textarea.attributes('aria-controls')).toBe(listbox.attributes('id'))
+    expect(textarea.attributes('aria-activedescendant')).toBe(activeOption.attributes('id'))
+    expect(textarea.attributes('aria-autocomplete')).toBe('list')
   })
 })

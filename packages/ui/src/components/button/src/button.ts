@@ -23,7 +23,7 @@ export const oButtonProps = {
   },
   size: {
     type: String as PropType<OButtonSize>,
-    default: 'md',
+    default: 'sm',
     validator: (value: unknown): value is OButtonSize => isAllowedValue(oButtonSizes, value),
   },
   tone: {

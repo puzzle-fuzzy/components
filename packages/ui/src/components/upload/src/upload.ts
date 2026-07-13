@@ -1,5 +1,7 @@
 import type { ExtractPublicPropTypes, PropType, VNodeChild } from 'vue'
 
+import { normalizeFileSelectionMaxCount } from '../../../composables/use-file-selection'
+
 export const oUploadFileStates = ['queued', 'uploading', 'success', 'error'] as const
 
 export type OUploadFileState = (typeof oUploadFileStates)[number]
@@ -91,9 +93,7 @@ export const resolveOUploadProgress = (file: OUploadFile): number | undefined =>
 }
 
 export const normalizeOUploadMaxCount = (maxCount: number | undefined): number | undefined => {
-  if (maxCount === undefined || maxCount === Number.POSITIVE_INFINITY) return undefined
-  if (!Number.isFinite(maxCount)) return 0
-  return Math.max(0, Math.floor(maxCount))
+  return normalizeFileSelectionMaxCount(maxCount)
 }
 
 export const normalizeOUploadListMaxHeight = (

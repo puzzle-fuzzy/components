@@ -26,6 +26,7 @@ const submitted = ref(false)
         :autosize="{ minRows: 3, maxRows: 7 }"
         :maxlength="180"
         show-count
+        variant="outline"
       />
       <OInputGroupAddon align="block-end">
         <OInputGroupText>支持 180 个字符</OInputGroupText>

@@ -14,7 +14,7 @@ Message 用于在不打断当前任务的情况下呈现一条简短反馈。`OM
   <MessageBasic />
 </DemoBlock>
 
-这组示例包含普通调用、四种状态 helper、自动关闭、持久消息、返回的 handle、`closeAll()`、长文本和堆叠重排。鼠标停留在消息上，或键盘焦点位于其中时，自动计时会暂停；离开后从剩余时间继续，不会重新开始完整时长。
+这组示例包含普通调用、四种状态 helper、自动关闭、持久消息、返回的 handle、`closeAll()`、长文本和堆叠重排。默认消息在 `3000ms` 后关闭，鼠标停留不会打断计时；警告示例显式启用了 `pauseOnHover` 来展示可选的悬停暂停。键盘焦点位于消息内时始终暂停，离开后从剩余时间继续。
 
 ## 声明式表面
 
@@ -22,7 +22,7 @@ Message 用于在不打断当前任务的情况下呈现一条简短反馈。`OM
   <MessageDeclarative />
 </DemoBlock>
 
-`OMessage` 本身没有计时器和全局状态。它适合长期保留在布局中，或由使用方放进自己的列表。`close` 只发出关闭意图，是否移除组件由使用方控制。
+`OMessage` 本身没有计时器和全局状态，也不接受 Service 的 `duration` 计时契约。它适合长期保留在布局中，或由使用方放进自己的列表。`close` 只发出关闭意图，是否移除组件由使用方控制；需要右上角堆叠和自动关闭时使用 `oMessage()`。
 
 ## 实心主题表面
 
@@ -82,8 +82,8 @@ oMessage('设置已更新')
 
 ```ts
 oMessage.success('内容已保存')
-oMessage.warning({ message: '请检查当前输入', closable: true })
-oMessage.error({ message: '暂时无法完成', duration: 0 })
+oMessage.warning({ message: '请检查当前输入', closable: true, pauseOnHover: true })
+oMessage.error({ message: '暂时无法完成', duration: 4200 })
 ```
 
 Service 签名：
@@ -105,18 +105,18 @@ interface OMessageHandle {
 }
 ```
 
-| 选项           | 默认值            | 说明                             |
-| -------------- | ----------------- | -------------------------------- |
-| message        | 必填              | 消息正文；空字符串也会原样保留   |
-| status         | `'info'`          | 使用状态 helper 时由 helper 覆盖 |
-| duration       | `3000`            | 展示毫秒数；`0` 表示持久展示     |
-| closable       | `false`           | 是否显示关闭按钮                 |
-| closeAriaLabel | `'Close message'` | 关闭按钮的可访问名称             |
-| pauseOnHover   | `true`            | 鼠标停留时是否暂停计时           |
-| appendTo       | `document.body`   | 已连接的 HTMLElement 或 selector |
-| onClose        | —                 | 离场完成后调用一次               |
+| 选项           | 默认值            | 说明                                |
+| -------------- | ----------------- | ----------------------------------- |
+| message        | 必填              | 消息正文；空字符串也会原样保留      |
+| status         | `'info'`          | 使用状态 helper 时由 helper 覆盖    |
+| duration       | `3000`            | 展示毫秒数；小于等于 `0` 时持久展示 |
+| closable       | `false`           | 是否显示关闭按钮                    |
+| closeAriaLabel | `'Close message'` | 关闭按钮的可访问名称                |
+| pauseOnHover   | `false`           | 是否显式启用鼠标悬停暂停            |
+| appendTo       | `document.body`   | 已连接的 HTMLElement 或 selector    |
+| onClose        | —                 | 离场完成后调用一次                  |
 
-`duration` 未传或为非有限数值时回退到 `3000`；小于等于零时归一为 `0`；正数会向下取整。
+`duration` 未传或为非有限数值时回退到 `3000`；小于等于零时归一为 `0` 并持久展示；正数会向下取整，但最少保留 `1ms`。
 
 ### Handle 与 closeAll
 

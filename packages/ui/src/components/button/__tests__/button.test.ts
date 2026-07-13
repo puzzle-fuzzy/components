@@ -24,6 +24,18 @@ const buttonStyleSource = readFileSync(
   resolve('packages/ui/src/components/button/style/index.less'),
   'utf8',
 )
+const interactiveStyleSources = [
+  'button',
+  'accordion',
+  'checkbox',
+  'dropdown',
+  'popover',
+  'radio',
+  'switch',
+].map((component) => ({
+  component,
+  source: readFileSync(resolve(`packages/ui/src/components/${component}/style/index.less`), 'utf8'),
+}))
 
 describe('OButton', () => {
   it('keeps its public vocabularies and types aligned with runtime validation', () => {
@@ -55,6 +67,7 @@ describe('OButton', () => {
     expect(oButtonProps.tone.validator('invalid')).toBe(false)
     expect(oButtonProps.type.validator(publicProps.type)).toBe(true)
     expect(oButtonProps.type.validator('invalid')).toBe(false)
+    expect(oButtonProps.size.default).toBe('sm')
     expect(oButtonProps.iconOnly.default).toBe(false)
     expect(publicSlots.default?.()).toBe('Save changes')
     expect(publicEmits.click).toEqual([event])
@@ -70,7 +83,7 @@ describe('OButton', () => {
     expect(button.attributes('disabled')).toBeUndefined()
     expect(button.attributes('aria-busy')).toBeUndefined()
     expect(button.classes()).toEqual(
-      expect.arrayContaining(['o-button', 'o-button--solid', 'o-button--md', 'o-button--brand']),
+      expect.arrayContaining(['o-button', 'o-button--solid', 'o-button--sm', 'o-button--brand']),
     )
     expect(button.classes()).not.toContain('o-button--icon-only')
     expect(button.text()).toBe('Save changes')
@@ -116,6 +129,25 @@ describe('OButton', () => {
     expect(buttonStyleSource).toMatch(
       /&--icon-only\s*\{[\s\S]*?\.o-button__content\s*\{\s*\.visually-hidden\(\);/u,
     )
+  })
+
+  it('keeps each button size on the compact control and typography scale', () => {
+    expect(buttonStyleSource).toMatch(
+      /&--sm\s*\{[^}]*--omg-button-height:\s*var\(--omg-control-height-sm\);[^}]*--omg-button-font-size:\s*var\(--omg-font-size-sm\);/su,
+    )
+    expect(buttonStyleSource).toMatch(
+      /&--md\s*\{[^}]*--omg-button-height:\s*var\(--omg-control-height-md\);[^}]*--omg-button-font-size:\s*var\(--omg-font-size-md\);/su,
+    )
+    expect(buttonStyleSource).toMatch(
+      /&--lg\s*\{[^}]*--omg-button-height:\s*var\(--omg-control-height-lg\);[^}]*--omg-button-font-size:\s*var\(--omg-font-size-md\);/su,
+    )
+    expect(buttonStyleSource).toContain('font-size: var(--omg-button-font-size)')
+  })
+
+  it('sets explicit OMG typography for every related interactive family', () => {
+    for (const { component, source } of interactiveStyleSources) {
+      expect(source, component).toMatch(/font-size:\s*var\(--omg-font-size-(?:sm|md)\)/u)
+    }
   })
 
   it('reacts to variant, size, tone, and native type changes', async () => {
