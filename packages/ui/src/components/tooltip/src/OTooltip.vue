@@ -188,6 +188,20 @@ watch(hasContent, (available) => {
   if (isOpen.value) setOpen(false)
 })
 
+watch(
+  isTooltipOpen,
+  (open, _previous, onCleanup) => {
+    if (!open || typeof document === 'undefined') return
+
+    const handleDocumentKeydown = (event: KeyboardEvent): void => {
+      if (!event.defaultPrevented) handleKeydown(event)
+    }
+    document.addEventListener('keydown', handleDocumentKeydown)
+    onCleanup(() => document.removeEventListener('keydown', handleDocumentKeydown))
+  },
+  { flush: 'post' },
+)
+
 onBeforeUnmount(clearTimer)
 </script>
 

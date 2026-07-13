@@ -128,6 +128,19 @@ describe('OTooltip', () => {
     expect(wrapper.emitted('update:open')).toEqual([[true], [false]])
   })
 
+  it('closes from document Escape while the hovered trigger is not focused', async () => {
+    vi.useFakeTimers()
+    const wrapper = mountTooltip({ showDelay: 0 })
+
+    await wrapper.get('button').trigger('pointerenter')
+    expect(wrapper.find('[role="tooltip"]').exists()).toBe(true)
+    document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }))
+    await nextTick()
+
+    expect(wrapper.find('[role="tooltip"]').exists()).toBe(false)
+    expect(wrapper.emitted('update:open')).toEqual([[true], [false]])
+  })
+
   it('cancels stale show timers and blocks disabled triggers', async () => {
     vi.useFakeTimers()
     const wrapper = mountTooltip()
