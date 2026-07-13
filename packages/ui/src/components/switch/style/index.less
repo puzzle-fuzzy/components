@@ -1,0 +1,184 @@
+.o-switch {
+  position: relative;
+  display: inline-flex;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  box-sizing: border-box;
+  color: var(--omg-color-text);
+  font: inherit;
+  vertical-align: middle;
+
+  &--sm {
+    --omg-switch-track-inline-size: 32px;
+    --omg-switch-track-block-size: 18px;
+    --omg-switch-thumb-size: 14px;
+    --omg-switch-thumb-offset: 14px;
+  }
+
+  &--md {
+    --omg-switch-track-inline-size: 40px;
+    --omg-switch-track-block-size: 22px;
+    --omg-switch-thumb-size: 18px;
+    --omg-switch-thumb-offset: 18px;
+  }
+
+  &__input {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  &__label {
+    display: inline-flex;
+    min-inline-size: 0;
+    align-items: flex-start;
+    gap: var(--omg-space-2);
+    cursor: pointer;
+    line-height: 1.5;
+    touch-action: manipulation;
+    user-select: none;
+  }
+
+  &__track {
+    position: relative;
+    display: inline-block;
+    inline-size: var(--omg-switch-track-inline-size);
+    block-size: var(--omg-switch-track-block-size);
+    flex: none;
+    box-sizing: border-box;
+    margin-block-start: 1px;
+    border: 0;
+    border-radius: var(--omg-radius-full);
+    background: var(--omg-color-border);
+    transition:
+      background-color var(--omg-duration-fast) var(--omg-easing-standard),
+      outline-color var(--omg-duration-fast) var(--omg-easing-standard);
+  }
+
+  &__thumb {
+    position: absolute;
+    inset-block-start: 2px;
+    inset-inline-start: 2px;
+    display: grid;
+    inline-size: var(--omg-switch-thumb-size);
+    block-size: var(--omg-switch-thumb-size);
+    place-items: center;
+    border-radius: var(--omg-radius-full);
+    background: var(--omg-color-surface);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 18%);
+    color: var(--omg-color-brand);
+    transform: translateX(0);
+    transition: transform var(--omg-duration-fast) var(--omg-easing-standard);
+  }
+
+  &__spinner {
+    inline-size: calc(var(--omg-switch-thumb-size) - 4px);
+    block-size: calc(var(--omg-switch-thumb-size) - 4px);
+    animation: o-switch-spin 800ms linear infinite;
+    stroke-width: 2.25;
+  }
+
+  &__copy {
+    display: inline-flex;
+    min-inline-size: 0;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__text,
+  &__description {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  &__description {
+    color: var(--omg-color-text-muted);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  &.is-checked &__track {
+    background: var(--omg-color-brand);
+  }
+
+  &.is-checked &__thumb {
+    transform: translateX(var(--omg-switch-thumb-offset));
+  }
+
+  &.is-invalid &__track {
+    background: var(--omg-color-danger);
+  }
+
+  &.is-invalid &__thumb {
+    color: var(--omg-color-danger);
+  }
+
+  &:dir(rtl).is-checked &__thumb,
+  [dir='rtl'] &.is-checked &__thumb {
+    transform: translateX(calc(var(--omg-switch-thumb-offset) * -1));
+  }
+
+  &__input:focus-visible + &__label &__track {
+    outline: 3px solid var(--omg-color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  &:not(.is-disabled, .is-readonly, .is-loading, .is-invalid) &__label:hover &__track {
+    background: var(--omg-color-brand-border);
+  }
+
+  &.is-checked:not(.is-disabled, .is-readonly, .is-loading, .is-invalid) &__label:hover &__track {
+    background: var(--omg-color-brand-hover);
+  }
+
+  &.is-disabled {
+    opacity: 0.56;
+  }
+
+  &.is-loading {
+    opacity: 0.72;
+  }
+
+  &.is-disabled &__label,
+  &.is-loading &__label {
+    cursor: not-allowed;
+  }
+
+  &.is-readonly &__label {
+    cursor: default;
+  }
+}
+
+@keyframes o-switch-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+@media (pointer: coarse) {
+  .o-switch__label {
+    min-block-size: 44px;
+    align-items: center;
+  }
+
+  .o-switch__track {
+    margin-block-start: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .o-switch__track,
+  .o-switch__thumb {
+    transition: none;
+  }
+
+  .o-switch__spinner {
+    animation: none;
+  }
+}
