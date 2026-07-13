@@ -1,0 +1,73 @@
+.o-badge {
+  --omg-badge-background: var(--omg-color-danger);
+  --omg-badge-color: var(--omg-color-on-danger);
+
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.o-badge__marker {
+  display: inline-flex;
+  min-width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding-inline: 5px;
+  border-radius: var(--omg-radius-full);
+  background: var(--omg-badge-background);
+  box-shadow: var(--omg-shadow-sm);
+  color: var(--omg-badge-color);
+  font-family: inherit;
+  font-size: var(--omg-font-size-xs);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--omg-font-weight-bold);
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.o-badge__marker--dot {
+  width: 8px;
+  min-width: 8px;
+  height: 8px;
+  padding: 0;
+}
+
+.o-badge--with-content .o-badge__marker {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  z-index: 1;
+  transform: translate(50%, -50%);
+}
+
+.o-badge--with-content:dir(rtl) .o-badge__marker {
+  transform: translate(-50%, -50%);
+}
+
+.o-badge--neutral {
+  --omg-badge-background: var(--omg-color-neutral);
+  --omg-badge-color: var(--omg-color-on-neutral);
+}
+
+.o-badge--brand {
+  --omg-badge-background: var(--omg-color-brand);
+  --omg-badge-color: var(--omg-color-on-brand);
+}
+
+.o-badge--success {
+  --omg-badge-background: var(--omg-color-success);
+  --omg-badge-color: var(--omg-color-on-success);
+}
+
+.o-badge--warning {
+  --omg-badge-background: var(--omg-color-warning);
+  --omg-badge-color: var(--omg-color-on-warning);
+}
+
+.o-badge--danger {
+  --omg-badge-background: var(--omg-color-danger);
+  --omg-badge-color: var(--omg-color-on-danger);
+}

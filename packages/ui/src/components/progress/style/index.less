@@ -1,0 +1,99 @@
+.o-progress {
+  --omg-progress-track-size: 8px;
+  --omg-progress-color: var(--omg-color-brand);
+
+  display: grid;
+  inline-size: 100%;
+  min-inline-size: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--omg-space-2);
+  box-sizing: border-box;
+}
+
+.o-progress--sm {
+  --omg-progress-track-size: 4px;
+}
+
+.o-progress--success {
+  --omg-progress-color: var(--omg-color-success);
+}
+
+.o-progress--warning {
+  --omg-progress-color: var(--omg-color-warning);
+}
+
+.o-progress--error {
+  --omg-progress-color: var(--omg-color-danger);
+}
+
+.o-progress__track {
+  position: relative;
+  display: block;
+  min-inline-size: 0;
+  block-size: var(--omg-progress-track-size);
+  overflow: hidden;
+  border-radius: var(--omg-radius-full);
+  background: var(--omg-color-neutral-soft);
+}
+
+.o-progress__fill {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--omg-progress-color);
+  /* stylelint-disable-next-line custom-property-pattern -- private render-only value */
+  transform: scaleX(var(--o-progress-value, 0));
+  transform-origin: left center;
+  transition: transform var(--omg-duration-normal) var(--omg-easing-standard);
+  will-change: transform;
+}
+
+.o-progress__label {
+  color: var(--omg-color-text-muted);
+  font-size: var(--omg-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--omg-font-weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.o-progress--sm .o-progress__label {
+  font-size: var(--omg-font-size-xs);
+}
+
+.o-progress--indeterminate .o-progress__fill {
+  inline-size: 35%;
+  transform: translateX(-100%);
+  animation: o-progress-indeterminate 1.35s var(--omg-easing-standard) infinite;
+}
+
+.o-progress:dir(rtl) .o-progress__fill {
+  transform-origin: right center;
+}
+
+.o-progress--indeterminate:dir(rtl) .o-progress__fill {
+  animation-direction: reverse;
+}
+
+@keyframes o-progress-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(285.714%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .o-progress__fill {
+    transition: none;
+  }
+
+  .o-progress--indeterminate .o-progress__fill {
+    animation: none;
+    transform: none;
+  }
+}
