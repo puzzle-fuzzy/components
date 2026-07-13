@@ -1,12 +1,15 @@
 # 组件总览
 
-OMG UI 当前提供 23 个组件族、24 个公开 Vue 组件。所有组件仅面向 Vue 3，支持根入口与独立子入口导入，并共享 `O*` 命名、`.o-*` 样式类和 `--omg-*` 主题变量。
+OMG UI 当前提供 26 个组件族、27 个公开 Vue 组件。所有组件仅面向 Vue 3，支持根入口与独立子入口导入，并共享 `O*` 命名、`.o-*` 样式类和 `--omg-*` 主题变量。
 
 ## 基础与展示
 
 - [Button 按钮](/components/button)：动作、语气、尺寸与加载状态。
+- [Tag 标签](/components/tag)：语义色、软色/实色、图标与受控关闭意图。
+- [Badge 徽标](/components/badge)：计数、文本、圆点与逻辑方位组合。
+- [Progress 进度](/components/progress)：确定/不确定进度、显式状态与可访问标签。
 - [Divider 分割线](/components/divider)：水平、垂直、实线、虚线与可选内容。
-- [Image 图片](/components/image)：原生图片与基于 Dialog 的可访问预览。
+- [Image 图片](/components/image)：原生图片与组件自持的 Teleport 全屏预览层。
 - [Avatar 头像](/components/avatar)：图片、文字回退、颜色、状态与堆叠。
 - [Avatar Group 头像组](/components/avatar-group)：受控重叠距离与超出数量。
 - [Avatar Flow 头像流](/components/avatar-flow)：加载、已连接与传输中的连接状态。

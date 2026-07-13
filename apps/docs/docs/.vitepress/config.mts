@@ -36,6 +36,10 @@ const sourceAliases = useSource
         replacement: fromRepository('packages/ui/src/components/avatar-flow/index.ts'),
       },
       {
+        find: /^@puzzle-fuzzy\/ui\/badge$/,
+        replacement: fromRepository('packages/ui/src/components/badge/index.ts'),
+      },
+      {
         find: /^@puzzle-fuzzy\/ui\/code-input$/,
         replacement: fromRepository('packages/ui/src/components/code-input/index.ts'),
       },
@@ -76,6 +80,10 @@ const sourceAliases = useSource
         replacement: fromRepository('packages/ui/src/components/message/index.ts'),
       },
       {
+        find: /^@puzzle-fuzzy\/ui\/progress$/,
+        replacement: fromRepository('packages/ui/src/components/progress/index.ts'),
+      },
+      {
         find: /^@puzzle-fuzzy\/ui\/radio$/,
         replacement: fromRepository('packages/ui/src/components/radio/index.ts'),
       },
@@ -86,6 +94,10 @@ const sourceAliases = useSource
       {
         find: /^@puzzle-fuzzy\/ui\/select$/,
         replacement: fromRepository('packages/ui/src/components/select/index.ts'),
+      },
+      {
+        find: /^@puzzle-fuzzy\/ui\/tag$/,
+        replacement: fromRepository('packages/ui/src/components/tag/index.ts'),
       },
       {
         find: /^@puzzle-fuzzy\/ui\/tabs$/,
@@ -134,6 +146,9 @@ export default defineConfig({
         text: '基础与展示',
         items: [
           { text: 'Button 按钮', link: '/components/button' },
+          { text: 'Tag 标签', link: '/components/tag' },
+          { text: 'Badge 徽标', link: '/components/badge' },
+          { text: 'Progress 进度', link: '/components/progress' },
           { text: 'Divider 分割线', link: '/components/divider' },
           { text: 'Image 图片', link: '/components/image' },
           { text: 'Avatar 头像', link: '/components/avatar' },
