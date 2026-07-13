@@ -1,0 +1,108 @@
+.o-input-group {
+  display: flex;
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  box-sizing: border-box;
+  border: 1px solid var(--omg-color-border);
+  border-radius: var(--omg-radius-md);
+  background: var(--omg-color-surface);
+  color: var(--omg-color-text);
+  transition: border-color var(--omg-duration-fast) var(--omg-easing-standard);
+}
+
+.o-input-group:hover:not([data-disabled='true']) {
+  border-color: var(--omg-color-brand-border);
+}
+
+.o-input-group:focus-within {
+  border-color: var(--omg-color-focus-ring);
+}
+
+.o-input-group[data-invalid='true'],
+.o-input-group:has([aria-invalid='true']) {
+  border-color: var(--omg-color-danger);
+}
+
+.o-input-group[data-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.o-input-group > .o-input {
+  inline-size: auto;
+  min-inline-size: 7rem;
+  flex: 1 1 10rem;
+}
+
+.o-input-group > .o-textarea {
+  min-inline-size: 0;
+  flex: 1 1 100%;
+}
+
+.o-input-group .o-input__control,
+.o-input-group .o-input__control:hover,
+.o-input-group .o-input__control:has(.o-input__field:focus-visible),
+.o-input-group .o-textarea__field,
+.o-input-group .o-textarea__field:focus-visible,
+.o-input-group .o-textarea.is-invalid .o-textarea__field,
+.o-input-group .o-textarea.is-invalid .o-textarea__field:focus-visible {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.o-input-group__addon {
+  display: inline-flex;
+  min-inline-size: 0;
+  min-block-size: var(--omg-control-height-md);
+  flex: none;
+  align-items: center;
+  gap: var(--omg-space-2);
+  box-sizing: border-box;
+  padding-inline: var(--omg-space-3);
+  color: var(--omg-color-text-muted);
+  font-size: var(--omg-font-size-sm);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.o-input-group__addon[data-align='block-start'],
+.o-input-group__addon[data-align='block-end'] {
+  inline-size: 100%;
+  min-block-size: auto;
+  flex-basis: 100%;
+  padding-block: var(--omg-space-2);
+}
+
+.o-input-group__text {
+  display: inline-flex;
+  min-inline-size: 0;
+  align-items: center;
+  color: inherit;
+  overflow-wrap: anywhere;
+}
+
+.o-input-group__button.o-button {
+  min-block-size: calc(var(--omg-control-height-sm) - var(--omg-space-1));
+  margin: var(--omg-space-1);
+  border: 0;
+  border-radius: var(--omg-radius-sm);
+  box-shadow: none;
+}
+
+.o-input-group__addon > svg,
+.o-input-group__text > svg {
+  inline-size: var(--omg-space-4);
+  block-size: var(--omg-space-4);
+  flex: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .o-input-group {
+    transition: none;
+  }
+}

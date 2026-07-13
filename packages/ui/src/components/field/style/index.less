@@ -1,0 +1,107 @@
+.o-field {
+  display: grid;
+  min-inline-size: 0;
+  gap: var(--omg-space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--omg-color-text);
+
+  &[data-orientation='horizontal'] {
+    grid-template-columns: minmax(7rem, 0.36fr) minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--omg-space-4);
+  }
+
+  &[data-disabled='true'] {
+    color: var(--omg-color-text-muted);
+  }
+}
+
+.o-field__label,
+.o-field__title,
+.o-field__description,
+.o-field__error,
+.o-field__content,
+.o-field-legend {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.o-field__label,
+.o-field__title,
+.o-field-legend {
+  font-size: var(--omg-font-size-sm);
+  font-weight: var(--omg-font-weight-semibold);
+  line-height: 1.4;
+}
+
+.o-field__content {
+  display: grid;
+  gap: var(--omg-space-2);
+}
+
+.o-field__description,
+.o-field__error {
+  margin: 0;
+  font-size: var(--omg-font-size-sm);
+  line-height: 1.5;
+}
+
+.o-field__description {
+  color: var(--omg-color-text-muted);
+}
+
+.o-field__description[data-disabled='true'] {
+  opacity: 0.72;
+}
+
+.o-field__error,
+.o-field__label[data-invalid='true'] {
+  color: var(--omg-color-danger);
+}
+
+.o-field__error-list {
+  display: grid;
+  gap: var(--omg-space-1);
+  margin: 0;
+  padding-inline-start: 1.2em;
+}
+
+.o-field-group {
+  display: grid;
+  min-inline-size: 0;
+  gap: var(--omg-space-5);
+  container-name: o-field-group;
+  container-type: inline-size;
+}
+
+.o-field-set {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.o-field-set[data-disabled='true'] {
+  color: var(--omg-color-text-muted);
+}
+
+.o-field-legend {
+  margin-block-end: var(--omg-space-3);
+  padding: 0;
+  color: var(--omg-color-text);
+}
+
+.o-field-legend[data-variant='legend'] {
+  font-size: var(--omg-font-size-lg);
+}
+
+@container o-field-group (min-width: 36rem) {
+  .o-field[data-orientation='responsive'] {
+    grid-template-columns: minmax(7rem, 0.36fr) minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--omg-space-4);
+  }
+}

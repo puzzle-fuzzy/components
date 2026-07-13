@@ -1,0 +1,24 @@
+.o-label {
+  display: inline-flex;
+  min-inline-size: 0;
+  align-items: baseline;
+  gap: var(--omg-space-1);
+  border: 0;
+  color: var(--omg-color-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--omg-font-size-sm);
+  font-weight: var(--omg-font-weight-semibold);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+
+  &[data-disabled='true'] {
+    color: var(--omg-color-text-muted);
+    cursor: not-allowed;
+  }
+
+  &__required {
+    flex: none;
+    color: var(--omg-color-danger);
+  }
+}
